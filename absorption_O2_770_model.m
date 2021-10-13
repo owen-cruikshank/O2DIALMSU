@@ -66,6 +66,7 @@ for i = 1:length(O2_parameters)                     %loop over all line paramete
     gamma_D = O2_parameters(i,7);                   %[1/cm]self (Doppler) broadened linewidth
     gamma_D = gamma_D * 100;                        %[1/m]
     delta_air = O2_parameters(i,10);                %[1/cm/atm] pressure shift induce by air, at p=1atm
+    %delta_air = 0;
     %delta_air = -0.0093; %override
     %delta_air = -0.013; %override
     %delta_air = -0.02; %override

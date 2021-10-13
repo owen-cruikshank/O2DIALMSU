@@ -27,18 +27,33 @@ No = 2.47937E25;            %[1/m^3] Loschmidt's number  (referenced to 296 K an
 disp('Reading in files')
  
 %Read data from MSU DIAL
-date_start = datetime(2020,12,25,'TimeZone','UTC');%yyyy,mm,dd
-date_end   = datetime(2020,12,25,'TimeZone','UTC');%yyyy,mm,dd
+date_start = datetime(2021,3,28,'TimeZone','UTC');%yyyy,mm,dd
+date_start = datetime(2021,4,3,'TimeZone','UTC');%yyyy,mm,dd
+date_end = date_start;
+%date_end   = datetime(2020,10,8,'TimeZone','UTC');%yyyy,mm,dd
 span_days = date_start:date_end;
 
 
-path = 'C:\Users\d98b386\OneDrive - Montana State University - Bozeman\research s19\o2DIAL_data';
-path = 'D:\Owen\OneDrive - Montana State University - Bozeman\research s19\o2DIAL_data';
-%path = 'C:\Users\Owen C\OneDrive - Montana State University - Bozeman\research s19\o2DIAL_data';
+cd ../
+path = [pwd '\Data\'];
+cd ../../../
+homepath = pwd;
+sondepath = [pwd '\Box\Radiosondes\Data\All Data\'];
 
-sondepath = 'C:\Users\d98b386\Box\Radiosondes\Data\All Data\';
-sondepath = 'D:\Owen\Box\Radiosondes\Data\All Data\';
-%sondepath = 'C:\Users\Owen C\Box\Radiosondes\Data\All Data\';
+
+%sondepath = 'C:\Users\d98b386\Box\Radiosondes\Data\All Data\';
+%sondepath = 'C:\Users\oencr\Box\Radiosondes\Data\All Data\';
+
+%cd( '.\OneDrive - Montana State University - Bozeman\Research\O2 DIAL\analysis')
+cd( '.\OneDrive - Montana State University\Research\O2 DIAL\analysis')
+
+% path = 'C:\Users\d98b386\OneDrive - Montana State University - Bozeman\research s19\o2DIAL_data';
+% %path = 'D:\Owen\OneDrive - Montana State University - Bozeman\research s19\o2DIAL_data';
+% %path = 'C:\Users\Owen C\OneDrive - Montana State University - Bozeman\research s19\o2DIAL_data';
+% 
+% sondepath = 'C:\Users\d98b386\Box\Radiosondes\Data\All Data\';
+% %sondepath = 'D:\Owen\Box\Radiosondes\Data\All Data\';
+% %sondepath = 'C:\Users\Owen C\Box\Radiosondes\Data\All Data\';
 
 %%
 %load data
@@ -99,12 +114,17 @@ disp('Loading weather Station Data')
 %[weather_Temperature_interp, weather_absPressure_interp, weather_WV_interp] = ORSLweatherv2(span_days,ts,path);
 [weather_Temperature_interp, weather_absPressure_interp, weather_WV_interp] = ORSLweatherv3(span_days,ts,path);
 
+% [weather_Temperature_interp, weather_absPressure_interp, weather_WV_interp] = wunderWeather(span_days,ts,path);
+% weather_Temperature_interp = weather_Temperature_interp+10;
 
 %Use if there is no data from weather station
 % weather_Temperature_interp = ones(1,length(ts))*(17);
 % weather_absPressure_interp = ones(1,length(ts))*1013.25;
 % weather_absPressure_interp = ones(1,length(ts))*850;
  weather_WV_interp = zeros(1,length(ts));
+ 
+ %weather_Temperature_interp = 272.310000000000*ones(1,length(ts)) -273.15;
+ %weather_absPressure_interp = 0.836910930175179*ones(1,length(ts)).* 1013.25;
 
 %old weather
 %%%%%%%%[weather_Temperature_interp, weather_absPressure_interp, weather_WV_interp] = ORSLweather(span_days,ts,path);
@@ -115,8 +135,6 @@ disp('Loading weather Station Data')
 disp('Loading Sonde data')
 
 [sonde_datetime,sondeStruc] =  COBradiosonde(sondepath,span_days);
-
-%Ts = weather_Temperature_interp + 273.15;
 
 
 for i = 1:numel(sonde_datetime)
@@ -134,7 +152,8 @@ for i = 1:numel(sonde_datetime)
         % Convert datetimes from cells to vector
         %datetime_sgp(i) = datetime_sgp_cell{i};
         % Custom interpolation function
-        [T_sonde_int{i},P_sonde_int{i},rm_sonde_int{i}] = interp_sonde(sondeStruc(i).T,sondeStruc(i).P,rm_sgp{i},rangeBin);
+        %[T_sonde_int{i},P_sonde_int{i},WV_sonde_int{i},rm_sonde_int{i}] = interp_sonde(sondeStruc(i).T,sondeStruc(i).P,sondeStruc(i).WV,rm_sgp{i},rangeBin);
+        [T_sonde_int{i},P_sonde_int{i},WV_sonde_int{i},rm_sonde_int{i}] = interp_sonde2(sondeStruc(i).T,sondeStruc(i).P,sondeStruc(i).WV,rm_sgp{i},rangeBin);
         
         if length(T_sonde_int{i})<length(rm)
             disp('ran')
@@ -142,9 +161,12 @@ for i = 1:numel(sonde_datetime)
             T_sonde(length(T_sonde_int{i})+1:length(rm),i)=nan(length(rm)-length(T_sonde_int{i}),1);
             P_sonde(1:length(T_sonde_int{i}),i) = P_sonde_int{i};
             P_sonde(length(P_sonde_int{i})+1:length(rm),i)=nan(length(rm)-length(P_sonde_int{i}),1);
+            WV_sonde(1:length(T_sonde_int{i}),i) = WV_sonde_int{i};
+            WV_sonde(length(WV_sonde_int{i})+1:length(rm),i)=nan(length(rm)-length(WV_sonde_int{i}),1);
         else
             T_sonde(:,i) = T_sonde_int{i}(1:length(rm));
             P_sonde(:,i) = P_sonde_int{i}(1:length(rm));
+            WV_sonde(:,i) = WV_sonde_int{i}(1:length(rm));
         end
 %         rm_sonde(:,i) = rm_sonde_int{i};
 %         T_sonde(:,i) = T_sonde_int{i};
@@ -154,6 +176,9 @@ for i = 1:numel(sonde_datetime)
         [rm_sgp{i},IA,IC] = unique(rm_sgp{i});
         sonde_time(1:length(rm_sonde_int{i}),i) = interp1(rm_sgp{i},sondeStruc(i).time(IA),rm_sonde_int{i})';
         
+        if length(sonde_time) < length(rm)
+            sonde_time = [sonde_time; sonde_time(end).*ones(length(rm)-length(sonde_time),1)];
+        end
 
          %Find index of sonde in time vector
          for j = 1:length((rm))
@@ -257,23 +282,27 @@ o2off_noise_mol = interp2(ts,rm_raw_o2,o2off_bgsub_mol,ts,rm);
 o2off_noise_mol = fillmissing(o2off_noise_mol,'nearest',1);
 o2off_noise_mol = fillmissing(o2off_noise_mol,'nearest',2);
 
-
-
-%load('newoverlapFile.mat')
-%o2on_noise_mol = o2on_noise_mol .* overlapcorrection(1:i_range)';
-%o2on_noise = o2on_noise + o2on_noise_mol;
-
 %%
 % --- O2 Filtering  ---
 
 % Minutes to average data over
-t_avg = 30;                     %[min]
+t_avg = 31;                     %[min]
 
 % Range oversample
-oversample = 8;                 %[bins] Oversample must be even
+oversample = 9;                 %[bins] Oversample must be even
 
-%oversample = 2;
-%t_avg = 10;
+oversample = 7;
+t_avg = 45;
+
+oversample = 7;
+%oversample = 3;
+t_avg = 21;
+
+oversample = 1;
+t_avg = 31;
+
+% oversample = 3;
+% t_avg = 1;
 
 % Moving average in time and range
 % Replicate edges to prevent problems caused by zero padding
@@ -305,36 +334,40 @@ k = ones(oversample,t_avg)./(oversample*t_avg);     % Kernel
 % o2off_noise_mol(o2off_noise_mol<0) = 0;
 
 % Online
-o2on_noise_pad = padarray(o2on_noise,[oversample/2,t_avg/2],'replicate');
-o2on_filt = filter2(k,o2on_noise_pad,'valid');
-%o2on_filt = o2on_noise;
-%o2on = interp2(ts-t_step/2,rm-rangeBin/2,o2on_filt,ts,rm);
-o2on = interp2(ts-t_step/2,rm-rangeBin/2,o2on_filt(1:end-1,1:end-1),ts,rm);
+% % o2on_noise_pad = padarray(o2on_noise,[oversample/2,t_avg/2],'replicate');
+% % o2on_filt = filter2(k,o2on_noise_pad,'valid');
+% % %o2on_filt = o2on_noise;
+% % %o2on = interp2(ts-t_step/2,rm-rangeBin/2,o2on_filt,ts,rm);
+% % o2on = interp2(ts-t_step/2,rm-rangeBin/2,o2on_filt(1:end-1,1:end-1),ts,rm);
+o2on = filter2(k,o2on_noise,'same');
 o2on = fillmissing(o2on,'nearest',1); % Fill in NaNs in dimension 1
 o2on = fillmissing(o2on,'nearest',2); % Fill in NaNs in dimension 2
 
-o2on_noise_pad_mol = padarray(o2on_noise_mol,[oversample/2,t_avg/2],'replicate');
-o2on_filt_mol = filter2(k,o2on_noise_pad_mol,'valid');
-%o2on_filt_mol = o2on_noise_mol;
-%o2on_mol = interp2(ts-t_step/2,rm-rangeBin/2,o2on_filt_mol,ts,rm);
-o2on_mol = interp2(ts-t_step/2,rm-rangeBin/2,o2on_filt_mol(1:end-1,1:end-1),ts,rm);
+% % o2on_noise_pad_mol = padarray(o2on_noise_mol,[oversample/2,t_avg/2],'replicate');
+% % o2on_filt_mol = filter2(k,o2on_noise_pad_mol,'valid');
+% % %o2on_filt_mol = o2on_noise_mol;
+% % %o2on_mol = interp2(ts-t_step/2,rm-rangeBin/2,o2on_filt_mol,ts,rm);
+% % o2on_mol = interp2(ts-t_step/2,rm-rangeBin/2,o2on_filt_mol(1:end-1,1:end-1),ts,rm);
+o2on_mol = filter2(k,o2on_noise_mol,'same');
 o2on_mol = fillmissing(o2on_mol,'nearest',1); % Fill in NaNs in dimension 1
 o2on_mol = fillmissing(o2on_mol,'nearest',2); % Fill in NaNs in dimension 2
 
 % Offline
-o2off_noise_pad = padarray(o2off_noise,[oversample/2,t_avg/2],'replicate');
-o2off_filt = filter2(k,o2off_noise_pad,'valid');
-%o2off_filt = o2off_noise;
-%o2off = interp2(ts-t_step/2,rm-rangeBin/2,o2off_filt,ts,rm);
-o2off = interp2(ts-t_step/2,rm-rangeBin/2,o2off_filt(1:end-1,1:end-1),ts,rm);
+% % o2off_noise_pad = padarray(o2off_noise,[oversample/2,t_avg/2],'replicate');
+% % o2off_filt = filter2(k,o2off_noise_pad,'valid');
+% % %o2off_filt = o2off_noise;
+% % %o2off = interp2(ts-t_step/2,rm-rangeBin/2,o2off_filt,ts,rm);
+% % o2off = interp2(ts-t_step/2,rm-rangeBin/2,o2off_filt(1:end-1,1:end-1),ts,rm);
+o2off = filter2(k,o2off_noise,'same');
 o2off = fillmissing(o2off,'nearest',1); % Fill in NaNs in dimension 1
 o2off = fillmissing(o2off,'nearest',2); % Fill in NaNs in dimension 2
 
-o2off_noise_pad_mol = padarray(o2off_noise_mol,[oversample/2,t_avg/2],'replicate');
-o2off_filt_mol = filter2(k,o2off_noise_pad_mol,'valid');
-%o2off_filt_mol = o2off_noise_mol;
-%o2off_mol = interp2(ts-t_step/2,rm-rangeBin/2,o2off_filt_mol,ts,rm);
-o2off_mol = interp2(ts-t_step/2,rm-rangeBin/2,o2off_filt_mol(1:end-1,1:end-1),ts,rm);
+% % o2off_noise_pad_mol = padarray(o2off_noise_mol,[oversample/2,t_avg/2],'replicate');
+% % o2off_filt_mol = filter2(k,o2off_noise_pad_mol,'valid');
+% % %o2off_filt_mol = o2off_noise_mol;
+% % %o2off_mol = interp2(ts-t_step/2,rm-rangeBin/2,o2off_filt_mol,ts,rm);
+% % o2off_mol = interp2(ts-t_step/2,rm-rangeBin/2,o2off_filt_mol(1:end-1,1:end-1),ts,rm);
+o2off_mol = filter2(k,o2off_noise_mol,'same');
 o2off_mol = fillmissing(o2off_mol,'nearest',1); % Fill in NaNs in dimension 1
 o2off_mol = fillmissing(o2off_mol,'nearest',2); % Fill in NaNs in dimension 2
 
@@ -349,21 +382,38 @@ o2off_mol = fillmissing(o2off_mol,'nearest',2); % Fill in NaNs in dimension 2
 % o2on_mol = o2on_noise_mol;
 % o2off_mol = o2off_noise_mol;
 
+%convert to log rang
+% o2off_noise = log(o2off_noise.*rm.^2);
+% o2on_noise = log(o2on_noise.*rm.^2);
+% o2off_noise_mol = log(o2off_noise_mol.*rm.^2);
+% o2on_noise_mol = log(o2on_noise_mol.*rm.^2);
+
 %sgolay filtering test
-% order = 5;
-% o2off_sg = sgolayfilt(o2off_noise, order, t_avg+1,[],2);
-% o2off = sgolayfilt(o2off_sg, order, oversample+1,[],1);
-% o2off(o2off<0)=0;
+% % % order = 0;
+% % % o2off_sg = sgolayfilt(o2off_noise, order, t_avg+1,[],2);
+% % % o2off = sgolayfilt(o2off_sg, order, oversample+1,[],1);
+% % % o2off(o2off<0)=0;
+% % % 
+% % % o2off_sg_mol = sgolayfilt(o2off_noise_mol, order, t_avg+1,[],2);
+% % % o2off_mol = sgolayfilt(o2off_sg_mol, order, oversample+1,[],1);
+% % % o2off_mol(o2off_mol<0)=0;
+% % % o2on_sg = sgolayfilt(o2on_noise, order, t_avg+1,[],2);
+% % % o2on = sgolayfilt(o2on_sg, order, oversample+1,[],1);
+% % % o2on(o2on<0)=0;
+% % % o2on_sg_mol = sgolayfilt(o2on_noise_mol, order, t_avg+1,[],2);
+% % % o2on_mol = sgolayfilt(o2on_sg_mol, order, oversample+1,[],1);
+% % % o2on_mol(o2on_mol<0)=0;
+
+
+% o2off = exp(o2off)./rm.^2;
+% o2on = exp(o2on)./rm.^2;
+% o2off_mol = exp(o2off_mol)./rm.^2;
+% o2on_mol = exp(o2on_mol)./rm.^2;
 % 
-% o2off_sg_mol = sgolayfilt(o2off_noise_mol, order, t_avg+1,[],2);
-% o2off_mol = sgolayfilt(o2off_sg_mol, order, oversample+1,[],1);
-% o2off_mol(o2off_mol<0)=0;
-% o2on_sg = sgolayfilt(o2on_noise, order, t_avg+1,[],2);
-% o2on = sgolayfilt(o2on_sg, order, oversample+1,[],1);
-% o2on(o2on<0)=0;
-% o2on_sg_mol = sgolayfilt(o2on_noise_mol, order, t_avg+1,[],2);
-% o2on_mol = sgolayfilt(o2on_sg_mol, order, oversample+1,[],1);
-% o2on_mol(o2on_mol<0)=0;
+% o2off_noise = exp(o2off_noise)./rm.^2;
+% o2on_noise = exp(o2on_noise)./rm.^2;
+% o2off_noise_mol = exp(o2off_noise_mol)./rm.^2;
+% o2on_noise_mol = exp(o2on_noise_mol)./rm.^2;
 
 
 %%
@@ -394,19 +444,17 @@ SNR_threshold = 2;
 SD_threshold = 6*10^9;
 SD_threshold = 10*10^8;
 SD_threshold = 1*10^9;
+SD_threshold = 5*10^8;
+%SD_threshold = 1*10^8;
 %SD_threshold = 5*10^12;
-%[SNRm , cloud_SDm_above, cloud_SDm,o2on_SNR] = mask_O2(o2on,o2off,rm,ts,cloud_p_point,SNR_threshold,SD_threshold,oversample,t_avg/2-1);
 [SNRm , cloud_SDm_above, cloud_SDm,o2on_SNR] = mask_O2(o2on,o2off,rm,ts,cloud_p_point,SNR_threshold,SD_threshold,oversample,t_avg);
-
-
-
 
 %%
 disp('Calculating model')
 
 % Calculating temperature and pressure model
 
-Ts = weather_Temperature_interp + 273.15;          %surface temperature from weather station [K]
+Ts = weather_Temperature_interp + 273.15 ;          %surface temperature from weather station [K]
 Ps = weather_absPressure_interp / 1013.25;         %absolute surface pressure from weather station [atm]
 
 
@@ -425,9 +473,28 @@ Pws = exp(77.3450+0.0057.*T-7235./T)./T.^8.2;
 %WV = weather_WV_interp.*0.0022.*Pws./T./100;
 WV = weather_WV_interp.*Pws./T./100/kb;%water vapror molc/m^3
 
+
+%%%%%%%WV = ones(i_range,i_time).*WV_sonde(:,1);
+
+
 %WV=WV;%.*50;
 
 %WV(:,:)=0;
+%%
+
+% for ii = 1:2
+%     fprintf('Large Loop %d\n',ii)
+%     if ii>1
+%         for iii =1:i_range
+%             for jjj =1:i_time
+%                 if ~isnan(T_finalm(iii,jjj))
+%                     T(iii,jjj) = T_finalm(iii,jjj);
+%                 end
+%             end
+%         end
+%     end
+    
+   
 %%
 % Use ncar reanalysis data
 %bozeman lat and longitude
@@ -557,10 +624,63 @@ if span_days(1)<datetime(2020,10,6,'TimeZone','UTC')
     load('overlap.mat')
     overlapcorrection = interp1(rm_raw_o2,Correction,rm);
     [Bm,Ba,BR]= BackscatterRatioV3(ts,rm,o2off./overlapcorrection,o2off_mol,T,P,lambda_offline);
+    
+    %BR = interp2(ts,rm+50,BR,ts,rm,'nearest',1);
+    
+        elseif span_days(1)>=datetime(2021,3,12,'TimeZone','UTC')
+    %addpath '\BSR retrieval'
+    %load('Overlap0304.mat')
+    %LidarData.OfflineCombinedAverageCounts = o2off./overlapcorrection;
+    LidarData.Range = rm;
+    LidarData.Time = ts;
+    LidarData.OfflineCombinedAverageCounts = o2off;
+    LidarData.OfflineMolecularAverageCounts = o2off_mol;
+    WeatherData.Temperature = T;
+    WeatherData.Pressure = P;
+    [LidarData]=BackscatterRetrievalRayleighBrillouin0312(LidarData,WeatherData);
+    BR = LidarData.BackscatterRatio;
+    
+    
+    elseif span_days(1)>datetime(2021,2,20,'TimeZone','UTC')
+    %addpath '\BSR retrieval'
+    %load('Overlap0304.mat')
+    %LidarData.OfflineCombinedAverageCounts = o2off./overlapcorrection;
+    LidarData.Range = rm;
+    LidarData.Time = ts;
+    LidarData.OfflineCombinedAverageCounts = o2off;
+    LidarData.OfflineMolecularAverageCounts = o2off_mol;
+    WeatherData.Temperature = T;
+    WeatherData.Pressure = P;
+    [LidarData]=BackscatterRetrievalRayleighBrillouin(LidarData,WeatherData);
+    BR = LidarData.BackscatterRatio;
+    
+elseif span_days(1)>datetime(2021,1,28,'TimeZone','UTC')
+        load('Overlap1104.mat')
+    overlapcorrection = interp1(rm_raw_o2,overlapcorrection,rm);
+    %[Bm,Ba,BR]= BackscatterRetrievalRayleigh(ts,rm,o2off./overlapcorrection,o2off_mol,T,P,lambda_offline);
+    LidarData.OfflineCombinedAverageCounts = o2off./overlapcorrection;
+    LidarData.OfflineMolecularAverageCounts = o2off_mol;
+    WeatherData.Temperature = T;
+    WeatherData.Pressure = P;
+    [LidarData]=BackscatterRetrieval_2_10_21(LidarData,WeatherData);
+    BR = LidarData.BackscatterRatio;
+        
+
+
 else
     load('Overlap1006.mat')
     overlapcorrection = interp1(rm_raw_o2,overlapcorrection,rm);
     [Bm,Ba,BR]= BackscatterRatioV4(ts,rm,o2off./overlapcorrection,o2off_mol,T,P,lambda_offline);
+
+    load('Overlap1104.mat')
+    overlapcorrection = interp1(rm_raw_o2,overlapcorrection,rm);
+    %[Bm,Ba,BR]= BackscatterRetrievalRayleigh(ts,rm,o2off./overlapcorrection,o2off_mol,T,P,lambda_offline);
+    LidarData.OfflineCombinedAverageCounts = o2off./overlapcorrection;
+    LidarData.OfflineMolecularAverageCounts = o2off_mol;
+    WeatherData.Temperature = T;
+    WeatherData.Pressure = P;
+    [LidarData]=BackscatterRetrieval(LidarData,WeatherData);
+    BR = LidarData.BackscatterRatio;
 end
 
 % Averaging
@@ -572,7 +692,11 @@ end
 
 %BR=smoothdata(BR,1,'g',30);
 
+
+%BSR = interp2(ts,rm,BR,ts,rm-3*rangeBin,'spline');
 BSR = BR;
+
+%BSR = 1.15*BSR;
 
 %make upper BSR=1
 % % BSRmeanEnd=mean(BSR(end-20,end),1);
@@ -621,27 +745,53 @@ disp('Calculating absorption')
  alpha_0_raw = ln_o2./2./(rangeBin*oversample);                              %[1/m] 
 % % % alpha_0_raw = ln_o2./2./(rangeBin);                              %[1/m] 
 
+alpha_0 = interp2(ts,rm(ind_r_lo),alpha_0_raw,ts,rm);
+
 % --- Filter alpha_0 ---
 % % Savitzky-Golay filtering
 % alpha_0_sgfilt = sgolayfilt(alpha_0_raw, 1, 2*oversample+1);
 
 % Moving average
-alpha_0_pad = padarray(alpha_0_raw,[oversample/2,t_avg/2],'replicate');
-alpha_0_filt = filter2(k,alpha_0_pad,'valid');
-%%%alpha_0 = interp2(ts-t_step/2,rm(ind_r_lo)-rangeBin/2-rangeBin*oversample/2,alpha_0_filt(1:end-1,1:end-1),ts,rm);
-alpha_0 = interp2(ts-t_step/2,rm(ind_r_lo)-rangeBin/2,alpha_0_filt(1:end-1,1:end-1),ts,rm);
-%alpha_0 = interp2(ts,rm(ind_r_lo),alpha_0_raw,ts,rm);
-alpha_0 = fillmissing(alpha_0,'nearest',1);                                 % Fill in NaNs in dimension 1
-alpha_0 = fillmissing(alpha_0,'nearest',2);                                 % Fill in NaNs in dimension 2
-%alpha_0(alpha_0==Inf | alpha_0==-Inf) = 0;
+% % % alpha_0_pad = padarray(alpha_0_raw,[oversample/2,t_avg/2],'replicate');
+% % % alpha_0_filt = filter2(k,alpha_0_pad,'valid');
+% % % %%%alpha_0 = interp2(ts-t_step/2,rm(ind_r_lo)-rangeBin/2-rangeBin*oversample/2,alpha_0_filt(1:end-1,1:end-1),ts,rm);
+% % % alpha_0 = interp2(ts-t_step/2,rm(ind_r_lo)-rangeBin/2,alpha_0_filt(1:end-1,1:end-1),ts,rm);
+% % % %alpha_0 = interp2(ts,rm(ind_r_lo),alpha_0_raw,ts,rm);
+% % % alpha_0 = fillmissing(alpha_0,'nearest',1);                                 % Fill in NaNs in dimension 1
+% % % alpha_0 = fillmissing(alpha_0,'nearest',2);                                 % Fill in NaNs in dimension 2
+% % % %alpha_0(alpha_0==Inf | alpha_0==-Inf) = 0;
 
-%%
-%alpha zero correction for out of laser line power transmission
-% % % P_ase = 0.5;
-% % % OD = absorption .* rm;
-% % % d_alpha = alpha_0 * P_ase ./ (P_ase+(1-P_ase).*exp(-OD));
-% % % 
-% % % alpha_0 = alpha_0 + d_alpha;
+
+% % % %     disp('SG derivative')
+% % % %     int_der = -log(o2on)+log(o2off);
+% % % %     tic
+% % % %     [b,g] = sgolay(2,oversample);
+% % % %     parfor j=1:i_time
+% % % %         alpha_0(:,j) = conv(int_der(:,j), factorial(1)/(-rangeBin)^1 * g(:,2), 'same')/2;
+% % % %     end
+% % % %     toc
+% % % %     
+% % % %     %alpha 0 mol
+% % % % 
+% % % %     int_der = -log(o2on_mol)+log(o2off_mol);
+% % % %     tic
+% % % %     [b,g] = sgolay(2,oversample);
+% % % %     parfor j=1:i_time
+% % % %         alpha_0_mol(:,j) = conv(int_der(:,j), factorial(1)/(-rangeBin)^1 * g(:,2), 'same')/2;
+% % % %     end
+% % % %     
+% % % %  
+% % % %     o2off_mol_corr =o2off_mol.*BSR;
+% % % %     int_der = -log(o2on_mol)+log(o2off_mol_corr);
+% % % %     tic
+% % % %     [b,g] = sgolay(2,oversample);
+% % % %     parfor j=1:i_time
+% % % %         alpha_0_mol_corr(:,j) = conv(int_der(:,j), factorial(1)/(-rangeBin)^1 * g(:,2), 'same')/2;
+% % % %     end
+% % % %     alpha_0_mol_corr = real(alpha_0_mol_corr);
+    
+    %alpha_0 = (alpha_0+alpha_0_mol_corr)/2;
+    %alpha_0 = (.8*alpha_0+0.2*alpha_0_mol_corr);
 
 
 %%
@@ -667,11 +817,11 @@ alpha_0 = fillmissing(alpha_0,'nearest',2);                                 % Fi
 
 
 % % ------ fitting alpha zero ---------
-alpha_0_fit = zeros(i_range,i_time);
- for i = 1:i_time
-     alpha_0_fit_obj = fit(rm(26:106,1),alpha_0(26:106,i),'poly1');
-     alpha_0_fit(:,i) = alpha_0_fit_obj(rm);
- end
+% alpha_0_fit = zeros(i_range,i_time);
+%  for i = 1:i_time
+%      alpha_0_fit_obj = fit(rm(26:106,1),alpha_0(26:106,i),'poly1');
+%      alpha_0_fit(:,i) = alpha_0_fit_obj(rm);
+%  end
 
 %--first order--
  
@@ -710,166 +860,166 @@ T_etalon_on = double(interp1(double(OnlineWavelength)*10^9,OnlineCombinedTransmi
 T_etalon_off = double(interp1(double(OfflineWavelength)*10^9,OfflineCombinedTransmittance,lambda_scan_3D_short_off));
 %%
 
-% --- Spectral distribution using the initial temperature profile guess ---
-% c_doppler_O2 = m_air*c^2./(8*(nu_online*100).^2*kb);                   %[m^2 K] Doppler coefficient
-% doppler_O2_un_ret = ((c_doppler_O2./T/pi).^0.5).*exp(-c_doppler_O2.*(nu_online*100-nu_scan_3D_short*100).^2./T); %[m] Doppler broadended lineshape      
-% c_doppler_O2_off = m_air*c^2./(8*(nu_offline*100).^2*kb);                   %[m^2 K] Doppler coefficient
-% doppler_O2_un_ret_off = ((c_doppler_O2_off./T/pi).^0.5).*exp(-c_doppler_O2_off.*(nu_offline*100-nu_scan_3D_short_off*100).^2./T); %[m] Doppler broadended lineshape    
-
-cB = 1.2;%Brullouion correction to doppler gaussian half width
-%cB = 1;%Brullouion correction to doppler gaussian half width
-
-cB = -0.01*(rkm+1.5) + 1.2;%Brullouin correction for 1.2 at 0km and 1.1 at 10km
-%cB=1;
-
-c_doppler_O2 = m_air*c^2./(8*(nu_online*100).^2*kb);                   %[m^2 K] Doppler coefficient
-doppler_O2_un_ret = ((c_doppler_O2./T/pi).^0.5).*exp(-c_doppler_O2.*(nu_online*100-nu_scan_3D_short*100).^2./T./cB.^2); %[m] Doppler broadended lineshape         
-c_doppler_O2_off = m_air*c^2./(8*(nu_offline*100).^2*kb);                   %[m^2 K] Doppler coefficient
-doppler_O2_un_ret_off = ((c_doppler_O2_off./T/pi).^0.5).*exp(-c_doppler_O2_off.*(nu_offline*100-nu_scan_3D_short_off*100).^2./T./cB.^2); %[m] Doppler broadended lineshape    
-
-
-
-% c_doppler_O2 = m_air*c^2./(8*pi*(nu_online*100).^2*kb);                   %[m^2 K] Doppler coefficient
-% doppler_O2_un_ret = ((c_doppler_O2./T).^0.5).*exp(-c_doppler_O2.*(nu_online*100-nu_scan_3D_short*100).^2./T); %[m] Doppler broadended lineshape     
-norm_O2_ret = trapz(doppler_O2_un_ret,3).*nuBin*100;                   %[none] Lineshape integral
-doppler_O2_ret = doppler_O2_un_ret./norm_O2_ret;                       %[m] Normalized doppler lineshape
-
-norm_O2_ret_off = trapz(doppler_O2_un_ret_off,3).*nuBin*100;                   %[none] Lineshape integral
-doppler_O2_ret_off = doppler_O2_un_ret_off./norm_O2_ret;                       %[m] Normalized doppler lineshape
-
-% Check if doppler_o2_ret is normalized to 1 when integrated across frequency
-doppler_o2_ret_check = trapz(doppler_O2_ret,3).*nuBin*100;              %[none]
-doppler_o2_ret_check_off = trapz(doppler_O2_ret_off,3).*nuBin*100;
-
-% --- Backscatter Lineshape g ---
-g1_m_on = 1./BSR .* doppler_O2_ret;%.*nuBin*100;                         %[m] Molecular backscatter lineshape
-g1_m_off = 1./BSR .* doppler_O2_ret_off;%.*nuBin*100;                         %[m] Molecular backscatter lineshape
-g1_a_on = zeros(i_range,i_time,i_scan_3D_short);                       % Initalize aerosol lineshape
-g1_a_off = zeros(i_range,i_time,i_scan_3D_short);                       % Initalize aerosol lineshape
-for i = 1:i_time
-    g1_a_on(:,i,online_index(i)) = (1 - 1./BSR(:,i)) / nuBin / 100 ; %[m] aerosol backscatter lineshape
-    g1_a_off(:,i,offline_index(i)) = (1 - 1./BSR(:,i)) / nuBin / 100 ; %[m] aerosol backscatter lineshape
-end
-g1 = g1_a_on + g1_m_on;                                                   %[m] Combined backscatter lineshape
-g1_off = g1_a_off + g1_m_off;                                                   %[m] Combined backscatter lineshape
-
-g1_check = trapz(g1,3).*nuBin*100;                                %[none] Check if integral of g1 is normalized to 1
-g1_check_off = trapz(g1_off,3).*nuBin*100;                                %[none] Check if integral of g1 is normalized to 1
-
-%derivative of lineshape dg/dr
-% ind_r_lo = 1:i_range-1;                                            % High range vector
-% ind_r_hi = 1+1:i_range;                                            % Low range vector
-dg1_dr = 1*(g1(ind_r_hi,:,:) - g1(ind_r_lo,:,:)) ./(rangeBin*oversample); %[none] Derivative over oversamped range
-% % dg1_dr = (g1(ind_r_hi,:,:) - g1(ind_r_lo,:,:)) ./(rangeBin); %[none] Derivative over oversamped range
-dg1_dr = interp1(rm(ind_r_lo),dg1_dr,rm,'nearest','extrap');         %[none] Make dg/dr the same size as g
-
-dg1_dr_off = 1*(g1_off(ind_r_hi,:,:) - g1_off(ind_r_lo,:,:)) ./(rangeBin*oversample); %[none] Derivative over oversamped range
-% % dg1_dr_off = (g1_off(ind_r_hi,:,:) - g1_off(ind_r_lo,:,:)) ./(rangeBin); %[none] Derivative over oversamped range
-dg1_dr_off = interp1(rm(ind_r_lo),dg1_dr_off,rm,'nearest','extrap');         %[none] Make dg/dr the same size as g
-%%
-tic
-disp('calculation absorption f')
-absorption_f = absorption_O2_770_model_wavenumber(T,P,nu_scan_3D_short,WV); %[m] lineshape function 
-toc
-%%
-% tic
-% disp('calculation absorption f2')
-% [absorption_f2,cross_section] = absorption_O2_770_PCA(T,P,nu_scan_3D_short,WV);
-% toc
-%%
-tic
-disp('calculating f')
-f = ones(size(absorption_f));
-for i = 1:i_time
-    %f(:,i,:) = absorption_f(:,i,:) ./ absorption_f(:,i,online_index(i));                  %[none] Normalize cross section to line center
-    f(:,i,:) = absorption_f(:,i,:) ./ max(absorption_f(:,i,:),[],3);    %[none] Normalize cross section to line center
-end
-toc
-%%
-% tic
-% disp('calculating f2')
-% for i = 1:i_time
-%     %f(:,i,:) = absorption_f(:,i,:) ./ absorption_f(:,i,online_index(i));                  %[none] Normalize cross section to line center
-%     f2(:,i,:) = absorption_f2(:,i,:) ./ max(absorption_f2(:,i,:),[],3);    %[none] Normalize cross section to line center
-% end
-% toc
+% % % --- Spectral distribution using the initial temperature profile guess ---
+% % % c_doppler_O2 = m_air*c^2./(8*(nu_online*100).^2*kb);                   %[m^2 K] Doppler coefficient
+% % % doppler_O2_un_ret = ((c_doppler_O2./T/pi).^0.5).*exp(-c_doppler_O2.*(nu_online*100-nu_scan_3D_short*100).^2./T); %[m] Doppler broadended lineshape      
+% % % c_doppler_O2_off = m_air*c^2./(8*(nu_offline*100).^2*kb);                   %[m^2 K] Doppler coefficient
+% % % doppler_O2_un_ret_off = ((c_doppler_O2_off./T/pi).^0.5).*exp(-c_doppler_O2_off.*(nu_offline*100-nu_scan_3D_short_off*100).^2./T); %[m] Doppler broadended lineshape    
+% % 
+% % cB = 1.2;%Brullouion correction to doppler gaussian half width
+% % %cB = 1;%Brullouion correction to doppler gaussian half width
+% % 
+% % cB = -0.01*(rkm+1.5) + 1.2;%Brullouin correction for 1.2 at 0km and 1.1 at 10km
+% % %cB=1;
+% % 
+% % c_doppler_O2 = m_air*c^2./(8*(nu_online*100).^2*kb);                   %[m^2 K] Doppler coefficient
+% % doppler_O2_un_ret = ((c_doppler_O2./T/pi).^0.5).*exp(-c_doppler_O2.*(nu_online*100-nu_scan_3D_short*100).^2./T./cB.^2); %[m] Doppler broadended lineshape         
+% % c_doppler_O2_off = m_air*c^2./(8*(nu_offline*100).^2*kb);                   %[m^2 K] Doppler coefficient
+% % doppler_O2_un_ret_off = ((c_doppler_O2_off./T/pi).^0.5).*exp(-c_doppler_O2_off.*(nu_offline*100-nu_scan_3D_short_off*100).^2./T./cB.^2); %[m] Doppler broadended lineshape    
+% % 
+% % 
+% % 
+% % % c_doppler_O2 = m_air*c^2./(8*pi*(nu_online*100).^2*kb);                   %[m^2 K] Doppler coefficient
+% % % doppler_O2_un_ret = ((c_doppler_O2./T).^0.5).*exp(-c_doppler_O2.*(nu_online*100-nu_scan_3D_short*100).^2./T); %[m] Doppler broadended lineshape     
+% % norm_O2_ret = trapz(doppler_O2_un_ret,3).*nuBin*100;                   %[none] Lineshape integral
+% % doppler_O2_ret = doppler_O2_un_ret./norm_O2_ret;                       %[m] Normalized doppler lineshape
+% % 
+% % norm_O2_ret_off = trapz(doppler_O2_un_ret_off,3).*nuBin*100;                   %[none] Lineshape integral
+% % doppler_O2_ret_off = doppler_O2_un_ret_off./norm_O2_ret;                       %[m] Normalized doppler lineshape
+% % 
+% % % Check if doppler_o2_ret is normalized to 1 when integrated across frequency
+% % doppler_o2_ret_check = trapz(doppler_O2_ret,3).*nuBin*100;              %[none]
+% % doppler_o2_ret_check_off = trapz(doppler_O2_ret_off,3).*nuBin*100;
+% % 
+% % % --- Backscatter Lineshape g ---
+% % g1_m_on = 1./BSR .* doppler_O2_ret;%.*nuBin*100;                         %[m] Molecular backscatter lineshape
+% % g1_m_off = 1./BSR .* doppler_O2_ret_off;%.*nuBin*100;                         %[m] Molecular backscatter lineshape
+% % g1_a_on = zeros(i_range,i_time,i_scan_3D_short);                       % Initalize aerosol lineshape
+% % g1_a_off = zeros(i_range,i_time,i_scan_3D_short);                       % Initalize aerosol lineshape
+% % for i = 1:i_time
+% %     g1_a_on(:,i,online_index(i)) = (1 - 1./BSR(:,i)) / nuBin / 100 ; %[m] aerosol backscatter lineshape
+% %     g1_a_off(:,i,offline_index(i)) = (1 - 1./BSR(:,i)) / nuBin / 100 ; %[m] aerosol backscatter lineshape
+% % end
+% % g1 = g1_a_on + g1_m_on;                                                   %[m] Combined backscatter lineshape
+% % g1_off = g1_a_off + g1_m_off;                                                   %[m] Combined backscatter lineshape
+% % 
+% % g1_check = trapz(g1,3).*nuBin*100;                                %[none] Check if integral of g1 is normalized to 1
+% % g1_check_off = trapz(g1_off,3).*nuBin*100;                                %[none] Check if integral of g1 is normalized to 1
+% % 
+% % %derivative of lineshape dg/dr
+% % % ind_r_lo = 1:i_range-1;                                            % High range vector
+% % % ind_r_hi = 1+1:i_range;                                            % Low range vector
+% % dg1_dr = 1*(g1(ind_r_hi,:,:) - g1(ind_r_lo,:,:)) ./(rangeBin*oversample); %[none] Derivative over oversamped range
+% % % % dg1_dr = (g1(ind_r_hi,:,:) - g1(ind_r_lo,:,:)) ./(rangeBin); %[none] Derivative over oversamped range
+% % dg1_dr = interp1(rm(ind_r_lo),dg1_dr,rm,'nearest','extrap');         %[none] Make dg/dr the same size as g
+% % 
+% % dg1_dr_off = 1*(g1_off(ind_r_hi,:,:) - g1_off(ind_r_lo,:,:)) ./(rangeBin*oversample); %[none] Derivative over oversamped range
+% % % % dg1_dr_off = (g1_off(ind_r_hi,:,:) - g1_off(ind_r_lo,:,:)) ./(rangeBin); %[none] Derivative over oversamped range
+% % dg1_dr_off = interp1(rm(ind_r_lo),dg1_dr_off,rm,'nearest','extrap');         %[none] Make dg/dr the same size as g
+% % %%
+% % tic
+% % disp('calculation absorption f')
+% % absorption_f = absorption_O2_770_model_wavenumber(T,P,nu_scan_3D_short,WV); %[m] lineshape function 
+% % toc
+% % %%
+% % % tic
+% % % disp('calculation absorption f2')
+% % % [absorption_f2,cross_section] = absorption_O2_770_PCA(T,P,nu_scan_3D_short,WV);
+% % % toc
+% % %%
+% % tic
+% % disp('calculating f')
+% % f = ones(size(absorption_f));
+% % for i = 1:i_time
+% %     %f(:,i,:) = absorption_f(:,i,:) ./ absorption_f(:,i,online_index(i));                  %[none] Normalize cross section to line center
+% %     f(:,i,:) = absorption_f(:,i,:) ./ max(absorption_f(:,i,:),[],3);    %[none] Normalize cross section to line center
+% % end
+% % toc
+% % %%
+% % % tic
+% % % disp('calculating f2')
+% % % for i = 1:i_time
+% % %     %f(:,i,:) = absorption_f(:,i,:) ./ absorption_f(:,i,online_index(i));                  %[none] Normalize cross section to line center
+% % %     f2(:,i,:) = absorption_f2(:,i,:) ./ max(absorption_f2(:,i,:),[],3);    %[none] Normalize cross section to line center
+% % % end
+% % % toc
  %%    
-% --- Zeroth Order Transmission ---
-Tm0 = exp(-cumtrapz(rm,alpha_0.*f,1));      %[none] Zeroth order transmission
-
-% Integrand terms
-% Online
-zeta = g1.*T_etalon_on;                        %[m]
-eta = dg1_dr.*T_etalon_on;                     %[none]
-
-% Integrated terms
-% Online
-zeta_int = trapz(zeta.*Tm0,3)*nuBin*100;              %[none]
-eta_int = trapz(eta.*Tm0,3)*nuBin*100;                %[1/m]
-zeta_ls_int = trapz(zeta.*Tm0.*(1-f),3)*nuBin*100;    %[none]
-% Offline
-zeta_off = g1_off.*T_etalon_off;                        %[m]
-eta_off = dg1_dr_off.*T_etalon_off;                     %[none]
-zeta2_int = trapz(zeta_off,3)*nuBin*100;                  %[none]
-eta2_int = trapz(eta_off,3)*nuBin*100;                    %[1/m]
-
-
-% === First Order ===
-W1 = zeta_ls_int./zeta_int;                 %[none]
-G1 = eta_int./zeta_int - eta2_int./zeta2_int;%[1/m]
-
-alpha_1_raw = 0.5.*(alpha_0_fit.*W1 + G1);  %[1/m]
-alpha_1_raw = 0.5.*(alpha_0.*W1 + G1);      %[1/m]
-
-% Moving average
-% % % alpha_1_pad = padarray(alpha_1_raw,[oversample/2,t_avg/2],'replicate');
-% % % alpha_1_filt = filter2(k,alpha_1_pad,'valid');
-% % % alpha_1 = interp2(ts-t_step/2,rm-rangeBin/2,alpha_1_filt(1:end-1,1:end-1),ts,rm);
-% % % alpha_1 = fillmissing(alpha_1,'nearest',1); % Fill in NaNs in dimension 1
-% % % alpha_1 = fillmissing(alpha_1,'nearest',2); % Fill in NaNs in dimension 2
- alpha_1 = alpha_1_raw;
-
-% alpha_1s = zeros(i_range,i_time);
-% % ----- smoothing alpha 1 -----
-% for i = 1:i_time
-%     alpha_1s(:,i) = 1.15.*smooth(alpha_1(:,i), 4*oversample+1);
-% end
-
-% --- First Order Transmission Tm1 ---
-Tm1 = exp(-cumtrapz(rm,oversample.*alpha_1.*f,1));      %[none] First order transmission
-
-% === Second Order ===
-% Integrated terms
-zeta_Tm1_int = trapz(zeta.*Tm0.*(1-Tm1),3)*nuBin*100;             %[none]
-eta_Tm1_int = trapz(eta.*Tm0.*(1-Tm1),3)*nuBin*100;               %[1/m]
-zeta_ls_Tm1_int = trapz(zeta.*Tm0.*(1-Tm1).*(1-f),3)*nuBin*100;   %[none]
-
-clear Tm0 Tm1
-
-W2 = (zeta_ls_int.*zeta_ls_Tm1_int./(zeta_int.^2)) - (zeta_ls_Tm1_int./zeta_int);   %[none]
-G2 = (eta_int.*zeta_Tm1_int./(zeta_int.^2)) - (eta_Tm1_int./zeta_int);              %[1/m]
-
-alpha_2_raw = 0.5.*(alpha_1.*W1 + alpha_0_fit.*W2 + G2);
-alpha_2_raw = 0.5.*(alpha_1.*W1 + alpha_0.*W2 + G2);    %[1/m]
-
-%Moving average
-% % % alpha_2_pad = padarray(alpha_2_raw,[oversample/2,t_avg/2],'replicate');
-% % % alpha_2_filt = filter2(k,alpha_2_pad,'valid');
-% % % alpha_2 = interp2(ts-t_step/2,rm-rangeBin/2,alpha_2_filt(1:end-1,1:end-1),ts,rm);
-% % % alpha_2 = fillmissing(alpha_2,'nearest',1); % Fill in NaNs in dimension 1
-% % % alpha_2 = fillmissing(alpha_2,'nearest',2); % Fill in NaNs in dimension 2
- alpha_2 = alpha_2_raw;
+% % % --- Zeroth Order Transmission ---
+% % Tm0 = exp(-cumtrapz(rm,alpha_0.*f,1));      %[none] Zeroth order transmission
+% % 
+% % % Integrand terms
+% % % Online
+% % zeta = g1.*T_etalon_on;                        %[m]
+% % eta = dg1_dr.*T_etalon_on;                     %[none]
+% % 
+% % % Integrated terms
+% % % Online
+% % zeta_int = trapz(zeta.*Tm0,3)*nuBin*100;              %[none]
+% % eta_int = trapz(eta.*Tm0,3)*nuBin*100;                %[1/m]
+% % zeta_ls_int = trapz(zeta.*Tm0.*(1-f),3)*nuBin*100;    %[none]
+% % % Offline
+% % zeta_off = g1_off.*T_etalon_off;                        %[m]
+% % eta_off = dg1_dr_off.*T_etalon_off;                     %[none]
+% % zeta2_int = trapz(zeta_off,3)*nuBin*100;                  %[none]
+% % eta2_int = trapz(eta_off,3)*nuBin*100;                    %[1/m]
+% % 
+% % 
+% % % === First Order ===
+% % W1 = zeta_ls_int./zeta_int;                 %[none]
+% % G1 = eta_int./zeta_int - eta2_int./zeta2_int;%[1/m]
+% % 
+% % alpha_1_raw = 0.5.*(alpha_0_fit.*W1 + G1);  %[1/m]
+% % alpha_1_raw = 0.5.*(alpha_0.*W1 + G1);      %[1/m]
+% % 
+% % % Moving average
+% % % % % alpha_1_pad = padarray(alpha_1_raw,[oversample/2,t_avg/2],'replicate');
+% % % % % alpha_1_filt = filter2(k,alpha_1_pad,'valid');
+% % % % % alpha_1 = interp2(ts-t_step/2,rm-rangeBin/2,alpha_1_filt(1:end-1,1:end-1),ts,rm);
+% % % % % alpha_1 = fillmissing(alpha_1,'nearest',1); % Fill in NaNs in dimension 1
+% % % % % alpha_1 = fillmissing(alpha_1,'nearest',2); % Fill in NaNs in dimension 2
+% %  alpha_1 = alpha_1_raw;
+% % 
+% % % alpha_1s = zeros(i_range,i_time);
+% % % % ----- smoothing alpha 1 -----
+% % % for i = 1:i_time
+% % %     alpha_1s(:,i) = 1.15.*smooth(alpha_1(:,i), 4*oversample+1);
+% % % end
+% % 
+% % % --- First Order Transmission Tm1 ---
+% % Tm1 = exp(-cumtrapz(rm,oversample.*alpha_1.*f,1));      %[none] First order transmission
+% % 
+% % % === Second Order ===
+% % % Integrated terms
+% % zeta_Tm1_int = trapz(zeta.*Tm0.*(1-Tm1),3)*nuBin*100;             %[none]
+% % eta_Tm1_int = trapz(eta.*Tm0.*(1-Tm1),3)*nuBin*100;               %[1/m]
+% % zeta_ls_Tm1_int = trapz(zeta.*Tm0.*(1-Tm1).*(1-f),3)*nuBin*100;   %[none]
+% % 
+% % clear Tm0 Tm1
+% % 
+% % W2 = (zeta_ls_int.*zeta_ls_Tm1_int./(zeta_int.^2)) - (zeta_ls_Tm1_int./zeta_int);   %[none]
+% % G2 = (eta_int.*zeta_Tm1_int./(zeta_int.^2)) - (eta_Tm1_int./zeta_int);              %[1/m]
+% % 
+% % alpha_2_raw = 0.5.*(alpha_1.*W1 + alpha_0_fit.*W2 + G2);
+% % alpha_2_raw = 0.5.*(alpha_1.*W1 + alpha_0.*W2 + G2);    %[1/m]
+% % 
+% % %Moving average
+% % % % % alpha_2_pad = padarray(alpha_2_raw,[oversample/2,t_avg/2],'replicate');
+% % % % % alpha_2_filt = filter2(k,alpha_2_pad,'valid');
+% % % % % alpha_2 = interp2(ts-t_step/2,rm-rangeBin/2,alpha_2_filt(1:end-1,1:end-1),ts,rm);
+% % % % % alpha_2 = fillmissing(alpha_2,'nearest',1); % Fill in NaNs in dimension 1
+% % % % % alpha_2 = fillmissing(alpha_2,'nearest',2); % Fill in NaNs in dimension 2
+% %  alpha_2 = alpha_2_raw;
  
- figure(666452)
- pp_point = 840;
- plot(alpha_0(:,pp_point),rm,alpha_0(:,pp_point)+alpha_1(:,pp_point),rm,alpha_0(:,pp_point)+alpha_1(:,pp_point)+alpha_2(:,pp_point),rm)
- 
+%  figure(666452)
+%  pp_point = 840;
+%  plot(alpha_0(:,pp_point),rm,alpha_0(:,pp_point)+alpha_1(:,pp_point),rm,alpha_0(:,pp_point)+alpha_1(:,pp_point)+alpha_2(:,pp_point),rm)
+%  
  altitude = 1.5;%altitude in km
  %[alpha_1, alpha_2] = pertAbsorption(alpha_0, T_etalon_on, T, P, rm,rkm,m_air, nu_online, nu_scan_3D_short,nuBin,BSR,ind_r_lo,ind_r_hi,WV,online_index,i_range,i_time,i_scan_3D_short,rangeBin,oversample,c,kb,altitude);
-
- figure(666453)
- plot(alpha_0(:,pp_point),rm,alpha_0(:,pp_point)+alpha_1(:,pp_point),rm,alpha_0(:,pp_point)+alpha_1(:,pp_point)+alpha_2(:,pp_point),rm)
- 
+ [alpha_1, alpha_2] = pertAbsorption(alpha_0, T_etalon_on, T, P, rm,ts,rkm,m_air, nu_online, nu_scan_3D_short,nuBin,BSR,ind_r_lo,ind_r_hi,WV,online_index,i_range,i_time,i_scan_3D_short,rangeBin,oversample,t_avg,c,kb,altitude);
+%  figure(666453)
+%  plot(alpha_0(:,pp_point),rm,alpha_0(:,pp_point)+alpha_1(:,pp_point),rm,alpha_0(:,pp_point)+alpha_1(:,pp_point)+alpha_2(:,pp_point),rm)
+%  
  
 % ----- smoothing alpha 2 -----
 % alpha_2s = zeros(i_range,i_time);
@@ -881,8 +1031,9 @@ alpha_2_raw = 0.5.*(alpha_1.*W1 + alpha_0.*W2 + G2);    %[1/m]
 alpha_total_raw = alpha_0 + alpha_1 + alpha_2;
 
 % Force total alpha to its modeled surface value
-[~,cut] = min(abs(rm-1000));             % Index where rm is closest to chosen value
+%[~,cut] = min(abs(rm-1000));             % Index where rm is closest to chosen value
 [~,cut] = min(abs(rm-500));             % Index where rm is closest to chosen value
+[~,cut] = min(abs(rm-0));             % Index where rm is closest to chosen value
 alpha_total = [absorption(1,:); NaN((cut - 1),i_time); alpha_total_raw(cut:end,:)];
 alpha_total = fillmissing(alpha_total,'linear');
 alpha_total = alpha_total(2:end,:);     % Remove surface value since rm starts at del_r
@@ -917,21 +1068,77 @@ alpha_1 = alpha_1 .* SNRm;
 alpha_1(alpha_1 == 0) = NaN;                    % Replace mask with NaNs
 
 alpha_totalm = alpha_total .* cloud_SDm_above; %.* cloud_SDm_above;
-alpha_totalm(alpha_totalm <= 0) = NaN;          % Replace mask with NaNs
+%alpha_totalm(alpha_totalm <= 0) = NaN;          % Replace mask with NaNs
 
 %alpha_total_raw = alpha_total_raw .* SNRm;
 %alpha_total_raw(alpha_total_raw == 0) = NaN;    % Replace mask with NaNs
 
-for i = 1:i_time
-    alpha_totalm(:,i) = smooth(alpha_totalm(:,i), 4*oversample+1);
-end
+% % % % % for i = 1:i_time
+% % % % %     alpha_totalm(:,i) = smooth(alpha_totalm(:,i), 4*oversample+1);
+% % % % % end
 
-alpha_totalm = alpha_totalm .* SNRm .* cloud_SDm_above;
-alpha_totalm(alpha_totalm <= 0) = NaN;          % Replace mask with NaNs
+
+% % for i = 1:i_time
+% %     alpha_totalm(:,i) = smooth(alpha_totalm(:,i), 4*oversample+1);
+% % end
+
+%alpha_totalm = alpha_totalm .* SNRm .* cloud_SDm_above;
+%alpha_totalm(alpha_totalm <= 0) = NaN;          % Replace mask with NaNs
 
 
 %%
+disp('Temp retrieval function')
+%WV = 0; % set water vapor concentration to zero
+tic
+[T_final_test,L_fit_sm_test,Ts_fit,Patm_final,mean_lapse_rate,exclusion] =  temperatureRetrieval(T,ts,rm,P,WV,nu_online,alpha_totalm,SNRm,cloud_SDm_above);
+toc
 
+
+
+% % % alpha_total_pad = padarray(alpha_total,[oversample/2,t_avg/2],'replicate');
+% % % alpha_total_filt = filter2(k,alpha_total_pad,'valid');
+% % % alpha_total = interp2(ts-t_step/2,rm-rangeBin/2,alpha_total_filt(1:end-1,1:end-1),ts,rm);
+% % % alpha_total = fillmissing(alpha_total,'nearest',1); % Fill in NaNs in dimension 1
+% % % alpha_total = fillmissing(alpha_total,'nearest',2); % Fill in NaNs in dimension 2
+% 
+% T_final_test_pad = padarray(T_final_test,[8/2,30/2],'replicate');
+% T_final_test_filt = filter2(k,T_final_test_pad,'valid');
+% T_final_test_filt = interp2(ts-t_step/2,rm-rangeBin/2,T_final_test_filt(1:end-1,1:end-1),ts,rm);
+% T_finalm = T_final_test_filt .* SNRm .* cloud_SDm_above;
+% T_finalm(T_finalm <= 0) = NaN;
+
+T_finalm = T_final_test .* SNRm .* cloud_SDm_above;
+T_finalm(T_finalm <= 0) = NaN;
+
+% % end %full loop
+
+
+k = ones(8,30)./(8*30);     % Kernel
+
+k = ones(14,10)./(14*10);     % Kernel
+
+Smoothing = repmat(gaussmf(linspace(-1,1,8)',[0.5,0]),1,30);
+Smoothing = repmat(gaussmf(linspace(-1,1,14)',[0.5,0]),1,10);
+Smoothing = Smoothing./sum(sum(Smoothing));
+
+k=Smoothing;
+
+
+%T_final_test_pad = padarray(T_final_test,[14/2,10/2],'replicate');
+T_final_test_pad = padarray(T_final_test,[14/2,10/2],'replicate');
+T_final_test_filt = filter2(k,T_final_test_pad,'valid');
+T_final_tests = interp2(ts-t_step/2,rm-rangeBin/2,T_final_test_filt(1:end-1,1:end-1),ts,rm);
+T_final_tests = fillmissing(T_final_tests,'nearest',1); % Fill in NaNs in dimension 1
+T_final_tests = fillmissing(T_final_tests,'nearest',2); % Fill in NaNs in dimension 2
+
+
+
+
+T_finalm = T_final_tests .* SNRm .* cloud_SDm_above ;
+T_finalm(T_finalm <= 0) = NaN;
+
+
+%%
 disp('Gathering other data')
 
 InsideCell = interp1(rmmissing(DataStructure2.Thermocouple.InsideCell.TimeStamp),rmmissing(DataStructure2.Thermocouple.InsideCell.Temperature),thr);
@@ -958,40 +1165,45 @@ channel2Bins = DataStructure2.MCS.Channel2.NBins;
 channel8Bins = DataStructure2.MCS.Channel8.NBins;
 channel10Bins = DataStructure2.MCS.Channel10.NBins;
 
-
-
-%%
-disp('Temp retrieval function')
-%WV = 0; % set water vapor concentration to zero
-tic
-[T_final_test,L_fit_sm_test,Ts_fit,Patm_final,mean_lapse_rate,exclusion] =  temperatureRetrieval(T,ts,rm,P,WV,nu_online,alpha_totalm,SNRm,cloud_SDm_above,o2on_SNR);
-toc
-T_finalm = T_final_test .* SNRm .* cloud_SDm_above;
-T_finalm(T_finalm <= 0) = NaN;
-
-
 %%
 % savePath = 'D:\Owen\OneDrive - Montana State University - Bozeman\research s19\Reports\7_2_20\';
 % %savePath = 'C:\Users\d98b386\OneDrive - Montana State University - Bozeman\research s19\Reports\7_2_20\';
 % % savePath = 'D:\Owen\OneDrive - Montana State University - Bozeman\research s19\Reports\10_28_20\';
-% % [y,m,d]=ymd(span_days(1));
-% % y=num2str(y);
-% % m=num2str(m);
-% % d=num2str(d);
-% % if length(m)<2 
-% %     m=['0' m];
-% % end
-% % if length(d)<2 
-% %     d=['0' d];
-% % end
-% % date = [y m d];
-% % 
-% % save([savePath date],'alpha_totalm','alpha_0','T','T_finalm','BSR','ts','cloud_SDm','rm','o2on','o2off','o2on_mol','o2off_mol'...
-% %     ,'Ts_fit','L_fit_sm_test','bg_o2off','bg_o2on','bg_o2off_mol','bg_o2on_mol','alpha_total_raw','absorption'...
-% %     ,'absorption_f','InsideCell','OutsideCell','TSOA','RoomTemp','OnlineWaveDiff','OfflineWaveDiff'...
-% %     ,'o2on_intp','o2off_intp','o2on_intp_mol','o2off_intp_mol'...
-% %     ,'date_ts','sonde_ind','WV','Ts','exclusion','T_final_test','T_sonde','absorption_sonde')
+savePath = 'D:\Owen\OneDrive - Montana State University - Bozeman\research s19\Reports\2_28_21\';
+savePath = 'C:\Users\d98b386\OneDrive - Montana State University - Bozeman\research s19\Reports\2_28_21\';
 
+savePath = 'C:\Users\d98b386\OneDrive - Montana State University - Bozeman\research s19\Reports\3_26_21\';
+savetrue = 0;
+
+if savetrue ==1
+[y,m,d]=ymd(span_days(1));
+y=num2str(y);
+m=num2str(m);
+d=num2str(d);
+if length(m)<2 
+    m=['0' m];
+end
+if length(d)<2 
+    d=['0' d];
+end
+date = [y m d];
+
+% save([savePath date],'alpha_totalm','alpha_0','T','T_finalm','BSR','ts','cloud_SDm','rm','o2on','o2off','o2on_mol','o2off_mol'...
+%     ,'Ts_fit','L_fit_sm_test','bg_o2off','bg_o2on','bg_o2off_mol','bg_o2on_mol','alpha_total_raw','absorption'...
+%     ,'absorption_f','InsideCell','OutsideCell','TSOA','RoomTemp','OnlineWaveDiff','OfflineWaveDiff'...
+%     ,'o2on_intp','o2off_intp','o2on_intp_mol','o2off_intp_mol'...
+%     ,'date_ts','sonde_ind','WV','Ts','exclusion','T_final_test','T_sonde','absorption_sonde')
+
+save([savePath date 'nowv'],'alpha_totalm','alpha_0','T','T_finalm','BSR','ts','cloud_SDm','rm','o2on','o2off','o2on_mol','o2off_mol'...
+    ,'Ts_fit','L_fit_sm_test','bg_o2off','bg_o2on','bg_o2off_mol','bg_o2on_mol','alpha_total_raw','absorption'...
+    ,'InsideCell','OutsideCell','TSOA','RoomTemp','OnlineWaveDiff','OfflineWaveDiff'...
+    ,'o2on_intp','o2off_intp','o2on_intp_mol','o2off_intp_mol'...
+    ,'date_ts','sonde_ind','WV','Ts','exclusion','T_final_test','T_sonde','absorption_sonde');
+
+% AerosolBackscatterCoefficient=LidarData.AerosolBackscatterCoefficient;
+% MolecularBackscatterCoefficient=LidarData.MolecularBackscatterCoefficient;
+% save([savePath date],'BSR','rm','ts','Ts','Ps','MolecularBackscatterCoefficient','AerosolBackscatterCoefficient');
+end
 %%
 % % % disp('calulating model photons')
 % % % tic
@@ -1061,12 +1273,15 @@ T_finalm(T_finalm <= 0) = NaN;
 % plot_time = 337;                         %[min];
 % [~,p_point] = min(abs(plot_time-ts/60)); % Find closest value to 338min for comparison to other program
                         %[hr];
-plot_time=5;
+plot_time=1.0833;
+%plot_time=1.5833;
+%plot_time=2.5833;
+%plot_time=10;
 [~,p_point] = min(abs(plot_time-ts/60/60)); % Find closest value to 338min for comparison to other program
 p_point(1:length(rm),1)=p_point;
 
 sonde_index =1;
-%p_point = sonde_ind(:,sonde_index);
+p_point = sonde_ind(:,sonde_index);
 
 figure(728590)
 plot(ts/60/60,permute(L_fit_sm_test(1,:,end)*1000,[3 2 1]))
@@ -1217,6 +1432,59 @@ title('Bacscatter ratio d(Bt/Bm)/dr')
 grid on
 ylabel('Range (km)')
 
+
+% figure(99493)
+% 
+%     [~,g] = sgolay(2,oversample);
+%     parfor j=1:i_time
+%         dBSRSG(:,j) = conv(BSR(:,j), factorial(1)/(-rangeBin)^1 * g(:,2), 'same');
+%     end
+% plot(diag(dBSRSG(:,p_point)),rkm)
+% hold on
+% dBSR = (BSR(ind_r_hi,:)-BSR(ind_r_lo,:))/(rangeBin*oversample);
+% %plot(diag(dBSR(:,p_point)),rkm(ind_r_lo+4))
+% plot(diag(dBSR(:,p_point)),rkm(ind_r_lo))
+% 
+% dBSRlo = diff(BSR)/rangeBin;
+% plot(diag(dBSRlo(:,p_point)),rkm(1:end-1))
+% hold off
+% legend('2SG','over forward','forward')
+% %title({'dBSR/dr';datestr(date_ts_N(p_point(1)))})
+% grid on
+% ylabel('Range (km)')
+
+% % figure(99494)
+% % plot(diag(alpha_0(:,p_point)-absorption_sonde{sonde_index}),rkm)
+% % 
+% % %close(99495)
+% % figure(99495)
+% % cla reset
+% % line(diag(dBSRSG(:,p_point)),rkm,'Color','r')
+% % line(diag(dBSRSG(:,p_point)./BSR(:,p_point)),rkm,'Color','b')
+% % %line(diag(dBSRlo(:,p_point)),rkm(1:end-1))
+% % legend('dBSR/dr')
+% % xlim([-.01 .01])
+% % xlabel('dBSR/dr')
+% % ylabel('Range (km)')
+% % 
+% % ax1 = gca; % current axes
+% % ax1.XColor = 'r';
+% % ax1.YColor = 'r';
+% % 
+% % ax1_pos = ax1.Position; % position of first axes
+% % ax2 = axes('Position',ax1_pos,...
+% %     'XAxisLocation','top',...
+% %     'YAxisLocation','right',...
+% %     'Color','none');
+% % 
+% % line(diag(alpha_0(:,p_point)-absorption_sonde{sonde_index}),rkm,'Parent',ax2,'Color','k')
+% % 
+% % grid on
+% % xlim([-.5 .5]*10^-3)
+% % xlabel('\alpha_0 - \alpha_{sonde}')
+% % ylabel('Range (km)')
+% % legend('\alpha_0 - \alpha_{sonde}')
+
 % figure(99595)
 % %plot(permute(nu_scan_3D_short,[3 2 1]),permute(zeta(:,p_point,:).*Tm0(:,p_point,:),[3 1 2]),'-*')
 % hold on
@@ -1236,10 +1504,14 @@ ylabel('Range (km)')
 % title('zeta1')
 
 figure(99499)
+subplot(2,1,1)
 plot(diag(WV(:,p_point)),rm)
 xlabel('WV (molec/m^3')
 ylabel('Range (m)')
 legend('VW')
+subplot(2,1,2)
+%plot(sondeStruc.AH,(sondeStruc.Height-sondeStruc.Height(1))/1000)
+xlabel('Absolute Humidity g/m^3')
 
 % figure(994990)
 % plot(WV(:,p_point)*18.01528*6.022e-23,rm)
@@ -1258,7 +1530,7 @@ figure(884)
 
 plot(diag(T_finalm(:,p_point)),rkm)
 hold on
-plot(L_fit_sm_test(:,p_point,end) .* rm + Ts_fit(1,p_point,end),rkm,'--')
+plot(diag(L_fit_sm_test(:,p_point,end) .* rm + Ts_fit(1,p_point,end)),rkm,'--')
 %plot(T_final(:,p_point),rm)
 plot(diag(T(:,p_point)),rkm)
 exclusion(exclusion==0)=NaN;
@@ -1278,8 +1550,9 @@ else
     title(sprintf('Temp guess and retrieved from pertabative absorption\n %s at %.0f:%.0f UTC',span_days(1),floor(thr(p_point(1))),(thr(p_point(1))-floor(thr(p_point(1))))*60))
 end
 %legend('Temp guess','Retrieved Temperature','Fitted lapse rate','Points excluded from fit','Sonde temperature','Location','southwest')
-legend('Retrieved Temperature','Sonde temperature','Location','southwest')
-legend('Retrieved Temperature','Sonde temperature','Location','southwest')
+%legend('Retrieved Temperature','Sonde temperature','Location','southwest')
+legend('Retrieved Temperature','Fitted temp','temp guess','exclusion','Sonde temperature','Location','southwest')
+%legend('Retrieved Temperature','Fitted temp','temp guess','exclusion','Location','southwest')
 
 figure(885)
 plot(diag(L_fit_sm_test(:,p_point,end) .* rm + Ts_fit(1,p_point,end))-diag(T_finalm(:,p_point)),rkm)
@@ -1311,6 +1584,7 @@ line([1 1],[0 6],'Color','k','LineStyle','-.','HandleVisibility','off')
 line([-2 -2],[0 6],'Color','k')
 line([2 2],[0 6],'Color','k')
 %xlabel('\Delta T (T_{model} - T_{retrieved}) (K)')
+hold off
 xlabel('\Delta T (T_{sonde} - T_{retrieved}) (K)')
 ylabel('Range (km)')
 %%%%%%%%%%%%legend(sprintf('%s at %.2f UTC',span_days(1),thr(p_point(1))),sprintf('%s at %.2f UTC',span_days(1),thr(sonde_ind(1,2))))
@@ -1412,6 +1686,10 @@ plot(absorption_sonde{sonde_index},rkm,'.-')
 %plot(alpha_0_fit(:,p_point),rkm)
 %plot(alpha_0(:,p_point)+d_alpha(:,p_point),rkm,'.-')
 
+%plot(diag(alpha_0_mol(:,p_point)),rkm,'--')
+%plot(diag(alpha_0_mol_corr(:,p_point)),rkm,'.-')
+
+%plot(diag(alpha_total(:,p_point)),rkm,'.-')
 hold off
 grid on
 %title('Calculated absorption coefficient')
@@ -1423,37 +1701,36 @@ end
 ylabel('Range (km)')
 xlabel('Absorption (m^{-1})')
 xlim([-0.5e-4 4e-4])
-%legend('Measured zeroth order absorption','Theoretical absorption online','Pertabative absorption','alpha 0+1','alpha 0+1+2')%,'theoretical absorption online-offine')
-%legend('Measured zeroth order absorption','Theoretical absorption online','Pertabative absorption','Alpha total raw','Alpha 0 model')
-%%legend('Measured zeroth order absorption','Theoretical absorption online','Pertabative absorption','Alpha total raw')
 %%%%legend('Measured zeroth order absorption','Theoretical absorption online','Pertabative absorption','Alpha total raw','Alpha raw model','alpha raw pulse model')
-legend('Measured zeroth order absorption','Theoretical absorption online','Pertabative absorption','Alpha total raw','Sonde Absorption')
-legend('Measured zeroth order absorption','Pertabative absorption','Sonde Absorption')
-legend('Measured zeroth order absorption','Pertabative absorption','Alpha 0+1+2','Sonde')%,'theoretical absorption online-offine')
-%legend('Measured zeroth order absorption','Theoretical absorption online')
+%legend('Measured zeroth order absorption','Theoretical absorption online','Pertabative absorption','Alpha total raw','Sonde Absorption')
+%legend('Measured zeroth order absorption','Pertabative absorption','Sonde Absorption')
+%legend('Measured zeroth order absorption','Pertabative absorption','Alpha 0+1+2','Sonde')%,'theoretical absorption online-offine')
+legend('Measured zeroth order absorption','Pertabative absorption','Alpha 0+1+2','Radiosonde model')
 
 
 figure(7)
-plot(rm,diag(o2on(:,p_point)))
+plot(diag(o2on(:,p_point)),rm)
 hold on
-plot(rm,diag(o2off(:,p_point)))
-plot(rm,diag(o2on_mol(:,p_point)))
-plot(rm,diag(o2off_mol(:,p_point)))
+plot(diag(o2off(:,p_point)),rm)
+plot(diag(o2on_mol(:,p_point)),rm)
+plot(diag(o2off_mol(:,p_point)),rm)
 
 % % plot(modelRange,N_on(:,p_point),'.-')
 % % plot(modelRange,N_off(:,p_point),'.-')
 % % plot(modelRange,N_off_mol(:,p_point),'.-')
 
-plot(rm,diag(o2on_noise(1:i_range,p_point)),'--')
-plot(rm,diag(o2off_noise(1:i_range,p_point)),'--')
-plot(rm,diag(o2on_noise_mol(1:i_range,p_point)),'--')
-plot(rm,diag(o2off_noise_mol(1:i_range,p_point)),'--')
+plot(diag(o2on_noise(1:i_range,p_point)),rm,'--')
+plot(diag(o2off_noise(1:i_range,p_point)),rm,'--')
+plot(diag(o2on_noise_mol(1:i_range,p_point)),rm,'--')
+plot(diag(o2off_noise_mol(1:i_range,p_point)),rm,'--')
+
+%%%%%%plot(diag(o2off_mol_corr(:,p_point)),rm,'.-')
 
 
-ylim([0 500])
+xlim([0 500])
 %view([90 -90])
 title('Averaged photon returns')
-legend('Online','Offline','Online molecular','Offline molecular','Model online','Model offline')
+legend('Online','Offline','Online molecular','Offline molecular','raw online','raw offline','raw online molecular','raw offline molecular')
 hold off
 grid on
 xlabel('Range [m]')
@@ -1684,11 +1961,13 @@ grid on
 % title('Norm com online / norm mol online')
 
 figure(88943)
-plot(rm_raw_o2/1000,log(o2on_bgsub(:,p_point).*rm_raw_o2.^2));
+plot(rm_raw_o2/1000,log(o2on_bgsub(:,p_point(1)).*rm_raw_o2.^2));
 hold on
-plot(rm_raw_o2/1000,log(o2off_bgsub(:,p_point).*rm_raw_o2.^2));
-plot(rm_raw_o2/1000,log(o2on_bgsub_mol(:,p_point).*rm_raw_o2.^2));
-plot(rm_raw_o2/1000,log(o2off_bgsub_mol(:,p_point).*rm_raw_o2.^2));
+plot(rm_raw_o2/1000,log(o2off_bgsub(:,p_point(1)).*rm_raw_o2.^2));
+plot(rm_raw_o2/1000,log(o2on_bgsub_mol(:,p_point(1)).*rm_raw_o2.^2));
+plot(rm_raw_o2/1000,log(o2off_bgsub_mol(:,p_point(1)).*rm_raw_o2.^2));
+
+%plot(rm/1000,log(o2on_noise(:,p_point(1)).*rm.^2),'--');
 legend('on','off','on mol','off mol')
 grid on
 hold off
@@ -1760,6 +2039,356 @@ line(DataStructure2.UPS.all.TimeStamp,DataStructure2.UPS.all.UPSTemperature,'Par
 ylabel('Battery temperature (C)')
 
 
+
+figure(589)
+subplot(2,1,1)
+imagesc(thr,rm/1000,o2on_noise.*rm.^2)
+hold on
+xline(thr(p_point(1)),'r');
+hold off
+set(gca, 'YDir','normal')
+caxis([0 1e9])
+%set(gca,'ColorScale','log')
+colorbar
+%colormap('turbo')
+title('o2 on unaveraged * r^{ 2}')
+ylabel('Range (km)')
+xlabel('Time (UTC hrs)')
+subplot(2,1,2)
+imagesc(thr,rm,o2off_noise.*rm.^2)
+hold on
+xline(thr(p_point(1)),'r');
+hold off
+set(gca, 'YDir','normal')
+caxis([0 1e9])
+%set(gca,'ColorScale','log')
+colorbar
+title('o2off unaveraged')
+
+figure(5899)
+subplot(2,2,1)
+imagesc(thr,rm_raw_o2/1000,o2on_intp.*rm_raw_o2.^2)
+hold on
+xline(thr(p_point(1)),'r');
+hold off
+set(gca, 'YDir','normal')
+caxis([0 1e9])
+%set(gca,'ColorScale','log')
+colorbar
+%colormap('turbo')
+title('o2 on unaveraged * r^{ 2}')
+ylabel('Range (km)')
+xlabel('Time (UTC hrs)')
+subplot(2,2,2)
+imagesc(thr,rm_raw_o2/1000,o2off_intp.*rm_raw_o2.^2)
+hold on
+xline(thr(p_point(1)),'r');
+hold off
+set(gca, 'YDir','normal')
+caxis([0 1e9])
+%set(gca,'ColorScale','log')
+colorbar
+title('o2off unaveraged')
+
+subplot(2,2,3)
+imagesc(thr,rm_raw_o2/1000,o2on_bgsub.*rm_raw_o2.^2)
+hold on
+xline(thr(p_point(1)),'r');
+hold off
+set(gca, 'YDir','normal')
+caxis([0 1e9])
+%set(gca,'ColorScale','log')
+colorbar
+%colormap('turbo')
+title('o2 on unaveraged * r^{ 2}')
+ylabel('Range (km)')
+xlabel('Time (UTC hrs)')
+subplot(2,2,4)
+imagesc(thr,rm_raw_o2/1000,o2off_bgsub.*rm_raw_o2.^2)
+hold on
+xline(thr(p_point(1)),'r');
+hold off
+set(gca, 'YDir','normal')
+caxis([0 1e9])
+%set(gca,'ColorScale','log')
+colorbar
+title('o2off unaveraged bgsub')
+
+
+figure(6899)
+subplot(2,2,1)
+imagesc(thr,rm_raw_o2/1000,o2on_intp_mol.*rm_raw_o2.^2)
+hold on
+xline(thr(p_point(1)),'r');
+hold off
+set(gca, 'YDir','normal')
+caxis([0 1e9])
+%set(gca,'ColorScale','log')
+colorbar
+%colormap('turbo')
+title('o2 on mol unaveraged * r^{ 2}')
+ylabel('Range (km)')
+xlabel('Time (UTC hrs)')
+subplot(2,2,2)
+imagesc(thr,rm_raw_o2/1000,o2off_intp_mol.*rm_raw_o2.^2)
+hold on
+xline(thr(p_point(1)),'r');
+hold off
+set(gca, 'YDir','normal')
+caxis([0 1e9])
+%set(gca,'ColorScale','log')
+colorbar
+title('o2off mol unaveraged')
+
+subplot(2,2,3)
+imagesc(thr,rm_raw_o2/1000,o2on_bgsub_mol.*rm_raw_o2.^2)
+hold on
+xline(thr(p_point(1)),'r');
+hold off
+set(gca, 'YDir','normal')
+caxis([0 1e9])
+%set(gca,'ColorScale','log')
+colorbar
+%colormap('turbo')
+title('o2 on mol unaveraged * r^{ 2}')
+ylabel('Range (km)')
+xlabel('Time (UTC hrs)')
+subplot(2,2,4)
+imagesc(thr,rm_raw_o2/1000,o2off_bgsub_mol.*rm_raw_o2.^2)
+hold on
+xline(thr(p_point(1)),'r');
+hold off
+set(gca, 'YDir','normal')
+caxis([0 1e9])
+%set(gca,'ColorScale','log')
+colorbar
+title('o2off mol unaveraged bgsub')
+
+
+%Tick spacing
+tickHours = 8;
+tickMin = 0;
+date2=datetime(2019,4,20,tickHours,tickMin,0);
+date1=datetime(2019,4,20,0,0,0);
+tickSpacing = datenum(date2)-datenum(date1);
+tickAngle = 0;
+
+figure(8886)
+subplot(5,1,1)
+r_max_plot = 6; % Max range to plot [km]
+[~,ind_km_max] = min(abs(rkm-r_max_plot));
+imAlpha=ones(size(alpha_0m(1:ind_km_max,:)));
+imAlpha(isnan(alpha_0m(1:ind_km_max,:)))=0;%Set AlphaData to not plot NaNs
+imAlpha(cloud_SDm(1:ind_km_max,:) ~= 1)=1;
+%imAlpha(cloud_SDm_above(1:ind_km_max,:) ~= 1)=1;
+colorLimits = [min(alpha_0m(1:ind_km_max,:),[],'all'), max(alpha_0m(1:ind_km_max,:),[],'all')];
+imagesc(datenum(date_ts),rkm(1:ind_km_max),alpha_0m(1:ind_km_max,:),'AlphaData',imAlpha,colorLimits)
+hold on
+
+%Plotting sode locations
+% for i = 1:size(data_col_real,2)
+%     if ~isnan(data_col_real(1,i))
+%         %disp('ran')
+%         %plot(ts([datenum(date_ts(data_col_real(1,i))) datenum(date_ts(data_col_real(end,i)))])/60/60,[rkm(1) rkm(end)])
+%         plot(datenum(date_ts_N([data_col_real(1,i) data_col_real(end,i)])),[rkm(1) rkm(end)],'--k')
+%     end
+% end
+xline(datenum(date_ts(p_point(1))))
+
+colors = colormap;
+colors(1,:) = [0 0 0];%set lowest color black
+colormap(colors);
+set(gca, 'YDir','normal')
+set(gca,'color',[1 1 1]);%color background white
+colorbar
+title(sprintf('alpha 0 %s to %s (UTC)',date_ts(1),date_ts(end)))
+xlabel('Time UTC')
+ylabel('Range (km)')
+title(colorbar,'m^{-1}')
+%xticklabels(datestr(date_ts))
+xlim([datenum(date_ts(1)) datenum(date_ts(end))]) 
+xticks(datenum(date_ts(1)): tickSpacing :datenum(date_ts(end)))
+xtickangle(tickAngle)
+datetick('x','mm/dd HH:MM','keeplimits','keepticks')
+hold off
+
+
+subplot(5,1,2)
+alpha_1m = alpha_1 .* SNRm .* cloud_SDm_above;
+%%alpha_1m(alpha_1m <= 0) = NaN;          % Replace mask with NaNs
+r_max_plot = 6; % Max range to plot [km]
+[~,ind_km_max] = min(abs(rkm-r_max_plot));
+imAlpha=ones(size(alpha_1m(1:ind_km_max,:)));
+imAlpha(isnan(alpha_1m(1:ind_km_max,:)))=0;%Set AlphaData to not plot NaNs
+imAlpha(cloud_SDm(1:ind_km_max,:) ~= 1)=1;
+%imAlpha(cloud_SDm_above(1:ind_km_max,:) ~= 1)=1;
+colorLimits = [min(alpha_1m(1:ind_km_max,:),[],'all'), max(alpha_1m(1:ind_km_max,:),[],'all')];
+imagesc(datenum(date_ts),rkm(1:ind_km_max),alpha_1m(1:ind_km_max,:),'AlphaData',imAlpha,colorLimits)
+hold on
+
+%Plotting sode locations
+% for i = 1:size(data_col_real,2)
+%     if ~isnan(data_col_real(1,i))
+%         %disp('ran')
+%         %plot(ts([datenum(date_ts(data_col_real(1,i))) datenum(date_ts(data_col_real(end,i)))])/60/60,[rkm(1) rkm(end)])
+%         plot(datenum(date_ts_N([data_col_real(1,i) data_col_real(end,i)])),[rkm(1) rkm(end)],'--k')
+%     end
+% end
+xline(datenum(date_ts(p_point(1))))
+    
+colors = colormap;
+colors(1,:) = [0 0 0];%set lowest color black
+colormap(colors);
+set(gca, 'YDir','normal')
+set(gca,'color',[1 1 1]);%color background white
+colorbar
+title(sprintf('alpha 1'))
+xlabel('Time UTC')
+ylabel('Range (km)')
+title(colorbar,'m^{-1}')
+%xticklabels(datestr(date_ts))
+xlim([datenum(date_ts(1)) datenum(date_ts(end))]) 
+xticks(datenum(date_ts(1)): tickSpacing :datenum(date_ts(end)))
+xtickangle(tickAngle)
+datetick('x','mm/dd HH:MM','keeplimits','keepticks')
+hold off
+
+
+subplot(5,1,3)
+alpha_2m = alpha_2 .* SNRm .* cloud_SDm_above;
+%%alpha_2m(alpha_2m <= 0) = NaN;          % Replace mask with NaNs
+r_max_plot = 6; % Max range to plot [km]
+[~,ind_km_max] = min(abs(rkm-r_max_plot));
+imAlpha=ones(size(alpha_2m(1:ind_km_max,:)));
+imAlpha(isnan(alpha_2m(1:ind_km_max,:)))=0;%Set AlphaData to not plot NaNs
+imAlpha(cloud_SDm(1:ind_km_max,:) ~= 1)=1;
+%imAlpha(cloud_SDm_above(1:ind_km_max,:) ~= 1)=1;
+colorLimits = [min(alpha_2m(1:ind_km_max,:),[],'all'), max(alpha_2m(1:ind_km_max,:),[],'all')];
+imagesc(datenum(date_ts),rkm(1:ind_km_max),alpha_2m(1:ind_km_max,:),'AlphaData',imAlpha,colorLimits)
+hold on
+
+%Plotting sode locations
+% for i = 1:size(data_col_real,2)
+%     if ~isnan(data_col_real(1,i))
+%         %disp('ran')
+%         %plot(ts([datenum(date_ts(data_col_real(1,i))) datenum(date_ts(data_col_real(end,i)))])/60/60,[rkm(1) rkm(end)])
+%         plot(datenum(date_ts_N([data_col_real(1,i) data_col_real(end,i)])),[rkm(1) rkm(end)],'--k')
+%     end
+% end
+xline(datenum(date_ts(p_point(1))))
+    
+colors = colormap;
+colors(1,:) = [0 0 0];%set lowest color black
+colormap(colors);
+set(gca, 'YDir','normal')
+set(gca,'color',[1 1 1]);%color background white
+colorbar
+title(sprintf('alpha 2'))
+xlabel('Time UTC')
+ylabel('Range (km)')
+title(colorbar,'m^{-1}')
+%xticklabels(datestr(date_ts))
+xlim([datenum(date_ts(1)) datenum(date_ts(end))]) 
+xticks(datenum(date_ts(1)): tickSpacing :datenum(date_ts(end)))
+xtickangle(tickAngle)
+datetick('x','mm/dd HH:MM','keeplimits','keepticks')
+hold off
+
+
+subplot(5,1,4)
+alpha_total_rawm = alpha_total_raw .* SNRm .* cloud_SDm_above;
+%%alpha_2m(alpha_2m <= 0) = NaN;          % Replace mask with NaNs
+r_max_plot = 6; % Max range to plot [km]
+[~,ind_km_max] = min(abs(rkm-r_max_plot));
+imAlpha=ones(size(alpha_total_rawm(1:ind_km_max,:)));
+imAlpha(isnan(alpha_total_rawm(1:ind_km_max,:)))=0;%Set AlphaData to not plot NaNs
+imAlpha(cloud_SDm(1:ind_km_max,:) ~= 1)=1;
+%imAlpha(cloud_SDm_above(1:ind_km_max,:) ~= 1)=1;
+colorLimits = [min(alpha_total_rawm(1:ind_km_max,:),[],'all'), max(alpha_total_rawm(1:ind_km_max,:),[],'all')];
+imagesc(datenum(date_ts),rkm(1:ind_km_max),alpha_total_rawm(1:ind_km_max,:),'AlphaData',imAlpha,colorLimits)
+hold on
+
+%Plotting sode locations
+% for i = 1:size(data_col_real,2)
+%     if ~isnan(data_col_real(1,i))
+%         %disp('ran')
+%         %plot(ts([datenum(date_ts(data_col_real(1,i))) datenum(date_ts(data_col_real(end,i)))])/60/60,[rkm(1) rkm(end)])
+%         plot(datenum(date_ts_N([data_col_real(1,i) data_col_real(end,i)])),[rkm(1) rkm(end)],'--k')
+%     end
+% end
+xline(datenum(date_ts(p_point(1))))
+    
+colors = colormap;
+colors(1,:) = [0 0 0];%set lowest color black
+colormap(colors);
+set(gca, 'YDir','normal')
+set(gca,'color',[1 1 1]);%color background white
+colorbar
+title(sprintf('alpha raw'))
+xlabel('Time UTC')
+ylabel('Range (km)')
+title(colorbar,'m^{-1}')
+%xticklabels(datestr(date_ts))
+xlim([datenum(date_ts(1)) datenum(date_ts(end))]) 
+xticks(datenum(date_ts(1)): tickSpacing :datenum(date_ts(end)))
+xtickangle(tickAngle)
+datetick('x','mm/dd HH:MM','keeplimits','keepticks')
+hold off
+
+
+subplot(5,1,5)
+r_max_plot = 6; % Max range to plot [km]
+[~,ind_km_max] = min(abs(rkm-r_max_plot));
+imAlpha=ones(size(alpha_totalm(1:ind_km_max,:)));
+imAlpha(isnan(alpha_totalm(1:ind_km_max,:)))=0;%Set AlphaData to not plot NaNs
+imAlpha(cloud_SDm(1:ind_km_max,:) ~= 1)=1;
+%imAlpha(cloud_SDm_above(1:ind_km_max,:) ~= 1)=1;
+colorLimits = [min(alpha_totalm(1:ind_km_max,:),[],'all'), max(alpha_totalm(1:ind_km_max,:),[],'all')];
+imagesc(datenum(date_ts),rkm(1:ind_km_max),alpha_totalm(1:ind_km_max,:),'AlphaData',imAlpha,colorLimits)
+hold on
+
+%Plotting sode locations
+% for i = 1:size(data_col_real,2)
+%     if ~isnan(data_col_real(1,i))
+%         %disp('ran')
+%         %plot(ts([datenum(date_ts(data_col_real(1,i))) datenum(date_ts(data_col_real(end,i)))])/60/60,[rkm(1) rkm(end)])
+%         plot(datenum(date_ts_N([data_col_real(1,i) data_col_real(end,i)])),[rkm(1) rkm(end)],'--k')
+%     end
+% end
+xline(datenum(date_ts(p_point(1))))
+    
+colors = colormap;
+colors(1,:) = [0 0 0];%set lowest color black
+colormap(colors);
+set(gca, 'YDir','normal')
+set(gca,'color',[1 1 1]);%color background white
+colorbar
+title(sprintf('alpha total'))
+xlabel('Time UTC')
+ylabel('Range (km)')
+title(colorbar,'m^{-1}')
+%xticklabels(datestr(date_ts))
+xlim([datenum(date_ts(1)) datenum(date_ts(end))]) 
+xticks(datenum(date_ts(1)): tickSpacing :datenum(date_ts(end)))
+xtickangle(tickAngle)
+datetick('x','mm/dd HH:MM','keeplimits','keepticks')
+hold off
+
+
+BSRm = BSR .* SNRm .* cloud_SDm ;
+BSRm(BSRm <= 0) = NaN;
+
+
+figure(7473)
+imagesc(thr,rm,BSRm)
+hold on
+xline(thr(p_point(1)),'r');
+hold off
+colorbar
+colormap(flipud(hot))
+caxis([0 5])
+set(gca, 'YDir','normal')
+title('BSR')
 
 
 

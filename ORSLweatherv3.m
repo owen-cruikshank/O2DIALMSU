@@ -1,17 +1,17 @@
-function [weather_Temperature_interp, weather_absPressure_interp, weather_WV_interp] = ORSLweatherv2(span_days,ts,path)
+function [weather_Temperature_interp, weather_absPressure_interp, weather_WV_interp] = ORSLweatherv3(span_days,ts,path)
 %File: ORSLweatherv3.m
 %Date: 12/28/2020
 %Author: Owen Cruikshank
 %Inputs:
 %   -span_days: datetime vector in UTC time of days. ex.: datetime(2020,2,22,'TimeZone','UTC');%yyyy,mm,dd
-%   -ts:[s] main time grid of analysis
+%   -ts:[s] row vector of main time grid of analysis
 %   -path: string of file path to Weather station data folder
 %
 %Outputs:
-%   -weather_Temperature_interp: [C] surface temperature from weather
+%   -weather_Temperature_interp: [C] (range x time) surface temperature from weather
 %   station
-%   -weather_absPressure_interp: [mbar] surface absolute pressure from weather station
-%   -weather_VW_interp: [1/cm^3] surface water vapor number density
+%   -weather_absPressure_interp: [mbar] (range x time) surface absolute pressure from weather station
+%   -weather_VW_interp: [1/cm^3] (range x time) surface water vapor number density
 
 %Create datetime vector corresponding to time grid
 thr = ts/60/60;%time in hours
@@ -48,7 +48,8 @@ weatherFile = fileread(weatherFilePath);
 
 % Read file into cell arrays
 formatSpec='%s %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f';
-weather = textscan(weatherFile,formatSpec,'Delimiter',',','HeaderLines',1,'TreatAsEmpty','');
+%weather = textscan(weatherFile,formatSpec,'Delimiter',',','HeaderLines',1,'TreatAsEmpty','');
+weather = textscan(weatherFile,formatSpec,'Delimiter',',','HeaderLines',1);
 
 %create datetime vector for date from weather
 weather_dateTime = weather{1};
@@ -75,7 +76,7 @@ weather_absPressure = weather_absPressure(IA);
 weather_VW = weather_VW(IA);
 
 %interpolate surface data to analysis time grid
-weather_Temperature = filloutliers(weather_Temperature,'linear');
+%weather_Temperature = filloutliers(weather_Temperature,'nearest');
 weather_Temperature_interp = interp1(weather_dateTime,weather_Temperature,time_date_hms,'nearest','extrap');
 weather_Temperature_interp = fillmissing(weather_Temperature_interp,'nearest');
 weather_absPressure_interp = interp1(weather_dateTime,weather_absPressure,time_date_hms,'nearest','extrap');

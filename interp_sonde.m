@@ -15,6 +15,7 @@ i_range = length(range);
 tk = T;
 pre = P;
 
+
 j = 1;
 for i = 1:i_range
     r = range(i);
@@ -28,6 +29,7 @@ for i = 1:i_range
        
        dp = pre(i) - pre(i-1);
        P_int(j) = pre(i-1) + dp*dr2/dr1;
+       
        
        rm_int(j) = j*rangebin;
        

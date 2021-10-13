@@ -1,5 +1,5 @@
 %load MSU data files
-function [DataStructure2, Options] = loadMSUNETcdf(spanDays,path)
+function [DataStructure2, Options] = loadMSUNETcdf(spanDays,Options)
 %File: loadMSUNETcdf.m
 %Date: 05/21/2020
 %Author: Owen Cruikshank
@@ -37,8 +37,11 @@ end
     % Time grid to average bins over
     % To read in data starting after a 00:00:00 the starting time must be
     % changed
-    Options.TimeGrid      = (1:1:60*(24-1/60/60))./60;
-    Options.TimeGrid      = (1:1:60*(24*length(spanDays)-1/60/60))./60;
+    %BinLength = 1;%[minutes]
+    
+    %Options.TimeGrid      = (1:BinLength:60*(24*length(spanDays)-1/60/60))./60;
+    Options.TimeGrid      = (0.1:Options.intTime:60*(24*length(spanDays)-1/60/60))./60;
+    %Options.TimeGrid      = (1:1:60*(24*length(spanDays)-1/60/60))./60;
     %Options.TimeGrid      = (.5:1:60*24-0.5)./60;      %[min]
     %Options.TimeGrid      = (16*60:1:60*24-0.5)./60;
 
@@ -46,13 +49,14 @@ end
     Paths.Code = pwd;
     
     for i=1:length(spanDays)
-        Paths.Data{:,i} = [path,'\RSync\NetCDFOutput\',Options.Date{i}];
+        %Paths.Data{:,i} = [Options.path,'MSU data\RSync\NetCDFOutput\',Options.Date{i}];
+        Paths.Data{:,i} = [Options.path,Options.Date{i}];
     end
 
     %% Defining data to read
+    if strcmp(Options.MPDname,'Boulder')
     DataTypes = {'Etalon*.nc';'LL*.nc';'MCS*.nc';'Power*.nc'; 'HKeep*.nc'; 'UPS*.nc'};
     DataNames = {'Etalon';'Laser';'MCS';'Power';'Thermocouple';'UPS'};
-
     FileVarNames  = {{'time';'Temperature';'TempDiff';'IsLocked';'EtalonNum'};
                      {'time';'Wavelength';'WaveDiff';'IsLocked';'TempDesired';'TempMeas';'Current';'SeedPower';'LaserName'};
                      {'time';'ProfilesPerHist';'Channel';'nsPerBin';'NBins';'Data';'RTime'};
@@ -71,6 +75,28 @@ end
                        {'-';'-';'-';'-';'-'};
                        {'-';'-'};
                        {'-';'-';'-';'-';'-';'-';'-';'-';'-'}};
+    else
+            DataTypes = {'Etalon*.nc';'LL*.nc';'MCS*.nc';'Power*.nc'; 'HKeep*.nc'; 'UPS*.nc'};
+    DataNames = {'Etalon';'Laser';'MCS';'Power';'Thermocouple';'UPS'};
+    FileVarNames  = {{'time';'Temperature';'TempDiff';'IsLocked';'EtalonNum'};
+                     {'time';'Wavelength';'WaveDiff';'IsLocked';'TempDesired';'TempMeas';'Current';'SeedPower';'LaserName'};
+                     {'time';'ProfilesPerHist';'Channel';'nsPerBin';'NBins';'Data';'RTime'};
+                     {'time';'RTime';'Power';'AccumEx';'Demux'};
+                     {'time';'Temperature'};
+                     {'time';'BatteryNominal';'BatteryReplace';'BatteryInUse';'BatteryLow';'BatteryCapacity';'BatteryTimeLeft';'UPSTemperature';'HoursOnBattery'}};  
+    CodeVarNames  = {{'TimeStamp';'TemperatureActual';'-';'-';'Type'};
+                     {'TimeStamp';'WavelengthActual';'-';'Locked';'TemperatureDesired';'TemperatureActual';'-';'-';'Type'};
+                     {'TimeStamp';'ProfilesPerHistogram';'ChannelNum';'RangeResolution';'-';'-';'-'};
+                     {'TimeStamp';'-';'LaserPower';'-';'-'};
+                     {'TimeStamp';'Temperature'};
+                     {'TimeStamp';'BatteryNominal';'BatteryReplace';'BatteryInUse';'BatteryLow';'BatteryCapacity';'BatteryTimeLeft';'UPSTemperature';'HoursOnBattery'}}; 
+    VarDesiredTypes = {{'-';'-';'-';'-';'String'};
+                       {'-';'-';'-';'-';'-';'-';'-';'-';'String'};
+                       {'-';'-';'-';'-';'-';'-';'-'};
+                       {'-';'-';'-';'-';'-'};
+                       {'-';'-'};
+                       {'-';'-';'-';'-';'-';'-';'-';'-';'-'}};
+    end
 
 
     % Populating cells with "-" variables with their parner
@@ -113,30 +139,67 @@ end
         end
     end
     %% Parsing data
-    % Data names
-    DemuxNames = {{'O2Etalon'};
-             {'O2Online';'O2Offline';'TWSOA'};
-             {'Channel0';'Channel2';'Channel8';'Channel10'};
-             {'all'};
-             {'InsideCell','OutsideCell','TSOA','RoomTemp'};
+    if strcmp(Options.MPDname,'Boulder')
+        DemuxNames = {{'O2Etalon'};
+             {'O2Online';'O2Offline';'O2TravelingWaveAmp'};
+             {'Channel0';'Channel1';'Channel2';'Channel8';'Channel9';'Channel10'};
+             {'O2Online';'O2Offline'};
+             %{'InsideCell','OutsideCell','TSOA','RoomTemp'};
+             {'RoomTemp','HVACReturn','HVACSource','Window','WindowHeaterFan','VWEtalonHeatSink','HSRLEtalonHeatSink','InsideCell'}
              {'all'}}; 
     % Channel labels
-    Demux = {{'O2Etalon'};
-             {'O2Online';'O2Offline';'Unknown'};
-             {0;2;8;10};
-             {0;3};
-             {1;2;3;4};
+       Demux = {{'O2Etalon'};
+             {'O2Online';'O2Offline';'O2TravelingWaveAmp'};
+             {0;1;2;8;9;10};
+             {'O2Online';'Unknown';'Unknown';'Unknown';'Unknown';'Unknown';'O2Offline';'Unknown';'Unknown';'Unknown';'Unknown';'Unknown'};
+             %{1;2;3;4};
+             {1;2;3;4;5;6;7;8};
              {'UPS'}};
     % Column where names are stored in raw data
     DemuxCol = [5 9 3 5 0 0];
+    else
+
+           % Data names
+    DemuxNames = {{'O2Etalon'};
+             {'O2Online';'O2Offline';'TWSOA'};
+             {'Channel0';'Channel2';'Channel8';'Channel10'};
+             %{'all'};
+             %{'O2Online';'Unknown1';'Unknown2';'Unknown3';'Unknown4';'Unknown5';'O2Offline';'Unknown12';'Unknown22';'Unknown32';'Unknown42';'Unknown52'};
+             {'O2Online';'O2Offline'};
+             {'InsideCell','OutsideCell','TSOA','RoomTemp'};
+             {'all'}}; 
+
+    Demux = {{'O2Etalon'};
+             {'O2Online';'O2Offline';'Unknown'};
+             {0;2;8;10};
+             %{0;3};
+             {'O2Online';'Unknown';'Unknown';'Unknown';'Unknown';'Unknown';'O2Offline';'Unknown';'Unknown';'Unknown';'Unknown';'Unknown'};
+             %{'O2Online';'O2Offline'};
+             {1;2;3;4};
+             {'UPS'}};
+        % Column where names are stored in raw data
+    DemuxCol = [5 9 3 5 0 0];
+    end
 
     for m=1:size(RawData,1)             %Loop over variable names
         for n=1:size(Demux{m,1},1)      %Loop over demux options
            for p=1:size(RawData{m,1},1) %Loop over variable names
                % Power and thermocouples have different demuxing
                if strcmp(DataNames{m,1},'Power')
-                   % Do nothing for now because we have no power measurements
-                   parsedData{m,1}{1,1}{p,1}(:,1) = RawData{m,1}{p,1}(:,1);
+                   %%% Do nothing for now because we have no power measurements
+                   %%parsedData{m,1}{1,1}{p,1}(:,1) = RawData{m,1}{p,1}(:,1);
+                   if (p==1||p==2) && (n==1||n==7)% Check if time vector
+                       if n==7
+                           parsedData{m,1}{2,1}{p,1}(:,1) = RawData{m,1}{p,1}(:,1);
+                       else
+                           parsedData{m,1}{n,1}{p,1}(:,1) = RawData{m,1}{p,1}(:,1);
+                       end
+                   elseif n==1
+                       %%parsedData{m,1}{n,1}{p,1}(:,1) = RawData{m,1}{p,1}(:,n); 
+                       parsedData{m,1}{n,1}{p,1}(:,1) = RawData{m,1}{p,1}(:,n);
+                   elseif n==7
+                       parsedData{m,1}{2,1}{p,1}(:,1) = RawData{m,1}{p,1}(:,n); 
+                   end
                elseif strcmp(DataNames{m,1},'Thermocouple')
                    if p==1 % Check if time vector
                        parsedData{m,1}{n,1}{p,1}(:,1) = RawData{m,1}{p,1}(:,1);
@@ -145,9 +208,9 @@ end
                    end
                elseif strcmp(DataNames{m,1},'UPS')
                    if p==1 % Check if time vector
-                       parsedData{m,1}{n,1}{p,1}(:,1) = RawData{m,1}{p,1}(:,1);
+                       parsedData{m,1}{n,1}{p,1}(:,1) = RawData{m,1}{p,1}(1:end,1);
                    else
-                       parsedData{m,1}{n,1}{p,1}(:,1) = RawData{m,1}{p,1}(:,n); 
+                       parsedData{m,1}{n,1}{p,1}(:,1) = RawData{m,1}{p,1}(1:end,n); 
                    end
                elseif strcmp(DataNames{m,1},'MCS')
                    % Create vector of T/F values where names equal data
@@ -168,75 +231,97 @@ end
 
 
     %% Pushing all 1d data to a constant grid
-    for m=1:1:size(parsedData,1)        %Loop over variable names
+    for m=1:size(parsedData,1)        %Loop over variable names
         for n=1:size(parsedData{m,1},1) %Loop over demux options
             % Converting the cell array data to a structure
             DataStructure{m,1}{n,1} = cell2struct(parsedData{m,1}{n,1},ToLoad{m,3});
-
             % Interpolating 1d data or passing through MCS 2d data
             if strcmp(DataNames{m,1},'MCS') || strcmp(DataNames{m,1},'Power')
                % Checking if power time stamps are monotonically increasing
-               DataNames{m,1};
                A = find(diff(DataStructure{m,1}{n,1}.TimeStamp)<0) + 1;
                for p=1:1:length(A)
-                   DataStructure{m,1}{n,1}.TimeStamp(A(p):end) = DataStructure{m,1}{n,1}.TimeStamp(A(p):end) + 24;
+                   %DataStructure{m,1}{n,1}.TimeStamp(A(p):end) = DataStructure{m,1}{n,1}.TimeStamp(A(p):end) + 24;
+                   %DataStructure{m,1}{n,1}.TimeStamp(A(p):end) = DataStructure{m,1}{n,1}.TimeStamp(A(p):end) + (DataStructure{m,1}{n,1}.TimeStamp(A(p)-1)-DataStructure{m,1}{n,1}.TimeStamp(A(p)-2));
+                   DataStructure{m,1}{n,1}.TimeStamp(A(p)) = DataStructure{m,1}{n,1}.TimeStamp(A(p)) +DataStructure{m,1}{n,1}.TimeStamp(A(p)-1) ;
                end
-
                % Average data over time grid
                % Initialize variables
-               sum = zeros(size(parsedData{m,1}{n,1}{1,1}(1,:)));
+               Dsum = zeros(size(parsedData{m,1}{n,1}{1,1}(1,:)));
                increment = 1;
                increment2 = 0;
                ran = 0;
-               clear SummedData
+               %%%clear SummedData NBinsInc NewTimeGrid
                NBins = 0;
                for p=1:length(parsedData{m,1}{n,1}) %Loop over variable names
                    if strcmp(ToLoad{m,3}{p},'Data') % Sum over only data
-                       SummedData = zeros(1,560);
+                       %SummedData = zeros(1,560);
+                       SummedData = zeros(1,Options.BinTotal);
                        for q=1:length(DataStructure{m,1}{n,1}.TimeStamp) % Loop over data time
                            if increment+increment2 > length(Options.TimeGrid) % Check if increment is beyond time grid
                                break
                            elseif q==length(DataStructure{m,1}{n,1}.TimeStamp) % Check if increment is last in time grid
                                % Set sumed data bin to running sum
-                               SummedData(increment+increment2,:) = sum;
+                               SummedData(increment+increment2,:) = Dsum;
                                % Set number of summed bins
                                NBinsInc(increment+increment2,1) = NBins;
                                NewTimeGrid(1,increment+increment2) = Options.TimeGrid(increment+increment2);                        
                            elseif DataStructure{m,1}{n,1}.TimeStamp(q)>Options.TimeGrid(increment+increment2) && increment ==1 && ran ==0 % Check if there is no data before Options.TimeGrid
+                               disp('ran DataStructure{m,1}{n,1}.TimeStamp(q)>Options.TimeGrid(increment+increment2) && increment ==1 && ran ==0 % Check if there is no data before Options.TimeGrid')
                                while DataStructure{m,1}{n,1}.TimeStamp(q)>Options.TimeGrid(increment+increment2) % Increment over all missing bins
-                                   SummedData(increment+increment2,:) = NaN(1,560);
+                                   %SummedData(increment+increment2,:) = NaN(1,560);
+                                   SummedData(increment+increment2,:) = NaN(1,Options.BinTotal);
                                    NBinsInc(increment+increment2,1) = NaN;
-                                   NewTimeGrid(1,increment+increment2) = NaN;
+                                   %NewTimeGrid(1,increment+increment2) = NaN;
+                                   NewTimeGrid(1,increment+increment2) = Options.TimeGrid(1,increment+increment2);
                                    increment2 = increment2 + 1;
                                end
                                increment2 = increment2-1;
                                increment = increment+1;
                            elseif DataStructure{m,1}{n,1}.TimeStamp(q)<=Options.TimeGrid(increment+increment2) && DataStructure{m,1}{n,1}.TimeStamp(q)>Options.TimeGrid(increment+increment2)-(Options.TimeGrid(2)-Options.TimeGrid(1))% Check if data time increment is inside current time grid section
                                % Add current data bin to sum
-                               sum = sum + parsedData{m,1}{n,1}{p,1}(q,:);
+                               Dsum = Dsum + parsedData{m,1}{n,1}{p,1}(q,:);
                                % Add number of summed bins
                                NBins = NBins + 1;
                                ran = 1;
                            elseif DataStructure{m,1}{n,1}.TimeStamp(q)>Options.TimeGrid(increment+increment2) % If data time incremten is beyond current time grid section
                                % Set new data bin to sum
-                               SummedData(increment+increment2,:) = sum;
+                               SummedData(increment+increment2,:) = Dsum;
                                % Set number of summed bins
                                NBinsInc(increment+increment2,1) = NBins;
                                NewTimeGrid(1,increment+increment2) = Options.TimeGrid(increment+increment2);
                                % Reset sum to current bin and NBins
-                               sum = parsedData{m,1}{n,1}{p,1}(q,:);
-                               NBins = 1;
+                               Dsum = parsedData{m,1}{n,1}{p,1}(q,:);
+                               NBins = 0;
+                               %disp('over')
                                % Move to new time grid section
                                increment = increment +1 ;
                            else
                                %do nothing for now
                            end
                        end
-                       % Take mean of summed data bins and asing to structure
+                       
+                       
+                       %Integrate counts in range
+                       increment = 1;
+                       clear rangeSummedData
+                       %for jj = Options.intRange:Options.intRange:560
+                       for jj = Options.intRange:Options.intRange:Options.BinTotal
+                           rangeSummedData(:,increment) = sum(SummedData(:,jj-Options.intRange+1:jj),2);
+                           increment = increment+1;
+                       end
+                       % Take mean of summed data bins and add to structure
                        % cell
-                       DataStructure{m,1}{n,1}.(ToLoad{m,3}{p,:}) = rmmissing(SummedData)./rmmissing(NBinsInc);
-                       DataStructure{m,1}{n,1}.NBins = rmmissing(NBinsInc);
-                       DataStructure{m,1}{n,1}.NewTimeGrid = rmmissing(NewTimeGrid);
+                       %DataStructure{m,1}{n,1}.(ToLoad{m,3}{p,:}) = rmmissing(SummedData')./rmmissing(NBinsInc');
+                       %DataStructure{m,1}{n,1}.NBins = rmmissing(NBinsInc');
+% % %                        DataStructure{m,1}{n,1}.(ToLoad{m,3}{p,:}) = rmmissing(rangeSummedData')./rmmissing(NBinsInc');
+% % %                        DataStructure{m,1}{n,1}.NBins = rmmissing(NBinsInc');
+% % %                        DataStructure{m,1}{n,1}.NewTimeGrid = rmmissing(NewTimeGrid);
+                       
+                       
+                       DataStructure{m,1}{n,1}.(ToLoad{m,3}{p,:}) = rangeSummedData'./NBinsInc';
+                       %%DataStructure{m,1}{n,1}.(ToLoad{m,3}{p,:}) = rangeSummedData';
+                       DataStructure{m,1}{n,1}.NBins = NBinsInc';
+                       DataStructure{m,1}{n,1}.NewTimeGrid = NewTimeGrid;
                    else
                        % Do nothing for now with other MCS and Power data
                    end
@@ -244,10 +329,10 @@ end
             else
                 % Interpolating 1 dimensional data
                 DataStructure{m,1}{n,1} = RecursivelyInterpolateStructure(DataStructure{m,1}{n,1}, ...
-                                                                          DataStructure{m,1}{n,1}.TimeStamp,...
-                                                                          Options.TimeGrid,...
-                                                                          Options.InterpMethod,...
-                                                                          Options.Extrapolation);
+                                                                            DataStructure{m,1}{n,1}.TimeStamp,...
+                                                                            Options.TimeGrid,...
+                                                                            Options.InterpMethod,...
+                                                                            Options.Extrapolation);
             end
         end
     end
@@ -257,7 +342,7 @@ end
 
 %%
 % Convert Demux cells to structure
-for m=1:1:size(parsedData,1)
+parfor m=1:size(parsedData,1)
     DataStructure{m,1} = cell2struct(DataStructure{m,1},DemuxNames{m,1});
 end
 %%

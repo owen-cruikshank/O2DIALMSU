@@ -24,7 +24,7 @@ for m=1:1:size(ToLoad,1) % Looping over filetypes
     % Loading all files
     if isempty(s)
         % No files to load
-        TimeBounds = linspace(0,24,100)';
+        TimeBounds = linspace(0,23.9,100)';
         % Looping over varaibles
         for p=1:1:size(ToLoad{m,FileVarCol})
             fprintf(['Loading: ',ToLoad{m,FileCol},', default\n'])

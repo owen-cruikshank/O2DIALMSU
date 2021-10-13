@@ -38,11 +38,22 @@ function [sonde_datetime,sondeStruc] =  COBradiosonde(path,span_days)
 
 
     sonde_ind = 0;
+    
     for day_i = 1:length(span_days)
+        
+        %oldPath = pwd;
+        
         %Finding year folder
         file_year = num2str(year(span_days(day_i)));
+        %fullfile(path,file_year,'*.tsv')
         fileDir = dir(fullfile(path,file_year,'*.tsv'));
+        %cd(fullfile(path,file_year))
+        %fileDir = dir('*.tsv')
+        %cd(oldPath)
         %loop over files in year folder
+        
+        sonde = cell(length(fileDir),22);
+        
         for file_i=1:length(fileDir)
             %COB_2020-07-30-17-2600
             %Find month and day of sonde files
@@ -61,10 +72,35 @@ function [sonde_datetime,sondeStruc] =  COBradiosonde(path,span_days)
                 %Read sonde file
                 formatSpec='%f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f';
                 sondeFile = fileread(fullfile(fileDir(file_i).folder,fileDir(file_i).name));
-                sonde(sonde_ind,:) = textscan(sondeFile,formatSpec,'Delimiter','\t','HeaderLines',39);
+                sonde(sonde_ind,1:end-3) = textscan(sondeFile,formatSpec,'Delimiter','\t','HeaderLines',39);
+                
+                sonde{sonde_ind,20} = [];
+                sonde{sonde_ind,21} = [];
+                sonde{sonde_ind,22} = [];
                 %Create sonde structure with headings
-                headings = {'time','Pscl','T','RH','v','u','Height','P','TD','MR','DD','FF','AZ','Range','Lon','Lat','SpuKey','UsrKey','RadarH'};
-                sondeStruc(sonde_ind,:) = cell2struct(sonde(sonde_ind,:),headings,2);
+                headings = {'time','Pscl','T','RH','v','u','Height','P','TD','MR','DD','FF','AZ','Range','Lon','Lat','SpuKey','UsrKey','RadarH','e','AH','WV'};
+                sondeStruc(sonde_ind) = cell2struct(sonde(sonde_ind,:),headings,2);
+                
+                notOutliers = find(sondeStruc(sonde_ind).T~=-32768);
+                
+                sondeStruc(sonde_ind).T = sondeStruc(sonde_ind).T(notOutliers);
+                sondeStruc(sonde_ind).P = sondeStruc(sonde_ind).P(notOutliers);
+                sondeStruc(sonde_ind).Height = sondeStruc(sonde_ind).Height(notOutliers);
+                %sondeStruc(sonde_ind).Height = sondeStruc(sonde_ind).Height(notOutliers)+139+400;
+                
+                sondeStruc(sonde_ind).TD = sondeStruc(sonde_ind).TD(notOutliers);
+                sondeStruc(sonde_ind).RH = sondeStruc(sonde_ind).RH(notOutliers);
+                
+                
+                sondeStruc(sonde_ind).e = 0.6108*exp(17.27*(sondeStruc(sonde_ind).TD-273.3)./sondeStruc(sonde_ind).TD);%[kPa]water vapor pressure
+                sondeStruc(sonde_ind).AH = 2165*sondeStruc(sonde_ind).e./sondeStruc(sonde_ind).T;%[g/m^3] absolute Humidity 
+                sondeStruc(sonde_ind).WV = 6.022e23*sondeStruc(sonde_ind).AH/18.01528;%[1/m^3] WV number density
+               
+                
+%                 sondeStruc(sonde_ind).T
+%                 [sondeStruc(sonde_ind).T,outliers(sonde_ind)] = rmoutliers(sondeStruc(sonde_ind).T);
+%                 sondeStruc(sonde_ind).P = sondeStruc(sonde_ind).P(outliers(sonde_ind));
+%                 sondeStruc(sonde_ind).Height = sondeStruc(sonde_ind).Height(outliers(sonde_ind));
             end
         end
     end
