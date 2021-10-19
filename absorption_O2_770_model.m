@@ -1,4 +1,4 @@
-function [absorption,cross_section,lineshape] = absorption_O2_770_model(T,P,nu_Range,WV)
+function [absorption,cross_section,lineshape,Line] = absorption_O2_770_model(T,P,nu_Range,WV)
 %File: absorption_O2_770_model.m
 %Date: 02/28/2020
 %Author: Owen Cruikshank
@@ -48,6 +48,8 @@ strength_threshold = 1*10^(-26);                    %[cm / molecule] line streng
 
 t = -10:.2:10;                                      %Relative freqency to integrate over
 t = permute(t,[3 1 2]);                             %[none] shift t to put it in third dimestion
+
+increment = 1;
 
 for i = 1:length(O2_parameters)                     %loop over all line parameters
 
@@ -104,6 +106,16 @@ for i = 1:length(O2_parameters)                     %loop over all line paramete
         lineshape = f + lineshape;                  %add on to previous lineshape
         Voight_profile = Voight + Voight_profile;   %add on to previous profile
         cross_section = sigma + cross_section;      %add on to previous cross_section
+        
+        %Save each line parameters
+        N_o2 = ((P*101325)./(kB*T)-WV) * q_O2; %[molecule/m^3](t x r)O2 number density from atmopsheric number density and O2 mixing ratio
+        Line{increment}.absorption = sigma .*N_o2;
+        Line{increment}.lineshape = f;
+        Line{increment}.cross_section = sigma;
+        Line{increment}.S0=S0_O2;
+        Line{increment}.E_lower = E_lower;
+
+        increment = increment+1; %increment line number
     end
 end
 
