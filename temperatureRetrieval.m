@@ -159,7 +159,7 @@ for i = 1:loop
     q = q_O2 .* (1 - q_WV);
     
     %update lineshape function
-    [~,~,g] = absorption_O2_770_model(Tg,Pg,nu_scan,WV);%[m] lineshape function 
+    [~,~,g,Line] = absorption_O2_770_model(Tg,Pg,nu_scan,WV);%[m] lineshape function 
     
     %Calculate Coefficients
     exponent(:,:,i) = gamma ./ Lapse(:,:,i);
@@ -167,7 +167,20 @@ for i = 1:loop
     C2 = Tg .^ (-exponent(:,:,i) - 2) .* exp(-ep/kB./Tg);%[K^-1]
     C3 = (-exponent(:,:,i) - 2) ./ Tg + ep./(kB.*Tg.^2);%[K^-1]
     %Calculate change in temperature from last
-    deltaT(:,:,i) = (alpha_O2 - C1 .* C2 .* g .* q) ./ (C1 .* C2 .* C3 .* g .* q); %[K] calculate a change in temperatre
+    %deltaT(:,:,i) = (alpha_O2 - C1 .* C2 .* g .* q) ./ (C1 .* C2 .* C3 .* g .* q); %[K] calculate a change in temperatre
+    deltaT(:,:,i) = (alpha_O2 - C1 .* C2 .* Line{2}.lineshape .* q) ./ (C1 .* C2 .* C3 .* Line{2}.lineshape .* q); %[K] calculate a change in temperatre
+
+    %Line coefficients
+    epa = Line{1}.E_lower*h*c;
+    C1a = Line{1}.S0 * T0 * (Pg*101325) * exp(epa/kB/T0) ./ (kB * Tg .^(-exponent(:,:,i)));%[K/(molec*m^2)]pressure converted to Pa
+    C2a = Tg .^ (-exponent(:,:,i) - 2) .* exp(-epa/kB./Tg);%[K^-1]
+    C3a = (-exponent(:,:,i) - 2) ./ Tg + epa./(kB.*Tg.^2);%[K^-1]
+    epb = Line{2}.E_lower*h*c;
+    C1b = Line{2}.S0 * T0 * (Pg*101325) * exp(epb/kB/T0) ./ (kB * Tg .^(-exponent(:,:,i)));%[K/(molec*m^2)]pressure converted to Pa
+    C2b = Tg .^ (-exponent(:,:,i) - 2) .* exp(-epb/kB./Tg);%[K^-1]
+    C3b = (-exponent(:,:,i) - 2) ./ Tg + epb./(kB.*Tg.^2);%[K^-1]
+    %Calculate change in temperature from last
+    deltaT(:,:,i) = (alpha_O2 - C1a.*C2a.*Line{1}.lineshape.*q - C1b.*C2b.*Line{2}.lineshape.*q)./(C1a.*C2a.*C3a.*Line{1}.lineshape.*q+C1b.*C2b.*C3b.*Line{2}.lineshape.*q); %[K] calculate a change in temperatre
 
     % Limit deltaT to plus or minus 2 K
     deltaT(deltaT > 2) = 2;
