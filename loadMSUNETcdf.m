@@ -55,26 +55,29 @@ end
 
     %% Defining data to read
     if strcmp(Options.MPDname,'Boulder')
-    DataTypes = {'Etalon*.nc';'LL*.nc';'MCS*.nc';'Power*.nc'; 'HKeep*.nc'; 'UPS*.nc'};
-    DataNames = {'Etalon';'Laser';'MCS';'Power';'Thermocouple';'UPS'};
+    DataTypes = {'Etalon*.nc';'LL*.nc';'MCS*.nc';'Power*.nc'; 'HKeep*.nc'; 'UPS*.nc'; 'WS*.nc'};
+    DataNames = {'Etalon';'Laser';'MCS';'Power';'Thermocouple';'UPS';'WS'};
     FileVarNames  = {{'time';'Temperature';'TempDiff';'IsLocked';'EtalonNum'};
                      {'time';'Wavelength';'WaveDiff';'IsLocked';'TempDesired';'TempMeas';'Current';'SeedPower';'LaserName'};
                      {'time';'ProfilesPerHist';'Channel';'nsPerBin';'NBins';'Data';'RTime'};
                      {'time';'RTime';'Power';'AccumEx';'Demux'};
                      {'time';'Temperature'};
-                     {'time';'BatteryNominal';'BatteryReplace';'BatteryInUse';'BatteryLow';'BatteryCapacity';'BatteryTimeLeft';'UPSTemperature';'HoursOnBattery'}};  
+                     {'time';'BatteryNominal';'BatteryReplace';'BatteryInUse';'BatteryLow';'BatteryCapacity';'BatteryTimeLeft';'UPSTemperature';'HoursOnBattery'};
+                     {'time';'Temperature';'RelHum';'Pressure';'AbsHum'}};  
     CodeVarNames  = {{'TimeStamp';'TemperatureActual';'-';'-';'Type'};
                      {'TimeStamp';'WavelengthActual';'-';'Locked';'TemperatureDesired';'TemperatureActual';'-';'-';'Type'};
                      {'TimeStamp';'ProfilesPerHistogram';'ChannelNum';'RangeResolution';'-';'-';'-'};
                      {'TimeStamp';'-';'LaserPower';'-';'-'};
                      {'TimeStamp';'Temperature'};
-                     {'TimeStamp';'BatteryNominal';'BatteryReplace';'BatteryInUse';'BatteryLow';'BatteryCapacity';'BatteryTimeLeft';'UPSTemperature';'HoursOnBattery'}}; 
+                     {'TimeStamp';'BatteryNominal';'BatteryReplace';'BatteryInUse';'BatteryLow';'BatteryCapacity';'BatteryTimeLeft';'UPSTemperature';'HoursOnBattery'};
+                     {'TimeStamp';'Temperature';'RelHum';'Pressure';'AbsHum'}}; 
     VarDesiredTypes = {{'-';'-';'-';'-';'String'};
                        {'-';'-';'-';'-';'-';'-';'-';'-';'String'};
                        {'-';'-';'-';'-';'-';'-';'-'};
                        {'-';'-';'-';'-';'-'};
                        {'-';'-'};
-                       {'-';'-';'-';'-';'-';'-';'-';'-';'-'}};
+                       {'-';'-';'-';'-';'-';'-';'-';'-';'-'};
+                       {'-';'-';'-';'-';'-'}};
     else
             DataTypes = {'Etalon*.nc';'LL*.nc';'MCS*.nc';'Power*.nc'; 'HKeep*.nc'; 'UPS*.nc'};
     DataNames = {'Etalon';'Laser';'MCS';'Power';'Thermocouple';'UPS'};
@@ -106,7 +109,8 @@ end
               CodeVarNames{m,1}{n} = FileVarNames{m,1}{n};
           end
           if strcmp(VarDesiredTypes{m,1}{n},'-')
-              VarDesiredTypes{m,1}{n} = 'Double';
+              %%VarDesiredTypes{m,1}{n} = 'Double';
+              VarDesiredTypes{m,1}{n} = 'Native';
           end
        end
     end   
@@ -123,6 +127,7 @@ end
     %% Loading data
     
     for i = 1:length(spanDays)
+        disp(spanDays(i))
         RawDataTemp = ReadMPDData(ToLoad,Paths.Code,Paths.Data{:,i});
         for m=1:size(RawDataTemp,1)
             for p=1:size(RawDataTemp{m,1},1)
@@ -136,29 +141,33 @@ end
                     end
                 end
             end
-        end
+        end  
     end
+    clear RawDataTemp
     %% Parsing data
+    disp('Parsing Data')
     if strcmp(Options.MPDname,'Boulder')
-        DemuxNames = {{'O2Etalon'};
-             {'O2Online';'O2Offline';'O2TravelingWaveAmp'};
+        DemuxNames = {{'O2Etalon';'WVEtalon'};
+             {'O2Online';'O2Offline';'O2TravelingWaveAmp';'WVOnline';'WVOffline';'WVTravelingWaveAmp'};
              {'Channel0';'Channel1';'Channel2';'Channel8';'Channel9';'Channel10'};
              {'O2Online';'O2Offline'};
              %{'InsideCell','OutsideCell','TSOA','RoomTemp'};
              {'RoomTemp','HVACReturn','HVACSource','Window','WindowHeaterFan','VWEtalonHeatSink','HSRLEtalonHeatSink','InsideCell'}
+             {'all'};
              {'all'}}; 
     % Channel labels
-       Demux = {{'O2Etalon'};
-             {'O2Online';'O2Offline';'O2TravelingWaveAmp'};
+       Demux = {{'O2Etalon';'WVEtalon'};
+             {'O2Online';'O2Offline';'O2TravelingWaveAmp';'WVOnline';'WVOffline';'WVTravelingWaveAmp'};
              {0;1;2;8;9;10};
              {'O2Online';'Unknown';'Unknown';'Unknown';'Unknown';'Unknown';'O2Offline';'Unknown';'Unknown';'Unknown';'Unknown';'Unknown'};
              %{1;2;3;4};
              {1;2;3;4;5;6;7;8};
-             {'UPS'}};
+             {'UPS'};
+             {'WS'}};
     % Column where names are stored in raw data
-    DemuxCol = [5 9 3 5 0 0];
+    DemuxCol = [5 9 3 5 0 0 0];
+    
     else
-
            % Data names
     DemuxNames = {{'O2Etalon'};
              {'O2Online';'O2Offline';'TWSOA'};
@@ -177,6 +186,7 @@ end
              %{'O2Online';'O2Offline'};
              {1;2;3;4};
              {'UPS'}};
+             
         % Column where names are stored in raw data
     DemuxCol = [5 9 3 5 0 0];
     end
@@ -212,6 +222,12 @@ end
                    else
                        parsedData{m,1}{n,1}{p,1}(:,1) = RawData{m,1}{p,1}(1:end,n); 
                    end
+               elseif strcmp(DataNames{m,1},'WS')
+                   if p==1 % Check if time vector
+                       parsedData{m,1}{n,1}{p,1}(:,1) = RawData{m,1}{p,1}(1:end,1);
+                   else
+                       parsedData{m,1}{n,1}{p,1}(:,1) = RawData{m,1}{p,1}(1:end,n); 
+                   end
                elseif strcmp(DataNames{m,1},'MCS')
                    % Create vector of T/F values where names equal data
                    demuxTrue = Demux{m,1}{n,1} == RawData{m,1}{DemuxCol(m),1}(:);
@@ -231,6 +247,7 @@ end
 
 
     %% Pushing all 1d data to a constant grid
+    disp('Interpolating data to grid')
     for m=1:size(parsedData,1)        %Loop over variable names
         for n=1:size(parsedData{m,1},1) %Loop over demux options
             % Converting the cell array data to a structure

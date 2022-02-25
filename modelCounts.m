@@ -31,6 +31,7 @@ Tm = exp(-cumtrapz(Range.rm,HSRL.Bm*Sm,1));
 %--Lidar equation
 Fon  = Tm.^2.*Ta.^2.*Model.transmission.^2.*(HSRL.Bm+HSRL.Ba)./Range.rm.^2;
 Foff = Tm.^2.*Ta.^2.*(HSRL.Bm+HSRL.Ba)./Range.rm.^2;
+Foff_mol = Tm.^2.*Ta.^2.*(HSRL.Bm)./Range.rm.^2;
 
 
 Model.N_on  = transmitPhotons_on  .* eta_R .* eta_D .* A .* Range.rangeBin .* Fon;

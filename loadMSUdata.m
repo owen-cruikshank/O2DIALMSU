@@ -45,8 +45,8 @@ Range.r_max = 6000;                                       %[m] Max range
 Range.rm = Range.rm_raw_o2(Range.rm_raw_o2<=Range.r_max & Range.rm_raw_o2>0);     %[m] Shorten range vector to max range
 
 %=== Integrate range vector ==
-% Range.rm = Range.rm(1:2:end);%integrate to new
-% Range.rangeBin = Range.rangeBin*2;
+Range.rm = Range.rm(1:2:end);%integrate to new
+Range.rangeBin = Range.rangeBin*2;
 
 Range.i_range = length(Range.rm);                               %[none] Size of range vector
 Range.rkm = Range.rm/1000;
@@ -148,6 +148,10 @@ end
 % Data.MCS.Channel8.Data = Data.MCS.Channel8.Data - PulseOffMol+1;
 
 
+
+
+
+%%
 %=========================
 %=== Calculate background
 %=========================
@@ -170,20 +174,20 @@ Counts.o2off_bgsub_mol(Counts.o2off_bgsub_mol < 0) = 0;         % Minimum of zer
 %%
 
 % ========integrate to new range
-% % inc = 1;
-% % for ii = 1:2:length(Range.rm_raw_o2)
-% %     o2on_intp2(inc,:) = (Counts.o2on_bgsub(ii,:)+Counts.o2on_bgsub(ii+1,:))/2;
-% %     o2off_intp2(inc,:) = (Counts.o2off_bgsub(ii,:)+Counts.o2off_bgsub(ii+1,:))/2;
-% %     o2on_intp2_mol(inc,:) = (Counts.o2on_bgsub_mol(ii,:)+Counts.o2on_bgsub_mol(ii+1,:))/2;
-% %     o2off_intp2_mol(inc,:) = (Counts.o2off_bgsub_mol(ii,:)+Counts.o2off_bgsub_mol(ii+1,:))/2;
-% %     inc = inc+1;
-% % end
-% % Counts.o2on_bgsub = o2on_intp2;
-% % Counts.o2off_bgsub = o2off_intp2;
-% % Counts.o2on_bgsub_mol = o2on_intp2_mol;
-% % Counts.o2off_bgsub_mol = o2off_intp2_mol;
-% % 
-% % Range.rm_raw_o2 = Range.rm_raw_o2(1:2:end);
+inc = 1;
+for ii = 1:2:length(Range.rm_raw_o2)
+    o2on_intp2(inc,:) = (Counts.o2on_bgsub(ii,:)+Counts.o2on_bgsub(ii+1,:))/2;
+    o2off_intp2(inc,:) = (Counts.o2off_bgsub(ii,:)+Counts.o2off_bgsub(ii+1,:))/2;
+    o2on_intp2_mol(inc,:) = (Counts.o2on_bgsub_mol(ii,:)+Counts.o2on_bgsub_mol(ii+1,:))/2;
+    o2off_intp2_mol(inc,:) = (Counts.o2off_bgsub_mol(ii,:)+Counts.o2off_bgsub_mol(ii+1,:))/2;
+    inc = inc+1;
+end
+Counts.o2on_bgsub = o2on_intp2;
+Counts.o2off_bgsub = o2off_intp2;
+Counts.o2on_bgsub_mol = o2on_intp2_mol;
+Counts.o2off_bgsub_mol = o2off_intp2_mol;
+
+Range.rm_raw_o2 = Range.rm_raw_o2(1:2:end);
 
 %%
 
@@ -193,9 +197,21 @@ Counts.o2on_noise_mol = interp2(Time.ts,Range.rm_raw_o2,Counts.o2on_bgsub_mol,Ti
 Counts.o2off_noise = interp2(Time.ts,Range.rm_raw_o2,Counts.o2off_bgsub,Time.ts,Range.rm);
 Counts.o2off_noise_mol = interp2(Time.ts,Range.rm_raw_o2,Counts.o2off_bgsub_mol,Time.ts,Range.rm);
 
-% Counts.NBins = Data.MCS.Channel0.NBins*2;
-Counts.NBins = Data.MCS.Channel0.NBins;
+Counts.NBins = Data.MCS.Channel0.NBins*2;
+%Counts.NBins = Data.MCS.Channel0.NBins;
 
+
+%%
+%Dead time correction
+deadTime = 22e-9; %SPCM-AQRH-13 dead time
+Counts.o2onCR = Counts.o2on_noise.*Counts.NBins.*250e-9.*14000;%Count rate, Counts*NuberTimeSummedbins*Length of bin(250ns)*profiles per histogram
+Counts.o2on_noise = Counts.o2on_noise ./(1-(deadTime.*Counts.o2onCR));
+Counts.o2offCR = Counts.o2off_noise.*Counts.NBins.*250e-9.*14000;%Count rate, Counts*NuberTimeSummedbins*Length of bin(250ns)*profiles per histogram
+Counts.o2off_noise = Counts.o2off_noise ./(1-(deadTime.*Counts.o2offCR));
+Counts.o2on_molCR = Counts.o2on_noise_mol.*Counts.NBins.*250e-9.*14000;%Count rate, Counts*NuberTimeSummedbins*Length of bin(250ns)*profiles per histogram
+Counts.o2on_noise_mol = Counts.o2on_noise_mol ./(1-(deadTime.*Counts.o2on_molCR));
+Counts.o2off_molCR = Counts.o2off_noise_mol.*Counts.NBins.*250e-9.*14000;%Count rate, Counts*NuberTimeSummedbins*Length of bin(250ns)*profiles per histogram
+Counts.o2off_noise_mol = Counts.o2off_noise_mol ./(1-(deadTime.*Counts.o2off_molCR));
 %%
 %===== Afterpulse Correction =====
 % load('AfterPulse.mat','pulseON','pulseOFF','pulseON_mol','pulseOFF_mol')
@@ -245,6 +261,7 @@ Spectrum.del_lambda = Spectrum.lambda_scan_3D_short-Spectrum.lambda_online;
 [~,Spectrum.online_index] = min(abs(Spectrum.nu_online - Spectrum.nu_scan_3D_short),[],3);%finding index of online wavenumber
 [~,Spectrum.offline_index] = min(abs(Spectrum.nu_offline - Spectrum.nu_scan_3D_short_off),[],3);%finding index of online wavenumber
 
+%%
 %===== Calculate Model absorption from Model T and P =======
 Model.absorption = absorption_O2_770_model(Model.T,Model.P,Spectrum.nu_online,Model.WV); %[m-1] Funcrtion to calculate theoretical absorption
 Model.transmission = exp(-cumtrapz(Range.rm,Model.absorption));
@@ -271,8 +288,31 @@ Counts.o2off = filter2(k,Counts.o2off_noise,'same');
 Counts.o2off_mol = filter2(k,Counts.o2off_noise_mol,'same');
 
 %%
+%Afterpulse
+% load('AfterPulse.mat')
+% Counts.o2on = Counts.o2on + pulseON(1:2:160);
+% Counts.o2off = Counts.o2off + pulseON(1:2:160);
+
+%%
 %====== Calucate any appy optimal filtering based on Poisson thinning ====
 Counts = poissonThin(Counts);
+
+%%
+% Deconvolution estimate
+% pulse = [0.5;0.5];
+% onConv = conv2(Counts.o2on,pulse);
+% Counts.o2on = 2*Counts.o2on - onConv(2:end,:);
+% Counts.o2on(Counts.o2on<0)=0;
+% offConv = conv2(Counts.o2off,pulse);
+% Counts.o2off = 2*Counts.o2off - offConv(2:end,:);
+% Counts.o2off(Counts.o2off<0)=0;
+% 
+% on_molConv = conv2(Counts.o2on_mol,pulse);
+% Counts.o2on_mol = 2*Counts.o2on_mol - on_molConv(2:end,:);
+% Counts.o2on_mol(Counts.o2on_mol<0)=0;
+% off_molConv = conv2(Counts.o2off_mol,pulse);
+% Counts.o2off_mol = 2*Counts.o2off_mol - off_molConv(2:end,:);
+% Counts.o2off_mol(Counts.o2off_mol<0)=0;
 
 %%
 %====Overlap Correction ======
@@ -307,6 +347,16 @@ elseif span_days(1)>=datetime(2021,7,6,'TimeZone','UTC')
     HSRL.BSR = LidarData.UnmaskedBackscatterRatio;
     HSRL.Ba = LidarData.UnmaskedAerosolBackscatterCoefficient;
     HSRL.Bm = LidarData.MolecularBackscatterCoefficient;
+
+    LidarData.OfflineCombinedTotalCounts = Counts.foff;
+    LidarData.OfflineMolecularTotalCounts = Counts.foff_mol;
+    [LidarData]=BackscatterRetrievalRayleighBrillouin070621(LidarData,WeatherData);
+    HSRL.BSRf = LidarData.UnmaskedBackscatterRatio;
+
+        LidarData.OfflineCombinedTotalCounts = Counts.goff;
+    LidarData.OfflineMolecularTotalCounts = Counts.goff_mol;
+    [LidarData]=BackscatterRetrievalRayleighBrillouin070621(LidarData,WeatherData);
+    HSRL.BSRg = LidarData.UnmaskedBackscatterRatio;
 %    Counts.o2off_mol_corrected = LidarData.o2off_mol_corr;
 elseif span_days(1)>=datetime(2021,3,12,'TimeZone','UTC')
     %addpath '\BSR retrieval'
@@ -323,6 +373,17 @@ elseif span_days(1)>=datetime(2021,3,12,'TimeZone','UTC')
     HSRL.Ba = LidarData.AerosolBackscatterCoefficient;
     HSRL.Bm = LidarData.MolecularBackscatterCoefficient;
     Counts.o2off_mol_corrected = LidarData.o2off_mol_corr;
+
+
+    LidarData.OfflineCombinedAverageCounts = Counts.foff-Counts.foff_bg;
+    LidarData.OfflineMolecularAverageCounts = Counts.foff_mol-Counts.foff_mol_bg;
+    [LidarData]=BackscatterRetrievalRayleighBrillouin0312(LidarData,WeatherData);
+    HSRL.BSRf = LidarData.BackscatterRatio;
+
+    LidarData.OfflineCombinedAverageCounts = Counts.goff-Counts.foff_bg;
+    LidarData.OfflineMolecularAverageCounts = Counts.goff_mol-Counts.foff_mol_bg;
+    [LidarData]=BackscatterRetrievalRayleighBrillouin0312(LidarData,WeatherData);
+    HSRL.BSRg = LidarData.BackscatterRatio;
 elseif span_days(1)>datetime(2021,2,20,'TimeZone','UTC')
     %addpath '\BSR retrieval'
     %load('Overlap0304.mat')
@@ -363,4 +424,6 @@ end
 
 %%
 %===== Calculate Model Counts =====
+%   HSRL.BSR = ones(size(Counts.o2on));
+%   HSRL.Ba = zeros(size(HSRL.Ba));
 [Model] = modelCounts(Counts,Model,HSRL,Time,Range,Spectrum);

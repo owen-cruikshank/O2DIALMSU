@@ -49,10 +49,12 @@ integralV = zeros(rL,tL,length(nu_Range));%preallocate
 nu_Range = nu_Range * 100;                          %change nu_Range from [1/cm] to [1/m]
 
 strength_threshold = 1*10^(-27);                    %[cm / molecule] line strength threshold
-%strength_threshold = 1*10^(-31);                    %[cm / molecule] line strength threshold
+strength_threshold = 0;                    %[cm / molecule] line strength threshold
 
 t = -10:.2:10;                                      %Relative freqency to integrate over
 t_4D = permute(t,[4 3 1 2]);                        %shift t to put it in third dimestion
+figure
+hold on
 
 for i = 1:length(O2_parameters)                     %loop over all line parameters
 
@@ -108,7 +110,11 @@ for i = 1:length(O2_parameters)                     %loop over all line paramete
 
         %lineshape = f + lineshape;                          %add on to previous lineshape
         %cross_section = sigma + cross_section;              %add on to previous cross_section
+        line = (y/pi).*integralV .* K .* N_o2;
         absorption = absorption + (y/pi).*integralV .* K .* N_o2; %[1/m](t x r x nu)absorption coefficeint of oxygen in the atmosphere
+        semilogy(permute(nu_Range,[3 2 1]),permute(line(1,1,:),[3 2 1]))
     end
+    
 end 
+hold off
 end

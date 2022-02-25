@@ -1,4 +1,4 @@
-function [T_final,Lapse,Ts_fit,P_final,mean_lapse_rate,exclusion] =  temperatureRetrieval(T,ts,rm,P,WV,nu_scan,alpha_O2,SNRm,cloud_SDm_above)
+function [T_final,Lapse,Ts_fit,P_final,mean_lapse_rate,exclusion,Titer] =  temperatureRetrieval(T,ts,rm,P,WV,nu_scan,alpha_O2,SNRm,cloud_SDm_above)
 %File: temperatureRetrieval.m
 %Date: 03/16/2020
 %Author: Owen Cruikshank
@@ -46,7 +46,8 @@ ep = E_lower*h*c;           %[J]
 
 T0 = 296;                   %[K] reference temperature
 
-loop = 60;%number of times to do iterative temperature retrieval loop
+loop = 40;%number of times to do iterative temperature retrieval loop
+loop = 30;%number of times to do iterative temperature retrieval loop
 
 del_r = rm(2)-rm(1);        %[m]set range difference
 Ts = T(1,:);                %[K] surface temp
@@ -186,6 +187,7 @@ for i = 1:loop
     deltaT(deltaT > 2) = 2;
     deltaT(deltaT < -2) = -2;
 
+    Titer(:,:,i) = Tg;
     % Update temperature profile guress
     T_ret(:,:,i) = Tg + deltaT(:,:,i);            
     Tg = fillmissing(T_ret(:,:,i),'nearest',1);

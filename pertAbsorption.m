@@ -2,7 +2,7 @@
 % author: Owen Cruikshank
 % date: 11/30/2020
 
-function [alpha_1, alpha_2,Spectrum] = pertAbsorption(alpha_0, T_etalon, T, P, rm,ts,rkm,m_air, nu_online, nu_scan_3D_short,nuBin,BSR,ind_r_lo,ind_r_hi,WV,online_index,i_range,i_time,i_scan_3D_short,rangeBin,oversample,t_avg,c,kb,altitude,Spectrum)
+function [alpha_final,Spectrum] = pertAbsorption(alpha_0, T_etalon, T, P, rm,ts,rkm,m_air, nu_online, nu_scan_3D_short,nuBin,BSR,ind_r_lo,ind_r_hi,WV,online_index,i_range,i_time,i_scan_3D_short,rangeBin,oversample,t_avg,c,kb,altitude,Spectrum)
     % --- Spectral distribution using the initial temperature profile guess ---
 
 %     %cB = 1.2;%Brullouion correction to doppler gaussian half width
@@ -51,14 +51,13 @@ function [alpha_1, alpha_2,Spectrum] = pertAbsorption(alpha_0, T_etalon, T, P, r
 
     %%
     %Create lineshape function
-    f = nan(size(absorption_f));
     for i = 1:i_time
-        f(:,i,:) = absorption_f(:,i,:) ./ absorption_f(:,i,online_index(1));  %[none] Normalize lineshape function
+        absorption_f(:,i,:) = absorption_f(:,i,:) ./ absorption_f(:,i,online_index(1));  %[none] Normalize lineshape function
     end
 
      %%    
     % --- Zeroth Order Transmission ---
-    Tm0 = exp(-cumtrapz(rm,alpha_0.*f,1));      %[none] Zeroth order transmission  
+    Tm0 = exp(-cumtrapz(rm,alpha_0.*absorption_f,1));      %[none] Zeroth order transmission  
 
     % Integrand terms
     % Online
@@ -69,7 +68,7 @@ function [alpha_1, alpha_2,Spectrum] = pertAbsorption(alpha_0, T_etalon, T, P, r
     % Online
     zeta_int = trapz(zeta.*Tm0,3)*nuBin*100;              %[none]
     eta_int = trapz(eta.*Tm0,3)*nuBin*100;                %[1/m]
-    zeta_ls_int = trapz(zeta.*Tm0.*(1-f),3)*nuBin*100;    %[none]
+    zeta_ls_int = trapz(zeta.*Tm0.*(1-absorption_f),3)*nuBin*100;    %[none]
     % Offline
     zeta2_int = trapz(zeta,3)*nuBin*100;                  %[none]
     eta2_int = trapz(eta,3)*nuBin*100;                    %[1/m]
@@ -79,26 +78,26 @@ function [alpha_1, alpha_2,Spectrum] = pertAbsorption(alpha_0, T_etalon, T, P, r
     G1 = eta_int./zeta_int - eta2_int./zeta2_int;%[1/m]
 
     alpha_1_raw = 0.5.*(alpha_0.*W1 + G1);      %[1/m]
-    alpha_1 = alpha_1_raw;
 
     % --- First Order Transmission Tm1 ---
-    Tm1 = exp(-cumtrapz(rm,oversample.*alpha_1.*f,1));      %[none] First order transmission
+    Tm1 = exp(-cumtrapz(rm,oversample.*alpha_1_raw.*absorption_f,1));      %[none] First order transmission
     %Tm1 = exp(-cumtrapz(rm,4*alpha_1.*f,1));      %[none] First order transmission
 
     % === Second Order ===
     % Integrated terms
     zeta_Tm1_int = trapz(zeta.*Tm0.*(1-Tm1),3)*nuBin*100;             %[none]
     eta_Tm1_int = trapz(eta.*Tm0.*(1-Tm1),3)*nuBin*100;               %[1/m]
-    zeta_ls_Tm1_int = trapz(zeta.*Tm0.*(1-Tm1).*(1-f),3)*nuBin*100;   %[none]
+    zeta_ls_Tm1_int = trapz(zeta.*Tm0.*(1-Tm1).*(1-absorption_f),3)*nuBin*100;   %[none]
 
     W2 = (zeta_ls_int.*zeta_ls_Tm1_int./(zeta_int.^2)) - (zeta_ls_Tm1_int./zeta_int);   %[none]
     G2 = (eta_int.*zeta_Tm1_int./(zeta_int.^2)) - (eta_Tm1_int./zeta_int);              %[1/m]
 
-    alpha_2_raw = 0.5.*(alpha_1.*W1 + alpha_0.*W2 + G2);    %[1/m]
-    alpha_2=alpha_2_raw;
+    alpha_2_raw = 0.5.*(alpha_1_raw.*W1 + alpha_0.*W2 + G2);    %[1/m]
+    
+    alpha_final = alpha_2_raw+alpha_1_raw+alpha_0;
 
-   Spectrum.g = doppler_O2_ret;
-   Spectrum.g1 = g1;
-   Spectrum.l = absorption_f;
+% %    Spectrum.g = doppler_O2_ret;
+% %    Spectrum.g1 = g1;
+% %    Spectrum.l = absorption_f;
 
 end

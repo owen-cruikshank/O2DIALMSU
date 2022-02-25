@@ -20,7 +20,11 @@ function [SNRm , cloud_SDm_above, cloud_SDm,o2on_SNR] = mask_O2(cloud_p_point,SN
 %   -o2on_SNR:[none] (range x time) signal to noise ratio for online counts
 
 
+% low mask
+[~,Cut] = min(abs(400-Range.rm));
 
+CutMask = ones(size(Counts.o2on));
+CutMask(1:Cut,:) = 0;
 
 
 % ===================
@@ -44,6 +48,7 @@ o2off_SNRm = ones(size(o2off_SNR));
 o2off_SNRm((o2off_SNR < SNR_threshold & Range.rm > 1000) | isnan(Counts.o2off) | (Range.rm.*ones(size(o2off_SNR)))<lowAlt) = 0;
 
 SNRm = o2off_SNRm .* o2on_SNRm;         %Final combination SNR matrix mask with 0 in places of low snr
+
 
 
 % ===================
@@ -129,7 +134,11 @@ if ~isempty(SNR_index_row)                                 % Check if any clouds
     %%%%SNRm(index_matrix > SNR_index & (Range.rm.*ones(size(o2off_SNR)))>lowAlt)=0; % Set all values above cloud index to -1
                       % Create final matrix where clouds are represended by zeros and all data above represented by -1   
 end
-    
+
+%%
+SNRm = SNRm.*CutMask;
+  %%
+
 %---Plotting
 if cloud_p_point ~= 0
 [~,p_point] = min(abs(cloud_p_point-Time.ts/60/60));%find closest value to 338min for comparison to other program

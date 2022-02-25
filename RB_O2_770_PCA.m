@@ -31,7 +31,10 @@ function [cohsig7] = RB_O2_770_PCA(T,P,nu_Range)
 
 %load variables needed
 
-load('RBPCA_1_15_21single.mat')
+%Coherent s7
+%load('RBPCA_1_15_21single.mat')
+%spontaneous s6
+load('RBPCA_11_2_21single.mat')
 
 % lambdaCenter = 769.7958;
 % lambdaWidth = 0.2;
