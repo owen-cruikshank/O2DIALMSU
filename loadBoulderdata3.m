@@ -8,8 +8,12 @@ cd ../
 Options.path = [pwd '\Data\NCAR Boulder Data\RawData\'];
 pathPython = [pwd '\Data\NCAR Boulder Data\Python\'];
 pathSonde = [pwd '\Data\NCAR Boulder Data\Soundings\Soundings-20211220T155456Z-001\Soundings'];
-cd ../../../
-cd( '.\OneDrive - Montana State University\Research\O2 DIAL\analysis')
+
+Options.path = fullfile(pwd, 'Data','NCAR Boulder Data','RawData');
+pathPython = fullfile(pwd,'Data','NCAR Boulder Data','Python');
+pathSonde = fullfile(pwd,'Data','NCAR Boulder Data','Soundings','Soundings-20211220T155456Z-001','Soundings');
+%cd ../
+cd( fullfile('analysis'))
 
 Options.MPDname = 'Boulder';
 Options.BinTotal = 490;

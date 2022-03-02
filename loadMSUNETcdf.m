@@ -50,7 +50,7 @@ end
     
     for i=1:length(spanDays)
         %Paths.Data{:,i} = [Options.path,'MSU data\RSync\NetCDFOutput\',Options.Date{i}];
-        Paths.Data{:,i} = [Options.path,Options.Date{i}];
+        Paths.Data{:,i} = fullfile(Options.path,Options.Date{i});
     end
 
     %% Defining data to read
@@ -79,7 +79,7 @@ end
                        {'-';'-';'-';'-';'-';'-';'-';'-';'-'};
                        {'-';'-';'-';'-';'-'}};
     else
-            DataTypes = {'Etalon*.nc';'LL*.nc';'MCS*.nc';'Power*.nc'; 'HKeep*.nc'; 'UPS*.nc'};
+    DataTypes = {'Etalon*.nc';'LL*.nc';'MCS*.nc';'Power*.nc'; 'HKeep*.nc'; 'UPS*.nc'};
     DataNames = {'Etalon';'Laser';'MCS';'Power';'Thermocouple';'UPS'};
     FileVarNames  = {{'time';'Temperature';'TempDiff';'IsLocked';'EtalonNum'};
                      {'time';'Wavelength';'WaveDiff';'IsLocked';'TempDesired';'TempMeas';'Current';'SeedPower';'LaserName'};

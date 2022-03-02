@@ -48,7 +48,9 @@ for m=1:1:size(ToLoad,1) % Looping over filetypes
                 % Reading data file
                 A = ReadVariable(Filename,FileVar,VariableType);
                 % Appending data to the other availible data
-                Data{m,1}{p,1} = [Data{m}{p,1};A];
+                %Data{m,1}{p,1} = [Data{m}{p,1};A];
+
+                Data{m,1}{p,1} = [Data{m}{p,1}; A];
             end
         end
     end
