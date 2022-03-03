@@ -1647,53 +1647,76 @@ hold off
 
 figure(2828)
 title('time')
-subplot(1,4,1)
+subplot(1,6,1)
 semilogx(Counts.Poissonthin.timeWidthon*Time.t_step,Range.rkm,'.')
 xlim([1 10^4])
 grid on
 title('on')
 ylabel('Range')
-subplot(1,4,2)
+subplot(1,6,2)
 semilogx(Counts.Poissonthin.timeWidthoff*Time.t_step,Range.rkm,'.')
 xlim([1 10^4])
 grid on
 title('off')
-subplot(1,4,3)
+subplot(1,6,3)
 semilogx(Counts.Poissonthin.timeWidthon_mol*Time.t_step,Range.rkm,'.')
 xlim([1 10^4])
 grid on
 title('on mol')
-subplot(1,4,4)
+subplot(1,6,4)
 semilogx(Counts.Poissonthin.timeWidthoff_mol*Time.t_step,Range.rkm,'.')
 xlim([1 10^4])
 grid on
 title('of mol')
+subplot(1,6,5)
+semilogx(Counts.Poissonthin.timeWidthwvon*Time.t_step,Range.rkm,'.')
+xlim([1 10^4])
+grid on
+title('on wv')
+subplot(1,6,6)
+semilogx(Counts.Poissonthin.timeWidthwvoff*Time.t_step,Range.rkm,'.')
+xlim([1 10^4])
+grid on
+title('off wv')
+
 
 figure(2829)
 title('time')
-subplot(4,1,1)
+subplot(6,1,1)
 semilogy(Time.thr,Counts.Poissonthin.rangeWidthon*Range.rangeBin,'.')
 ylim([1 300])
 xlim([Time.thr(1) Time.thr(end)])
 grid on
 title('on')
-subplot(4,1,2)
+subplot(6,1,2)
 semilogy(Time.thr,Counts.Poissonthin.rangeWidthoff*Range.rangeBin,'.')
 ylim([1 300])
 xlim([Time.thr(1) Time.thr(end)])
 grid on
 title('off')
-subplot(4,1,3)
+subplot(6,1,3)
 semilogy(Time.thr,Counts.Poissonthin.rangeWidthon_mol*Range.rangeBin,'.')
 ylim([1 300])
 xlim([Time.thr(1) Time.thr(end)])
 grid on
 title('on_mol')
-subplot(4,1,4)
+subplot(6,1,4)
 semilogy(Time.thr,Counts.Poissonthin.rangeWidthoff_mol*Range.rangeBin,'.')
 ylim([1 300])
 xlim([Time.thr(1) Time.thr(end)])
 grid on
 title('of_mol')
+subplot(6,1,5)
+semilogy(Time.thr,Counts.Poissonthin.rangeWidthwvon*Range.rangeBin,'.')
+ylim([1 300])
+xlim([Time.thr(1) Time.thr(end)])
+grid on
+title('on wv')
+subplot(6,1,6)
+semilogy(Time.thr,Counts.Poissonthin.rangeWidthwvoff*Range.rangeBin,'.')
+ylim([1 300])
+xlim([Time.thr(1) Time.thr(end)])
+grid on
+title('off wv')
 xlabel('Time UTC')
 

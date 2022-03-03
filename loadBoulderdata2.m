@@ -97,6 +97,7 @@ Time.t_step = Time.ts(2)-Time.ts(1);
 Time.i_time = length(Time.ts);
 Time.date_ts = span_days(1) + seconds(Time.ts);
 Time.date_ts.TimeZone = 'UTC';
+Time.thr = Time.ts/60/60;
 
 
 % =====================
@@ -117,6 +118,7 @@ Range.rm = Range.rm_raw_o2(Range.rm_raw_o2<=Range.r_max & Range.rm_raw_o2>0);   
 
 Range.rm = Range.rm(1:2:end);%integrate to new
 Range.rangeBin = Range.rangeBin*2;
+Range.rkm = Range.rm/1000;
 
 % % % Range.rm = Range.rm(1:4:end);%integrate to new
 % % % Range.rangeBin = Range.rangeBin*4;
