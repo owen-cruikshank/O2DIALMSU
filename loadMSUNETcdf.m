@@ -128,22 +128,32 @@ end
     
     for i = 1:length(spanDays)
         disp(spanDays(i))
-        RawDataTemp = ReadMPDData(ToLoad,Paths.Code,Paths.Data{:,i});
-        for m=1:size(RawDataTemp,1)
-            for p=1:size(RawDataTemp{m,1},1)
-                if i==1
-                    RawData{m,1}{p,1} = RawDataTemp{m,1}{p,1};
-                else
-                    if isequal(ToLoad{m,3}{p,1},'TimeStamp')
-                        RawData{m,1}{p,1} = [RawData{m}{p,1};RawDataTemp{m,1}{p,1} + 24*(i-1)];
-                    else
-                        RawData{m,1}{p,1} = [RawData{m}{p,1};RawDataTemp{m,1}{p,1}];
-                    end
+        %%%%RawDataTemp = ReadMPDData(ToLoad,Paths.Code,Paths.Data{:,i});
+        RawData = ReadMPDData(ToLoad,Paths.Code,Paths.Data{:,i});
+
+        for m=1:size(RawData,1)
+            for p=1:size(RawData{m,1},1)
+                if isequal(ToLoad{m,3}{p,1},'TimeStamp')
+                        RawData{m,1}{p,1} = RawData{m,1}{p,1} + 24*(i-1);
                 end
             end
-        end  
-    end
-    clear RawDataTemp
+        end
+
+% % %         for m=1:size(RawDataTemp,1)
+% % %             for p=1:size(RawDataTemp{m,1},1)
+% % %                 if i==1
+% % %                     RawData{m,1}{p,1} = RawDataTemp{m,1}{p,1};
+% % %                 else
+% % %                     if isequal(ToLoad{m,3}{p,1},'TimeStamp')
+% % %                         RawData{m,1}{p,1} = [RawData{m}{p,1};RawDataTemp{m,1}{p,1} + 24*(i-1)];
+% % %                     else
+% % %                         RawData{m,1}{p,1} = [RawData{m}{p,1};RawDataTemp{m,1}{p,1}];
+% % %                     end
+% % %                 end
+% % %             end
+% % %         end  
+% % %     end
+% % %     clear RawDataTemp
     %% Parsing data
     disp('Parsing Data')
     if strcmp(Options.MPDname,'Boulder')
@@ -191,6 +201,8 @@ end
     DemuxCol = [5 9 3 5 0 0];
     end
 
+
+    clear parsedData
     for m=1:size(RawData,1)             %Loop over variable names
         for n=1:size(Demux{m,1},1)      %Loop over demux options
            for p=1:size(RawData{m,1},1) %Loop over variable names
@@ -248,6 +260,9 @@ end
 
     %% Pushing all 1d data to a constant grid
     disp('Interpolating data to grid')
+
+TimeGrid = Options.TimeGrid(Options.TimeGrid>=((i-1)*24) & Options.TimeGrid<(i*24));
+
     for m=1:size(parsedData,1)        %Loop over variable names
         for n=1:size(parsedData{m,1},1) %Loop over demux options
             % Converting the cell array data to a structure
@@ -268,44 +283,47 @@ end
                increment2 = 0;
                ran = 0;
                %%%clear SummedData NBinsInc NewTimeGrid
+               
                NBins = 0;
                for p=1:length(parsedData{m,1}{n,1}) %Loop over variable names
                    if strcmp(ToLoad{m,3}{p},'Data') % Sum over only data
                        %SummedData = zeros(1,560);
                        SummedData = zeros(1,Options.BinTotal);
+                       
+
                        for q=1:length(DataStructure{m,1}{n,1}.TimeStamp) % Loop over data time
-                           if increment+increment2 > length(Options.TimeGrid) % Check if increment is beyond time grid
+                           if increment+increment2 > length(TimeGrid) % Check if increment is beyond time grid
                                break
                            elseif q==length(DataStructure{m,1}{n,1}.TimeStamp) % Check if increment is last in time grid
                                % Set sumed data bin to running sum
                                SummedData(increment+increment2,:) = Dsum;
                                % Set number of summed bins
                                NBinsInc(increment+increment2,1) = NBins;
-                               NewTimeGrid(1,increment+increment2) = Options.TimeGrid(increment+increment2);                        
-                           elseif DataStructure{m,1}{n,1}.TimeStamp(q)>Options.TimeGrid(increment+increment2) && increment ==1 && ran ==0 % Check if there is no data before Options.TimeGrid
+                               NewTimeGrid(1,increment+increment2) = TimeGrid(increment+increment2);                        
+                           elseif DataStructure{m,1}{n,1}.TimeStamp(q)>TimeGrid(increment+increment2) && increment ==1 && ran ==0 % Check if there is no data before Options.TimeGrid
                                disp('ran DataStructure{m,1}{n,1}.TimeStamp(q)>Options.TimeGrid(increment+increment2) && increment ==1 && ran ==0 % Check if there is no data before Options.TimeGrid')
-                               while DataStructure{m,1}{n,1}.TimeStamp(q)>Options.TimeGrid(increment+increment2) % Increment over all missing bins
+                               while DataStructure{m,1}{n,1}.TimeStamp(q)>TimeGrid(increment+increment2) % Increment over all missing bins
                                    %SummedData(increment+increment2,:) = NaN(1,560);
                                    SummedData(increment+increment2,:) = NaN(1,Options.BinTotal);
                                    NBinsInc(increment+increment2,1) = NaN;
                                    %NewTimeGrid(1,increment+increment2) = NaN;
-                                   NewTimeGrid(1,increment+increment2) = Options.TimeGrid(1,increment+increment2);
+                                   NewTimeGrid(1,increment+increment2) = TimeGrid(1,increment+increment2);
                                    increment2 = increment2 + 1;
                                end
                                increment2 = increment2-1;
                                increment = increment+1;
-                           elseif DataStructure{m,1}{n,1}.TimeStamp(q)<=Options.TimeGrid(increment+increment2) && DataStructure{m,1}{n,1}.TimeStamp(q)>Options.TimeGrid(increment+increment2)-(Options.TimeGrid(2)-Options.TimeGrid(1))% Check if data time increment is inside current time grid section
+                           elseif DataStructure{m,1}{n,1}.TimeStamp(q)<=TimeGrid(increment+increment2) && DataStructure{m,1}{n,1}.TimeStamp(q)>TimeGrid(increment+increment2)-(TimeGrid(2)-TimeGrid(1))% Check if data time increment is inside current time grid section
                                % Add current data bin to sum
                                Dsum = Dsum + parsedData{m,1}{n,1}{p,1}(q,:);
                                % Add number of summed bins
                                NBins = NBins + 1;
                                ran = 1;
-                           elseif DataStructure{m,1}{n,1}.TimeStamp(q)>Options.TimeGrid(increment+increment2) % If data time incremten is beyond current time grid section
+                           elseif DataStructure{m,1}{n,1}.TimeStamp(q)>TimeGrid(increment+increment2) % If data time incremten is beyond current time grid section
                                % Set new data bin to sum
                                SummedData(increment+increment2,:) = Dsum;
                                % Set number of summed bins
                                NBinsInc(increment+increment2,1) = NBins;
-                               NewTimeGrid(1,increment+increment2) = Options.TimeGrid(increment+increment2);
+                               NewTimeGrid(1,increment+increment2) = TimeGrid(increment+increment2);
                                % Reset sum to current bin and NBins
                                Dsum = parsedData{m,1}{n,1}{p,1}(q,:);
                                NBins = 0;
@@ -335,10 +353,16 @@ end
 % % %                        DataStructure{m,1}{n,1}.NewTimeGrid = rmmissing(NewTimeGrid);
                        
                        
-                       DataStructure{m,1}{n,1}.(ToLoad{m,3}{p,:}) = rangeSummedData'./NBinsInc';
+%                        DataStructure{m,1}{n,1}.(ToLoad{m,3}{p,:}) = rangeSummedData'./NBinsInc';
+%                        %%DataStructure{m,1}{n,1}.(ToLoad{m,3}{p,:}) = rangeSummedData';
+%                        DataStructure{m,1}{n,1}.NBins = NBinsInc';
+
+                       DataStructure{m,1}{n,1}.(ToLoad{m,3}{p,:}) = rangeSummedData./NBinsInc;
                        %%DataStructure{m,1}{n,1}.(ToLoad{m,3}{p,:}) = rangeSummedData';
-                       DataStructure{m,1}{n,1}.NBins = NBinsInc';
-                       DataStructure{m,1}{n,1}.NewTimeGrid = NewTimeGrid;
+                       DataStructure{m,1}{n,1}.NBins = NBinsInc;
+                       DataStructure{m,1}{n,1}.NewTimeGrid = NewTimeGrid';
+
+                       ToLoad{m,3}{7,1}='NewTimeGrid';%add new varible to ToLoad
                    else
                        % Do nothing for now with other MCS and Power data
                    end
@@ -347,25 +371,52 @@ end
                 % Interpolating 1 dimensional data
                 DataStructure{m,1}{n,1} = RecursivelyInterpolateStructure(DataStructure{m,1}{n,1}, ...
                                                                             DataStructure{m,1}{n,1}.TimeStamp,...
-                                                                            Options.TimeGrid,...
+                                                                            TimeGrid,...
                                                                             Options.InterpMethod,...
                                                                             Options.Extrapolation);
             end
         end
     end
 
+    
 
 
+    %Concatenate days together
+    for m=1:size(parsedData,1)
+        for n=1:size(parsedData{m,1},1) %Loop over demux options
+            for p=1:length(ToLoad{m,3}) %Loop over variable names
+                if ~isequal(ToLoad{m,3}{p,1},'Type') && ~isequal(ToLoad{m,3}{p,1},'IsLocked')
+                    if strcmp(DataNames{m,1},'MCS') || strcmp(DataNames{m,1},'Power')
+                        if i ==1
+                            fullDataStructure{m,1}{n,1}.(ToLoad{m,3}{p,1})  = DataStructure{m,1}{n,1}.(ToLoad{m,3}{p,1})';
+                        else
+                            fullDataStructure{m,1}{n,1}.(ToLoad{m,3}{p,1}) = [fullDataStructure{m,1}{n,1}.(ToLoad{m,3}{p,1}) DataStructure{m,1}{n,1}.(ToLoad{m,3}{p,1})'];
+                        end
+                    else
+                        if i ==1
+                            fullDataStructure{m,1}{n,1}.(ToLoad{m,3}{p,1})  = DataStructure{m,1}{n,1}.(ToLoad{m,3}{p,1});
+                        else
+                            fullDataStructure{m,1}{n,1}.(ToLoad{m,3}{p,1}) = [fullDataStructure{m,1}{n,1}.(ToLoad{m,3}{p,1}) DataStructure{m,1}{n,1}.(ToLoad{m,3}{p,1})];
+                        end
+                    end
+                else
+                end
+            end
+        end
+    end
+
+
+    end %end big loop over days
 
 %%
 % Convert Demux cells to structure
 parfor m=1:size(parsedData,1)
-    DataStructure{m,1} = cell2struct(DataStructure{m,1},DemuxNames{m,1});
+    fullDataStructure{m,1} = cell2struct(fullDataStructure{m,1},DemuxNames{m,1});
 end
 %%
 
 % Pushing all data into a single data structure
-DataStructure2 = cell2struct(DataStructure,DataNames);
+DataStructure2 = cell2struct(fullDataStructure,DataNames);
 
 clear A m n 
 end

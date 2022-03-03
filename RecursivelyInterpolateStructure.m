@@ -86,7 +86,8 @@ for m=1:1:size(CellData,1)
        % single number
        if size(OldTime,1) == size(CellData{m,1},1)
            if size(OldTime,1) ~= size(NewTime,1) % Already interpolated
-               if ~isstring(CellData{m,1})
+               %if ~isstring(CellData{m,1})
+               if ~isstring(CellData{m,1}) && ~isinteger(CellData{m,1})
                    CellDataNew{m,1} = interp1(OldTime,CellData{m,1},NewTime,Method);
                end
            else
