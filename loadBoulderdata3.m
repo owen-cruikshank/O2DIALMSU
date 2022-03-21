@@ -1,21 +1,24 @@
 function [Range,Time,Counts,Sonde,Model,Spectrum,HSRL,Data] = loadBoulderdata3(span_days,Options,Constant)
 
+
+
 disp('Reading in files')
 %Read data from MSU DIAL
 
 %%%%load('6_25_21.mat','Data','Options')
 cd ../
-Options.path = [pwd '\Data\NCAR Boulder Data\RawData\'];
+%Options.path = [pwd '\Data\NCAR Boulder Data\RawData\'];
+Options.path = fullfile(pwd,'Data','NCAR Boulder Data',['mpd_' Options.MPDname '_data']);
 pathPython = [pwd '\Data\NCAR Boulder Data\Python\'];
-pathSonde = [pwd '\Data\NCAR Boulder Data\Soundings\Soundings-20211220T155456Z-001\Soundings'];
+%pathSonde = [pwd '\Data\NCAR Boulder Data\Soundings\Soundings-20211220T155456Z-001\Soundings'];
 
-Options.path = fullfile(pwd, 'Data','NCAR Boulder Data','RawData');
+%Options.path = fullfile(pwd, 'Data','NCAR Boulder Data','RawData');
 pathPython = fullfile(pwd,'Data','NCAR Boulder Data','Python');
 pathSonde = fullfile(pwd,'Data','NCAR Boulder Data','Soundings','Soundings-20211220T155456Z-001','Soundings');
 %cd ../
 cd( fullfile('analysis'))
 
-Options.MPDname = 'Boulder';
+%Options.MPDname = 'Boulder';
 Options.BinTotal = 490;
 [Data, Options] = loadMSUNETcdf(span_days,Options);
 %%
@@ -243,6 +246,14 @@ for i = 1:numel(sonde_datetime) % Loop over number of sondes in time period
          end
     else
         Sonde.sonde_ind = [];
+%         Sonde.T_sonde = [];
+%         Sonde.P_sonde = [];
+%         Sonde.WV_sonde = [];
+%         Sonde.AbsHum = [];
+        Sonde.T_sonde = nan(Range.i_range,1);
+        Sonde.P_sonde = nan(Range.i_range,1);
+        Sonde.WV_sonde = nan(Range.i_range,1);
+        Sonde.AbsHum = nan(Range.i_range,1);
     end 
 end
 
@@ -323,6 +334,7 @@ end
 % Counts.o2off_bgsub_mol = Data.MCS.Channel2.Data - Counts.bg_o2off_mol;       % Background subtracted
 % Counts.o2off_bgsub_mol(Counts.o2off_bgsub_mol < 0) = 0;         % Minimum of zero
 
+if strcmp(Options.MPDname,'05')
 Counts.bg_o2on = mean(Data.MCS.Channel9.Data(end-20:end,:));% Take mean of last data points
 Counts.o2on_bgsub = Data.MCS.Channel9.Data - Counts.bg_o2on;       % Background subtracted
 Counts.o2on_bgsub(Counts.o2on_bgsub < 0) = 0;         % Minimum of zero
@@ -347,6 +359,33 @@ Counts.bg_wvoff = mean(Data.MCS.Channel0.Data(end-20:end,:));% Take mean of last
 Counts.wvoff_bgsub = Data.MCS.Channel0.Data - Counts.bg_wvoff;       % Background subtracted
 Counts.wvoff_bgsub(Counts.wvoff_bgsub < 0) = 0;         % Minimum of zero
 
+
+elseif strcmp(Options.MPDname,'01')
+
+Counts.bg_o2off = mean(Data.MCS.Channel9.Data(end-20:end,:));% Take mean of last data points
+Counts.o2off_bgsub = Data.MCS.Channel9.Data - Counts.bg_o2off;       % Background subtracted
+Counts.o2off_bgsub(Counts.o2off_bgsub < 0) = 0;         % Minimum of zero
+
+Counts.bg_o2on = mean(Data.MCS.Channel1.Data(end-20:end,:));% Take mean of last data points
+Counts.o2on_bgsub = Data.MCS.Channel1.Data - Counts.bg_o2on;       % Background subtracted
+Counts.o2on_bgsub(Counts.o2on_bgsub < 0) = 0;         % Minimum of zero
+
+Counts.bg_o2off_mol = mean(Data.MCS.Channel10.Data(end-20:end,:));% Take mean of last data points
+Counts.o2off_bgsub_mol = Data.MCS.Channel10.Data - Counts.bg_o2off_mol;       % Background subtracted
+Counts.o2off_bgsub_mol(Counts.o2off_bgsub_mol < 0) = 0;         % Minimum of zero
+
+Counts.bg_o2on_mol = mean(Data.MCS.Channel2.Data(end-20:end,:));% Take mean of last data points
+Counts.o2on_bgsub_mol = Data.MCS.Channel2.Data - Counts.bg_o2on_mol;       % Background subtracted
+Counts.o2on_bgsub_mol(Counts.o2on_bgsub_mol < 0) = 0;         % Minimum of zero
+
+Counts.bg_wvon = mean(Data.MCS.Channel8.Data(end-20:end,:));% Take mean of last data points
+Counts.wvon_bgsub = Data.MCS.Channel8.Data - Counts.bg_wvon;       % Background subtracted
+Counts.wvon_bgsub(Counts.wvon_bgsub < 0) = 0;         % Minimum of zero
+
+Counts.bg_wvoff = mean(Data.MCS.Channel0.Data(end-20:end,:));% Take mean of last data points
+Counts.wvoff_bgsub = Data.MCS.Channel0.Data - Counts.bg_wvoff;       % Background subtracted
+Counts.wvoff_bgsub(Counts.wvoff_bgsub < 0) = 0;         % Minimum of zero
+end
 
 % 
 % Counts.bg_o2on = mean(Data.MCS.Channel0.Data(end-20:end,:));% Take mean of last data points
@@ -433,6 +472,13 @@ Spectrum.lambda_offline = 770.1085 *ones(size(Time.ts));
 Spectrum.lambda_wvon = fillmissing(filloutliers(Data.Laser.WVOnline.WavelengthActual,'linear','movmedian',5),'linear');
 Spectrum.lambda_wvoff = fillmissing(filloutliers(Data.Laser.WVOffline.WavelengthActual,'linear','movmedian',5),'linear');
 
+Spectrum.lambda_wvon = double(Spectrum.lambda_wvon); %single values mess up conversion to wavenumber
+Spectrum.lambda_wvoff = double(Spectrum.lambda_wvoff);
+
+wvlambdaCentralon = 828.1965;
+wvnuCentralon = 10^7/wvlambdaCentralon;
+wvlambdaCentraloff = 828.2957;
+
 Spectrum.nu_online = 10^7./Spectrum.lambda_online;                    %[cm-1] Online wavenumber
 Spectrum.nu_offline = 10^7./Spectrum.lambda_offline;                  %[cm-1] Offline wavenumber
 
@@ -444,11 +490,13 @@ nuMax = Spectrum.nu_online+0.334;                                 %[cm-1] Scan u
 Spectrum.nuBin = 0.00222;                                    %[cm-1] Scan increment
 nu_scan = (nuMin:Spectrum.nuBin:nuMax);                      %[cm-1](1 x nu) Scan vector
 
-nuwvMin = mean(Spectrum.nu_wvon)-0.334;                                 %[cm-1] Scan lower bound
-nuwvMax = mean(Spectrum.nu_wvon)+0.334;                                 %[cm-1] Scan upper bound
+% nuwvMin = mean(Spectrum.nu_wvon)-0.334;                                 %[cm-1] Scan lower bound
+% nuwvMax = mean(Spectrum.nu_wvon)+0.334;                                 %[cm-1] Scan upper bound
+nuwvMin = wvnuCentralon-0.334;                                 %[cm-1] Scan lower bound
+nuwvMax = wvnuCentralon+0.334;                                 %[cm-1] Scan upper bound
 Spectrum.nuBin = 0.00222;                                    %[cm-1] Scan increment
 nu_scanwv = (nuwvMin:Spectrum.nuBin:nuwvMax);                      %[cm-1](1 x nu) Scan vector
-nu_scanwv = nu_scanwv(1:end-1);
+%nu_scanwv = nu_scanwv(1:end-1);
 
 nuMin_off = Spectrum.nu_offline-0.334;                                 %[cm-1] Scan lower bound
 nuMax_off = Spectrum.nu_offline+0.334;                                 %[cm-1] Scan upper bound

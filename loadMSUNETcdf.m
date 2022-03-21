@@ -30,7 +30,7 @@ for i=1:length(spanDays)
     %% Defining options
     Options.Date{i}          = date;
 end
-    Options.System        = 'DIAL05';
+    %Options.System        = 'DIAL05';
     Options.InterpMethod  = 'linear';
     Options.Extrapolation = 'extrap';
 
@@ -54,7 +54,7 @@ end
     end
 
     %% Defining data to read
-    if strcmp(Options.MPDname,'Boulder')
+    if strcmp(Options.MPDname,'05') || strcmp(Options.MPDname,'01')
     DataTypes = {'Etalon*.nc';'LL*.nc';'MCS*.nc';'Power*.nc'; 'HKeep*.nc'; 'UPS*.nc'; 'WS*.nc'};
     DataNames = {'Etalon';'Laser';'MCS';'Power';'Thermocouple';'UPS';'WS'};
     FileVarNames  = {{'time';'Temperature';'TempDiff';'IsLocked';'EtalonNum'};
@@ -156,9 +156,10 @@ end
 % % %     clear RawDataTemp
     %% Parsing data
     disp('Parsing Data')
-    if strcmp(Options.MPDname,'Boulder')
+    if strcmp(Options.MPDname,'05') || strcmp(Options.MPDname,'01')
         DemuxNames = {{'O2Etalon';'WVEtalon'};
-             {'O2Online';'O2Offline';'O2TravelingWaveAmp';'WVOnline';'WVOffline';'WVTravelingWaveAmp'};
+            %%% {'O2Online';'O2Offline';'O2TravelingWaveAmp';'WVOnline';'WVOffline';'WVTravelingWaveAmp'};
+             {'O2Online';'O2Offline';'WVOnline';'WVOffline'};
              {'Channel0';'Channel1';'Channel2';'Channel8';'Channel9';'Channel10'};
              {'O2Online';'O2Offline'};
              %{'InsideCell','OutsideCell','TSOA','RoomTemp'};
@@ -167,7 +168,8 @@ end
              {'all'}}; 
     % Channel labels
        Demux = {{'O2Etalon';'WVEtalon'};
-             {'O2Online';'O2Offline';'O2TravelingWaveAmp';'WVOnline';'WVOffline';'WVTravelingWaveAmp'};
+            %%% {'O2Online';'O2Offline';'O2TravelingWaveAmp';'WVOnline';'WVOffline';'WVTravelingWaveAmp'};
+             {'O2Online';'O2Offline';'WVOnline';'WVOffline'};
              {0;1;2;8;9;10};
              {'O2Online';'Unknown';'Unknown';'Unknown';'Unknown';'Unknown';'O2Offline';'Unknown';'Unknown';'Unknown';'Unknown';'Unknown'};
              %{1;2;3;4};
@@ -176,6 +178,8 @@ end
              {'WS'}};
     % Column where names are stored in raw data
     DemuxCol = [5 9 3 5 0 0 0];
+    
+   
     
     else
            % Data names
