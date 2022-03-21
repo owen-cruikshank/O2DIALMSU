@@ -182,11 +182,11 @@ plot(diag(Temperature.T_finalm(:,p_point))-273.13,Range.rkm,'linewidth',2)
 
 %plot(Model.Ts(p_point(1)),Range.rkm(1),'+')
 %hold on
-%plot(Model.T(:,p_point(1))-273.13,Range.rkm,'-','LineWidth',2)
+plot(Model.T(:,p_point(1))-273.13,Range.rkm,'-','LineWidth',2)
 plot(Sonde.T_sonde(:,sonde_index)-273.13,Range.rm/1000,'.-')
 %%plot(Sonde.T_sonde(:,sonde_index)+2,Range.rm/1000,'--k')
 %%plot(Sonde.T_sonde(:,sonde_index)-2,Range.rm/1000,'--k')
-%plot(diag(L_fit_sm_test(:,p_point,end) .* Range.rm + Ts_fit(1,p_point,end)),Range.rkm,'--')
+plot(diag(Temperature.L_fit_sm_test(:,p_point,end) .* Range.rm + Temperature.Ts_fit(1,p_point,end))-273.13,Range.rkm,'--')
 hold off
 grid on
 xlabel('Temperature (^oC)')
@@ -289,6 +289,8 @@ colorLimits =[240 320]-273.13;
 
 %colorLimits =[5 30]+273;
 colorLimits =[5 30];
+colorLimits=[-20 10];
+colorLimits=[-15 35];
 imagesc(datenum(Time.date_ts),Range.rkm(1:ind_km_max),Temperature.T_finalm(1:ind_km_max,:)-273.13,'AlphaData',imAlpha,colorLimits) %Plot
 hold on
 %sonde lines
@@ -451,20 +453,20 @@ xlim([-2e-4 6e-4])
 ylim([0 5])
 legend('Measured zeroth order absorption','Purtabative absorption')
 
-figure(55)
-plot(diag(N_wv0(:,p_point)),Range.rkm);
-hold on
-plot(N_wv(:,p_point(1)),Range.rkm);
-plot(Model.WV(:,p_point(1)),Range.rkm);
-plot(Sonde.WV_sonde(:,sonde_index),Range.rkm);
-hold off
-grid on
-title(sprintf(['Calculated WV absorption coefficient\n' datestr(Time.date_ts(p_point(1)))]))
-ylabel('Range (km)')
-xlabel('Absorption (m^{-1})')
-xlim([0 3e23])
-ylim([0 5])
-legend('Measured zeroth order absorption','Smoothed Purtabative absorption','Radiosonde Absorption model')
+% figure(55)
+% plot(diag(N_wv0(:,p_point)),Range.rkm);
+% hold on
+% plot(N_wv(:,p_point(1)),Range.rkm);
+% plot(Model.WV(:,p_point(1)),Range.rkm);
+% plot(Sonde.WV_sonde(:,sonde_index),Range.rkm);
+% hold off
+% grid on
+% title(sprintf(['Calculated WV absorption coefficient\n' datestr(Time.date_ts(p_point(1)))]))
+% ylabel('Range (km)')
+% xlabel('Absorption (m^{-1})')
+% xlim([0 3e23])
+% ylim([0 5])
+% legend('Measured zeroth order absorption','Smoothed Purtabative absorption','Radiosonde Absorption model')
 
 % figure(44)
 % plot((Model.absorption(:,p_point(1))-Alpha.alpha_totalm(:,p_point(1)))./Model.absorption(:,p_point(1))*100,Range.rkm,'-')
@@ -1719,4 +1721,25 @@ xlim([Time.thr(1) Time.thr(end)])
 grid on
 title('off wv')
 xlabel('Time UTC')
+
+figure(7824)
+for jj = 1:length(Sonde.sonde_ind(1,:))
+    tempComparison(:,jj) = Sonde.T_sonde(:,jj)-diag(Temperature.T_finalm(:,Sonde.sonde_ind(:,jj)));
+end
+meanTemp = mean(tempComparison,2,'omitnan');
+stdTemp = std(tempComparison,0,2,'omitnan');
+numberNonNan = sum(~isnan(tempComparison(:,:)),2);
+%numberNonNan = 1;
+stdTemp = stdTemp./numberNonNan;
+plot(meanTemp,Range.rkm,'r','linewidth',2)
+hold on
+plot(meanTemp+stdTemp,Range.rkm,'--b')
+plot(meanTemp-stdTemp,Range.rkm,'--b')
+ylabel('Range (km)')
+xlabel('\Delta(T_{Sonde}-T_{MPD})')
+legend('Mean','Sandard error')
+hold off
+xlim([-20 20])
+ylim([0 4])
+grid on
 

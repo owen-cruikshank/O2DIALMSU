@@ -224,10 +224,12 @@ for i = 1:numel(sonde_datetime) % Loop over number of sondes in time period
             Sonde.P_sonde(length(P_sonde_int{i})+1:length(Range.rm),i)=nan(length(Range.rm)-length(P_sonde_int{i}),1);
             Sonde.WV_sonde(1:length(T_sonde_int{i}),i) = WV_sonde_int{i};
             Sonde.WV_sonde(length(WV_sonde_int{i})+1:length(Range.rm),i)=nan(length(Range.rm)-length(WV_sonde_int{i}),1);
+            Sonde.AbsHum(length(WV_sonde_int{i})+1:length(Range.rm),i)=nan(length(Range.rm)-length(WV_sonde_int{i}),1);
         else
             Sonde.T_sonde(:,i) = T_sonde_int{i}(1:Range.i_range);
             Sonde.P_sonde(:,i) = P_sonde_int{i}(1:Range.i_range);
             Sonde.WV_sonde(:,i) = WV_sonde_int{i}(1:Range.i_range);
+            Sonde.AbsHum(:,i) = Sonde.WV_sonde(:,i).*Constant.mWV*1000; %[g/m3]
         end
         %===interp sonde time
         [rm_sgp{i},IA,IC] = unique(rm_sgp{i});
@@ -244,7 +246,7 @@ for i = 1:numel(sonde_datetime) % Loop over number of sondes in time period
     end 
 end
 
-Sonde.AbsHum = Sonde.WV_sonde.*Constant.mWV*1000; %[g/m3]
+
 
 %=== set model WV to sonde interpolation
 if ~isempty(Sonde.sonde_ind)
@@ -446,6 +448,7 @@ nuwvMin = mean(Spectrum.nu_wvon)-0.334;                                 %[cm-1] 
 nuwvMax = mean(Spectrum.nu_wvon)+0.334;                                 %[cm-1] Scan upper bound
 Spectrum.nuBin = 0.00222;                                    %[cm-1] Scan increment
 nu_scanwv = (nuwvMin:Spectrum.nuBin:nuwvMax);                      %[cm-1](1 x nu) Scan vector
+nu_scanwv = nu_scanwv(1:end-1);
 
 nuMin_off = Spectrum.nu_offline-0.334;                                 %[cm-1] Scan lower bound
 nuMax_off = Spectrum.nu_offline+0.334;                                 %[cm-1] Scan upper bound

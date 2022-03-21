@@ -46,7 +46,8 @@ function [sonde_datetime,sondeStruc] =  COBradiosonde(path,span_days)
         %Finding year folder
         file_year = num2str(year(span_days(day_i)));
         %fullfile(path,file_year,'*.tsv')
-        fileDir = dir(fullfile(path,file_year,'*.tsv'));
+        %%%%%fileDir = dir(fullfile(path,file_year,'*.tsv'));
+        fileDir = dir(fullfile(path,'*.tsv'));
         %cd(fullfile(path,file_year))
         %fileDir = dir('*.tsv')
         %cd(oldPath)

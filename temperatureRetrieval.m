@@ -163,13 +163,13 @@ for i = 1:loop
     [~,~,g,Line] = absorption_O2_770_model(Tg,Pg,nu_scan,WV);%[m] lineshape function 
     
     %Calculate Coefficients
-    exponent(:,:,i) = gamma ./ Lapse(:,:,i);
-    C1 = S0_O2 * T0 * (Pg*101325) * exp(ep/kB/T0) ./ (kB * Tg .^(-exponent(:,:,i)));%[K/(molec*m^2)]pressure converted to Pa
-    C2 = Tg .^ (-exponent(:,:,i) - 2) .* exp(-ep/kB./Tg);%[K^-1]
-    C3 = (-exponent(:,:,i) - 2) ./ Tg + ep./(kB.*Tg.^2);%[K^-1]
-    %Calculate change in temperature from last
-    %deltaT(:,:,i) = (alpha_O2 - C1 .* C2 .* g .* q) ./ (C1 .* C2 .* C3 .* g .* q); %[K] calculate a change in temperatre
-    deltaT(:,:,i) = (alpha_O2 - C1 .* C2 .* Line{2}.lineshape .* q) ./ (C1 .* C2 .* C3 .* Line{2}.lineshape .* q); %[K] calculate a change in temperatre
+%     exponent(:,:,i) = gamma ./ Lapse(:,:,i);
+%     C1 = S0_O2 * T0 * (Pg*101325) * exp(ep/kB/T0) ./ (kB * Tg .^(-exponent(:,:,i)));%[K/(molec*m^2)]pressure converted to Pa
+%     C2 = Tg .^ (-exponent(:,:,i) - 2) .* exp(-ep/kB./Tg);%[K^-1]
+%     C3 = (-exponent(:,:,i) - 2) ./ Tg + ep./(kB.*Tg.^2);%[K^-1]
+%     %Calculate change in temperature from last
+%     %deltaT(:,:,i) = (alpha_O2 - C1 .* C2 .* g .* q) ./ (C1 .* C2 .* C3 .* g .* q); %[K] calculate a change in temperatre
+%     deltaT(:,:,i) = (alpha_O2 - C1 .* C2 .* Line{2}.lineshape .* q) ./ (C1 .* C2 .* C3 .* Line{2}.lineshape .* q); %[K] calculate a change in temperatre
 
     %Line coefficients
     epa = Line{1}.E_lower*h*c;

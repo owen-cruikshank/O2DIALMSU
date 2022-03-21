@@ -72,10 +72,10 @@ disp('Calculation absorption linewidth')
 
     % Integrand terms
     % Online
-    %%%zeta = g1.*T_etalon;                        %[m]
-    %%%eta = dg1_dr.*T_etalon;                     %[none]
-    zeta = g1.*cat(3,1,T_etalon);                        %[m]
-    eta = dg1_dr.*cat(3,1,T_etalon);                     %[none]
+    zeta = g1.*T_etalon;                        %[m]
+    eta = dg1_dr.*T_etalon;                     %[none]
+%     zeta = g1.*cat(3,1,T_etalon);                        %[m]
+%     eta = dg1_dr.*cat(3,1,T_etalon);                     %[none]
 
     % Integrated terms
     % Online

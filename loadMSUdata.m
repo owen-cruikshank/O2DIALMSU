@@ -3,15 +3,16 @@ function [Range,Time,Counts,Sonde,Model,Spectrum,HSRL,Data,Options] = loadMSUdat
 %==== Reading Files =====
 %====================
 disp('Reading in files')
-
+maindirectory =pwd;
 cd ../
 Options.path = [pwd '\Data\MSU data\RSync\NetCDFOutput\']; %Path for instument netCDF data
 Options.weatherPath = [pwd '\Data\']; %path for weather station data
 
-cd ../../../
-Options.sondepath = [pwd '\Box\Radiosondes\Data\All Data\']; %path for radiosonde data
+%%%cd ../../../
+%%%Options.sondepath = [pwd '\Box\Radiosondes\Data\All Data\']; %path for radiosonde data
+Options.sondepath = [pwd '\Data\MSU data\Radiosondes\']; %path for radiosonde data
 
-cd( '.\OneDrive - Montana State University\Research\O2 DIAL\analysis') %back to main directory
+cd( maindirectory) %back to main directory
 
 Options.MPDname = 'MSU';
 Options.BinTotal = 560;
@@ -236,13 +237,28 @@ Counts.o2off_noise_mol = Counts.o2off_noise_mol ./(1-(deadTime.*Counts.o2off_mol
 Spectrum.lambda_online = 769.7958 *ones(size(Time.ts));
 Spectrum.lambda_offline = 770.1085 *ones(size(Time.ts));
 
+% Spectrum.lambda_wvon = fillmissing(filloutliers(Data.Laser.WVOnline.WavelengthActual,'linear','movmedian',5),'linear');
+% Spectrum.lambda_wvoff = fillmissing(filloutliers(Data.Laser.WVOffline.WavelengthActual,'linear','movmedian',5),'linear');
+
+Spectrum.lambda_wvon = 828.1959 *ones(size(Time.ts));
+Spectrum.lambda_wvoff = 828.2951 *ones(size(Time.ts));
+
+
 Spectrum.nu_online = 10^7./Spectrum.lambda_online;                    %[cm-1] Online wavenumber
 Spectrum.nu_offline = 10^7./Spectrum.lambda_offline;                  %[cm-1] Offline wavenumber
+
+Spectrum.nu_wvon = 10^7./Spectrum.lambda_wvon;                    %[cm-1] Online wavenumber
+Spectrum.nu_vwoff = 10^7./Spectrum.lambda_wvon;                  %[cm-1] Offline wavenumber
 
 nuMin = Spectrum.nu_online-0.334;                                 %[cm-1] Scan lower bound
 nuMax = Spectrum.nu_online+0.334;                                 %[cm-1] Scan upper bound
 Spectrum.nuBin = 0.00222;                                    %[cm-1] Scan increment
 nu_scan = (nuMin:Spectrum.nuBin:nuMax);                      %[cm-1](1 x nu) Scan vector
+
+nuwvMin = mean(Spectrum.nu_wvon)-0.334;                                 %[cm-1] Scan lower bound
+nuwvMax = mean(Spectrum.nu_wvon)+0.334;                                 %[cm-1] Scan upper bound
+Spectrum.nuBin = 0.00222;                                    %[cm-1] Scan increment
+nu_scanwv = (nuwvMin:Spectrum.nuBin:nuwvMax);                      %[cm-1](1 x nu) Scan vector
 
 nuMin_off = Spectrum.nu_offline-0.334;                                 %[cm-1] Scan lower bound
 nuMax_off = Spectrum.nu_offline+0.334;                                 %[cm-1] Scan upper bound
@@ -251,9 +267,13 @@ nu_scan_off = (nuMin_off:Spectrum.nuBin:nuMax_off);
 Spectrum.nu_scan_3D_short = permute(nu_scan, [3 1 2]);       %[cm-1] putting scan in third dimension
 Spectrum.nu_scan_3D_short_off = permute(nu_scan_off, [3 1 2]);       %[cm-1] putting scan in third dimension
 
+Spectrum.nu_scanwv_3D_short = permute(nu_scanwv, [3 1 2]);       %[cm-1] putting scan in third dimension
+
 Spectrum.lambda_scan_3D_short = 10^7./Spectrum.nu_scan_3D_short;
 Spectrum.lambda_scan_3D_short_off = 10^7./Spectrum.nu_scan_3D_short_off;
 Spectrum.i_scan_3D_short = length(Spectrum.nu_scan_3D_short);         %[none] length of scan vector
+
+Spectrum.lambda_scanwv_3D_short = 10^7./Spectrum.nu_scan_3D_short;
 
 Spectrum.del_nu = Spectrum.nu_scan_3D_short-Spectrum.nu_online;                %[1/cm] difference from center
 Spectrum.del_lambda = Spectrum.lambda_scan_3D_short-Spectrum.lambda_online;
@@ -261,6 +281,7 @@ Spectrum.del_lambda = Spectrum.lambda_scan_3D_short-Spectrum.lambda_online;
 [~,Spectrum.online_index] = min(abs(Spectrum.nu_online - Spectrum.nu_scan_3D_short),[],3);%finding index of online wavenumber
 [~,Spectrum.offline_index] = min(abs(Spectrum.nu_offline - Spectrum.nu_scan_3D_short_off),[],3);%finding index of online wavenumber
 
+[~,Spectrum.online_indexwv] = min(abs(Spectrum.nu_wvon - Spectrum.nu_scanwv_3D_short),[],3);%finding index of online wavenumber
 %%
 %===== Calculate Model absorption from Model T and P =======
 Model.absorption = absorption_O2_770_model(Model.T,Model.P,Spectrum.nu_online,Model.WV); %[m-1] Funcrtion to calculate theoretical absorption
@@ -276,6 +297,7 @@ for i=1:numel(sonde_datetime)
             Sonde.trasmission_sonde{i} = nan(Range.i_range,1);
             Sonde.T_sonde = nan(Range.i_range,1);
             Sonde.P_sonde = nan(Range.i_range,1);
+            Sonde.WV_sonde = nan(Range.i_range,1);
         end
 end
 
@@ -292,6 +314,14 @@ Counts.o2off_mol = filter2(k,Counts.o2off_noise_mol,'same');
 % load('AfterPulse.mat')
 % Counts.o2on = Counts.o2on + pulseON(1:2:160);
 % Counts.o2off = Counts.o2off + pulseON(1:2:160);
+
+%%
+Counts.wvon = nan(size(Counts.o2on));
+Counts.wvoff = nan(size(Counts.o2on));
+Counts.wvon_noise = nan(size(Counts.o2on_noise));
+Counts.wvoff_noise = nan(size(Counts.o2on_noise));
+Counts.bg_wvon = nan(size(Counts.bg_o2on));
+Counts.bg_wvoff = nan(size(Counts.bg_o2on));
 
 %%
 %====== Calucate any appy optimal filtering based on Poisson thinning ====
