@@ -46,18 +46,20 @@ function [alpha_1, alpha_2,Spectrum] = pertAbsorptionwv(alpha_0, T_etalon, T, P,
 %         end
 %     end
 
-disp('Calculation absorption linewidth')
-    absorption_f = zeros(length(T(:,1)),length(T(1,:)),length(nu_scanwv_3D_short(1,1,:)));
-    %for i = 1:i_range
-        for j=1:i_time
-            %absorption_f(i,j,:) = absorption_O2_770_model_wavenumber(T(i,j),P(i,j),nu_scan_3D_short(1,1,:),WV(i,j)); %[m-1] Funcrtion to calculate theoretical absorption
-            absorption_f(:,j,:) = cross_section_wv_828_model_wavenumber(T(:,j),P(:,j),nu_scanwv_3D_short(1,1,:));
-        end
-    %end
+% disp('Calculation absorption linewidth')
+%     absorption_f = zeros(length(T(:,1)),length(T(1,:)),length(nu_scanwv_3D_short(1,1,:)));
+%     %for i = 1:i_range
+%         for j=1:i_time
+%             %absorption_f(i,j,:) = absorption_O2_770_model_wavenumber(T(i,j),P(i,j),nu_scan_3D_short(1,1,:),WV(i,j)); %[m-1] Funcrtion to calculate theoretical absorption
+%             %absorption_f(:,j,:) = cross_section_wv_828_model_wavenumber(T(:,j),P(:,j),nu_scanwv_3D_short(1,1,:));
+%             absorption_f(:,j,:) = cross_section_wv_828_PCA(T(:,j),P(:,j),nu_scanwv_3D_short(1,1,:));
+%         end
+%     %end
 
     %%
-%     disp('PCA absorption')
+     disp('PCA absorption')
 %     [absorption_f,~] = absorption_O2_770_PCA(T,P,nu_scan_3D_short(1,1,:),WV);
+ absorption_f = cross_section_wv_828_PCA(T,P,nu_scanwv_3D_short(1,1,:));
 
     %%
     %Create lineshape function

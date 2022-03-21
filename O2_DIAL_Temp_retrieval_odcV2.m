@@ -1,8 +1,5 @@
-%
-%
 % O2_DIAL_Temp_retrieval_odcV2.m
 % Analysis program for O2 DIAL instrument from
-
 clear 
 
 %=Date Range
@@ -12,9 +9,8 @@ date_end = datetime(2021,9,28,'TimeZone','UTC');%yyyy,mm,dd
 date_start = datetime(2021,10,21,'TimeZone','UTC');%yyyy,mm,dd
 date_end = datetime(2021,10,27,'TimeZone','UTC');%yyyy,mm,dd
 
-
-date_start = datetime(2022,2,7,'TimeZone','UTC');%yyyy,mm,dd
-date_end = datetime(2022,2,7,'TimeZone','UTC');%yyyy,mm,dd
+date_start = datetime(2021,10,22,'TimeZone','UTC');%yyyy,mm,dd
+date_end = datetime(2021,10,23,'TimeZone','UTC');%yyyy,mm,dd
 
 span_days = date_start:date_end;
 
@@ -22,11 +18,8 @@ span_days = date_start:date_end;
 Options.intTime = 5;  %[min] Integration time
 Options.intRange = 1; %[bins] Integration range
 
-
 Options.t_avg = 1;     %[bins] Time smoothing bins
 Options.oversample = 1; %[bins] Range smoothing bins
-
-
 
 %====================
 %==== Constants =====
@@ -50,38 +43,27 @@ Constant.No = 2.47937E25;            %[1/m^3] Loschmidt's number  (referenced to
 %======================
 
 %==Load data from MSU instument==
- %[Range,Time,Counts,Sonde,Model,Spectrum,HSRL,Data] = loadMSUdata(span_days,Options,Constant);
+%[Range,Time,Counts,Sonde,Model,Spectrum,HSRL,Data] = loadMSUdata(span_days,Options,Constant);
 %   HSRL.BSR = ones(size(Counts.o2on));
 %   HSRL.Ba = zeros(size(HSRL.Ba));
 %  HSRL.BSR(isnan(Counts.o2on))=nan;
 
 % ==Load data from SGP ARM instument==
-% date_begin = datetime(2019,4,17); date_end   = datetime(2019,4,22);
-% span_days = date_begin:date_end;        % Days in set [datetime]
-% [Range,Time,Counts,Sonde,Model,Spectrum,BSR,Data] = loadSGPdata(span_days,Options,Constant);
-% 
-% ==Load data from Boulder instument==
+%date_begin = datetime(2019,4,17); date_end   = datetime(2019,4,22);
+%span_days = date_begin:date_end;        % Days in set [datetime]
+%[Range,Time,Counts,Sonde,Model,Spectrum,BSR,Data] = loadSGPdata(span_days,Options,Constant);
+
+%==Load data from Boulder instument==
 % date_begin = datetime(2020,8,29); 
 % date_end   = datetime(2020,9,8);
-%  date_begin = datetime(2021,6,20); 
-% % 
-% date_begin   = datetime(2021,6,20);
-%  date_end   = datetime(2021,7,19);
 
- date_begin   = datetime(2021,6,20);
- date_end   = datetime(2021,8,20);
- %date_end   = datetime(2021,7,19);
- %date_end = datetime(2021,6,26);
+date_begin   = datetime(2021,6,20);
+date_end   = datetime(2021,7,1);
+span_days = date_begin:date_end;        % Days in set [datetime]
 
-%   date_begin   = datetime(2021,7,1);
-%   date_end   = datetime(2021,7,10);
-
- %date_begin = datetime(2021,6,20); 
-%date_end   = datetime(2021,6,23);
- span_days = date_begin:date_end;        % Days in set [datetime]
-%[Range,Time,Counts,Sonde,Model,Spectrum,HSRL,Data] =loadBoulderdata(span_days,Options,Constant);
- %[Range,Time,Counts,Sonde,Model,Spectrum,HSRL,Data] =loadBoulderdata2(span_days,Options,Constant);
- [Range,Time,Counts,Sonde,Model,Spectrum,HSRL,Data] =loadBoulderdata3(span_days,Options,Constant);
+Options.MPDname = '05';
+%Options.MPDname = '01';
+[Range,Time,Counts,Sonde,Model,Spectrum,HSRL,Data] =loadBoulderdata3(span_days,Options,Constant);
 %%
 
 %testing
@@ -98,17 +80,14 @@ disp('Calculating masks')
 cloud_p_point = 161.66; %(hours) Time to plot mask data
 SNR_threshold = 50;
 %SNR_threshold = 30;
-
 %SNR_threshold = 4;
-SD_threshold = 5*10^20;
+%%%SD_threshold = 5*10^20;
 SD_threshold = 5;
 BGmult =1; % Multiplier for background for SNR calculation
 lowAlt = 0;
 %[SNRm , cloud_SDm_above, cloud_SDm,o2on_SNR] = mask_O2_counts(Counts.o2on,Counts.o2off,Range.rm,Time.ts,cloud_p_point,SNR_threshold,SD_threshold,Options.oversample,Options.t_avg,Counts,BGmult);
 [SNRm , cloud_SDm_above, cloud_SDm,o2on_SNR] = mask_O2_BSR(cloud_p_point,SNR_threshold,SD_threshold,Options.oversample,Options.t_avg,Counts,BGmult,Time,Range,HSRL.BSR,lowAlt);
 
-
-%%%%SNRm = aMask;
 %%
 % ==== Afterpulse correction ====
 % pulseON = 4.146e+07*10*(Range.rm).^(-2.536*1);
@@ -120,6 +99,15 @@ lowAlt = 0;
 % % pulseOFF = 3.682e+07*10*1*(Range.rm).^(-2.512*1);
 % Counts.o2on = Counts.o2on-pulseON;
 % Counts.o2off = Counts.o2off-pulseOFF;
+
+%%
+%%%for aaa = 1:2
+%     if aaa >1
+%         Tnew = Temperature.T_finalm;
+%         Pnew = Temperature.Patm_final;
+%         Tnew(isnan(Tnew)) = Model.T(isnan(Tnew));
+%         Model.T = Tnew;
+%     end
 
 %%
 %==========================
@@ -211,13 +199,16 @@ T_etalon_off = double(interp1(double(OfflineWavelength)*10^9,OfflineCombinedTran
 
 altitude = 1.5;%altitude in km
 %[alpha_1, alpha_2] = pertAbsorption(alpha_0, T_etalon_on, T, P, rm,rkm,m_air, nu_online, nu_scan_3D_short,nuBin,BSR,ind_r_lo,ind_r_hi,WV,online_index,i_range,i_time,i_scan_3D_short,rangeBin,oversample,c,kb,altitude);
-[Alpha.alpha_total_raw , Spectrum] = pertAbsorption(Alpha.alpha_0, T_etalon_on, Model.T, Model.P, Range.rm,Time.ts,Range.rm/1000,Constant.m_air, Spectrum.nu_online, Spectrum.nu_scan_3D_short,Spectrum.nuBin,HSRL.BSR,ind_r_lo,ind_r_hi,Model.WV,Spectrum.online_index,Range.i_range,Time.i_time,Spectrum.i_scan_3D_short,Range.rangeBin,Options.oversample,Options.t_avg,Constant.c,Constant.kb,altitude,Spectrum);
+[Alpha.alpha_total_raw,Alpha.alpha_1,Alpha.alpha_2,Spectrum] = pertAbsorption(Alpha.alpha_0, T_etalon_on, Model.T, Model.P, Range.rm,Time.ts,Range.rm/1000,Constant.m_air, Spectrum.nu_online, Spectrum.nu_scan_3D_short,Spectrum.nuBin,HSRL.BSR,ind_r_lo,ind_r_hi,Model.WV,Spectrum.online_index,Range.i_range,Time.i_time,Spectrum.i_scan_3D_short,Range.rangeBin,Options.oversample,Options.t_avg,Constant.c,Constant.kb,altitude,Spectrum);
 
-[Alpha.alpha_total_rawf, Spectrum] = pertAbsorption(Alpha.alpha_0f, T_etalon_on, Model.T, Model.P, Range.rm,Time.ts,Range.rm/1000,Constant.m_air, Spectrum.nu_online, Spectrum.nu_scan_3D_short,Spectrum.nuBin,HSRL.BSRf,ind_r_lo,ind_r_hi,Model.WV,Spectrum.online_index,Range.i_range,Time.i_time,Spectrum.i_scan_3D_short,Range.rangeBin,Options.oversample,Options.t_avg,Constant.c,Constant.kb,altitude,Spectrum);
-[Alpha.alpha_total_rawg, Spectrum] = pertAbsorption(Alpha.alpha_0g, T_etalon_on, Model.T, Model.P, Range.rm,Time.ts,Range.rm/1000,Constant.m_air, Spectrum.nu_online, Spectrum.nu_scan_3D_short,Spectrum.nuBin,HSRL.BSRg,ind_r_lo,ind_r_hi,Model.WV,Spectrum.online_index,Range.i_range,Time.i_time,Spectrum.i_scan_3D_short,Range.rangeBin,Options.oversample,Options.t_avg,Constant.c,Constant.kb,altitude,Spectrum);
+
+[Alpha.alpha_total_rawf,Alpha.alpha_1f,Alpha.alpha_2f,~] = pertAbsorption(Alpha.alpha_0f, T_etalon_on, Model.T, Model.P, Range.rm,Time.ts,Range.rm/1000,Constant.m_air, Spectrum.nu_online, Spectrum.nu_scan_3D_short,Spectrum.nuBin,HSRL.BSRf,ind_r_lo,ind_r_hi,Model.WV,Spectrum.online_index,Range.i_range,Time.i_time,Spectrum.i_scan_3D_short,Range.rangeBin,Options.oversample,Options.t_avg,Constant.c,Constant.kb,altitude,Spectrum);
+[Alpha.alpha_total_rawg,Alpha.alpha_1g,Alpha.alpha_2g,~] = pertAbsorption(Alpha.alpha_0g, T_etalon_on, Model.T, Model.P, Range.rm,Time.ts,Range.rm/1000,Constant.m_air, Spectrum.nu_online, Spectrum.nu_scan_3D_short,Spectrum.nuBin,HSRL.BSRg,ind_r_lo,ind_r_hi,Model.WV,Spectrum.online_index,Range.i_range,Time.i_time,Spectrum.i_scan_3D_short,Range.rangeBin,Options.oversample,Options.t_avg,Constant.c,Constant.kb,altitude,Spectrum);
 
 
 [Alpha.alpha_1wv, Alpha.alpha_2wv,Spectrum] = pertAbsorptionwv(Alpha.alpha_0wv, T_etalon_on, Model.T, Model.P, Range.rm,Time.ts,Range.rkm,Constant.m_air, Spectrum.nu_wvon, Spectrum.nu_scanwv_3D_short,Spectrum.nuBin,HSRL.BSR,ind_r_lo,ind_r_hi,Model.WV,Spectrum.online_indexwv,Range.i_range,Time.i_time,Spectrum.i_scan_3D_short,Range.rangeBin,Options.oversample,Options.t_avg,Constant.c,Constant.kb,altitude,Spectrum);
+
+
 % === Total alpha ===
 % Alpha.alpha_total_raw = Alpha.alpha_0 + Alpha.alpha_1 + Alpha.alpha_2;
 % Alpha.alpha_total_rawf = Alpha.alpha_0f + Alpha.alpha_1f + Alpha.alpha_2f;
@@ -236,7 +227,7 @@ Alpha.alpha_total_cut = fillmissing(Alpha.alpha_total_cut,'linear');
 
 %%
 %===== Soothing alpha =====
-k = ones(10,4)./(10*4);     % Kernel
+%%%k = ones(10,4)./(10*4);     % Kernel
 k = ones(4,6)./(4*6);     % Kernel
 %k = ones(1,1)./(1*1);
 
@@ -260,6 +251,18 @@ Alpha.alpha_total_filtg = nanconv(Alpha.alpha_total_rawg,k,'edge','nanout');
 Alpha.alpha_totalsg = Alpha.alpha_total_filtg;
 
 %Alpha.alpha_totals = Alpha.alpha_total_cut;
+%%
+%%%%Alpha.alpha_total_filt = Alpha.alpha_total_cut;
+%%%%Alpha.alpha_totals = Alpha.alpha_total_filt;
+
+%%%%Alpha.alpha_total_filtf = Alpha.alpha_total_rawf;
+%Alpha.alpha_totalsf = Alpha.alpha_total_filtf.* cloud_SDm_above .* SNRm;
+%%%%Alpha.alpha_totalsf = Alpha.alpha_total_filtf;
+%%%%Alpha.alpha_total_filtg = Alpha.alpha_total_rawg;
+%Alpha.alpha_totalsg = Alpha.alpha_total_filtg.* cloud_SDm_above .* SNRm;
+%%%%Alpha.alpha_totalsg = Alpha.alpha_total_filtg;
+
+
 %%
 % apply SNR mask again
 Alpha.alpha_0m = Alpha.alpha_0;
@@ -351,6 +354,8 @@ Temperature.T_final_test_cut(Temperature.T_final_test_cut == 0) = NaN;          
 
 %==== Smooth temperature
 Temperature.T_final_tests = filter2(k,Temperature.T_final_test_cut,'same');
+
+%%%%%Temperature.T_final_tests = Temperature.T_final_test_cut;
 
 %%%Temperature.T_final_tests = Temperature.T_final_test_cut;
 %=== apply mask
@@ -481,13 +486,14 @@ Model.O_on_O_off = Counts.o2on./Counts.o2off ./ Model.transmission.^2;
 % 
 % toc
 
+%%%%%%%%%end
 %%
 %===============
 %=== Figures ===
 %===============
 
 %=Tick spacing and formating
-tickHours =72;
+tickHours =4;
 tickMin = 0;
 [y,m,d]=ymd(span_days(1));
 date2=datetime(y,m,d,tickHours,tickMin,0);
@@ -495,16 +501,16 @@ date1=datetime(y,m,d,0,0,0);
 Format.tickSpacing = datenum(date2)-datenum(date1);
 Format.tickAngle = 30;
 Format.dateTickFormat ='mm/dd HH:MM';
-Format.dateTickFormat ='mm/dd';
+%%%Format.dateTickFormat ='mm/dd';
 
 %= Plot time for profiles
-plot_time = datetime(2022,2,7,5,0,0,'TimeZone','UTC');%yyyy,mm,dd,hh,mm
+plot_time = datetime(2021,6,20,14,0,0,'TimeZone','UTC');%yyyy,mm,dd,hh,mm
 [~,p_point] = min(abs(plot_time-Time.date_ts)); % Find closest value to 338min for comparison to other program
 p_point(1:length(Range.rm),1)=p_point;
 
 %= Plot time for profiles with sondes
-sonde_index = 2;
-p_point = Sonde.sonde_ind(:,sonde_index);
+sonde_index = 1;
+%p_point = Sonde.sonde_ind(:,sonde_index);
 %Sonde.sonde_ind = [];
 %Sonde.WV_sonde = nan(size(Counts.o2on));
 
