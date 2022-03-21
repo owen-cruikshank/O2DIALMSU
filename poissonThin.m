@@ -242,6 +242,7 @@ function [Ez,Et,minSigz,minSigt] = findMinE(f,g,bg)
 
     %====find best filter in time====
     filt_size = logspace(-1.5,5,100);
+    filt_size = logspace(-1.5,3,100);
     Et = ones(length(f(:,1)),1,length(filt_size));
     for jj = 1:length(filt_size)
         fprintf('time %f',jj)
