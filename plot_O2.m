@@ -1,5 +1,5 @@
 
-function plot_O2(p_point,sonde_index,span_days,Sonde,Model,Counts,Range,Time,Options,Temperature,Format,Alpha,cloud_SDm,HSRL,Data,SNRm,cloud_SDm_above,N_wv,N_wv0,N_wvm,N_wv0m,AbsHumm,AbsHum0m)
+function plot_O2(p_point,sonde_index,span_days,Sonde,Model,Counts,Range,Time,~,Temperature,Format,Alpha,cloud_SDm,HSRL,Data,SNRm,cloud_SDm_above,N_wv,N_wv0,N_wvm,N_wv0m,AbsHumm,AbsHum0m)
 
 %==Fitted lapse rate and surface temperature
 figure(728590)
@@ -821,7 +821,7 @@ for ii = 1:size(Sonde.sonde_ind,2)
     end
 end
 tempProb(tempProb==0)=nan;
-
+absHum = ones(Range.i_range,size(Sonde.sonde_ind,2));
 for iii = 1:size(Sonde.sonde_ind,2)
     absHum(:,iii) = diag(AbsHumm(:,Sonde.sonde_ind(:,iii)));
 end
@@ -830,7 +830,7 @@ if ~isempty(Sonde.sonde_ind)
 absHumReal = absHum(~isnan(absHum) & absHum>0 & Sonde.AbsHum>0);
 sondeAbsHumReal = Sonde.AbsHum(~isnan(absHum) & absHum>0 & Sonde.AbsHum>0);
 
-FO = fit(absHumReal(:),sondeAbsHumReal,'poly1');
+FO = fit(absHumReal(:),sondeAbsHumReal(:),'poly1');
 else
     FO = nan;
 end
@@ -1152,6 +1152,11 @@ subplot(2,1,1)
 lnOonOoff = log(Range.rm.^2.*Counts.o2on)-log(Range.rm.^2.*Counts.o2off)-log(Sonde.trasmission_sonde{sonde_index}.^2);
 plot(Range.rm,lnOonOoff(:,p_point(1)))
 hold on
+
+logicalExc=false(Range.i_range,Time.i_time);
+alpha_fit_slope = ones(1,Time.i_time);
+alpha_fit_int=ones(1,Time.i_time);
+alpha_fit = ones(Range.i_range,Time.i_time);
 for time = 1:length(Time.ts)
         % Set fit exclusion zones
         Temperature.exclusion(:,time) = Range.rm<1500 | Range.rm>2500 | SNRm(:,time)==0 | cloud_SDm_above(:,time) ~= 1;
@@ -1389,6 +1394,7 @@ title('off wv')
 xlabel('Time UTC')
 
 figure(7824)
+tempComparison = ones(Range.i_range,size(Sonde.sonde_ind,2));
 for jj = 1:size(Sonde.sonde_ind,2)
     tempComparison(:,jj) = diag(Temperature.T_finalm(:,Sonde.sonde_ind(:,jj)))-Sonde.T_sonde(:,jj);
 end

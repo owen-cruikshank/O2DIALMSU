@@ -38,15 +38,14 @@ h = 6.626E-34;              %[J s] Planck's constant
 c = 2.99792458E8;           %[m/s] speed of light 
 
 %==O2 line parameters
-S0_O2 = 4.889e-26;          %[cm-1/molec cm-2] line strength
-S0_O2 = S0_O2 / 100;        %[m molecule-1] absoption line strength at T=296K
-E_lower = 1420.7631;        %[cm-1] ground state energy
-E_lower = E_lower * 100;    %[m-1] ground state energy
-ep = E_lower*h*c;           %[J]
+% S0_O2 = 4.889e-26;          %[cm-1/molec cm-2] line strength
+% S0_O2 = S0_O2 / 100;        %[m molecule-1] absoption line strength at T=296K
+% E_lower = 1420.7631;        %[cm-1] ground state energy
+% E_lower = E_lower * 100;    %[m-1] ground state energy
+% ep = E_lower*h*c;           %[J]
 
 T0 = 296;                   %[K] reference temperature
 
-loop = 40;%number of times to do iterative temperature retrieval loop
 loop = 30;%number of times to do iterative temperature retrieval loop
 
 del_r = rm(2)-rm(1);        %[m]set range difference
@@ -66,6 +65,7 @@ P_ii = zeros(length(rm),length(ts));
 Lapse = zeros(length(rm),length(ts),loop);
 Ts_fit = zeros(length(rm),length(ts),loop);
 exclusion = zeros(length(rm),length(ts),loop);
+Titer = zeros(length(rm),length(ts),loop);
 
 logicalExc = true(length(rm),length(ts));
 
@@ -160,18 +160,9 @@ for i = 1:loop
     q = q_O2 .* (1 - q_WV);
     
     %update lineshape function
-    [~,~,g,Line] = absorption_O2_770_model(Tg,Pg,nu_scan,WV);%[m] lineshape function 
+    [~,~,~,Line] = absorption_O2_770_model(Tg,Pg,nu_scan,WV);%[m] lineshape function 
     
     %Calculate Coefficients
-%     exponent(:,:,i) = gamma ./ Lapse(:,:,i);
-%     C1 = S0_O2 * T0 * (Pg*101325) * exp(ep/kB/T0) ./ (kB * Tg .^(-exponent(:,:,i)));%[K/(molec*m^2)]pressure converted to Pa
-%     C2 = Tg .^ (-exponent(:,:,i) - 2) .* exp(-ep/kB./Tg);%[K^-1]
-%     C3 = (-exponent(:,:,i) - 2) ./ Tg + ep./(kB.*Tg.^2);%[K^-1]
-%     %Calculate change in temperature from last
-%     %deltaT(:,:,i) = (alpha_O2 - C1 .* C2 .* g .* q) ./ (C1 .* C2 .* C3 .* g .* q); %[K] calculate a change in temperatre
-%     deltaT(:,:,i) = (alpha_O2 - C1 .* C2 .* Line{2}.lineshape .* q) ./ (C1 .* C2 .* C3 .* Line{2}.lineshape .* q); %[K] calculate a change in temperatre
-
-    %Line coefficients
     epa = Line{1}.E_lower*h*c;
     C1a = Line{1}.S0 * T0 * (Pg*101325) * exp(epa/kB/T0) ./ (kB * Tg .^(-exponent(:,:,i)));%[K/(molec*m^2)]pressure converted to Pa
     C2a = Tg .^ (-exponent(:,:,i) - 2) .* exp(-epa/kB./Tg);%[K^-1]
@@ -180,6 +171,7 @@ for i = 1:loop
     C1b = Line{2}.S0 * T0 * (Pg*101325) * exp(epb/kB/T0) ./ (kB * Tg .^(-exponent(:,:,i)));%[K/(molec*m^2)]pressure converted to Pa
     C2b = Tg .^ (-exponent(:,:,i) - 2) .* exp(-epb/kB./Tg);%[K^-1]
     C3b = (-exponent(:,:,i) - 2) ./ Tg + epb./(kB.*Tg.^2);%[K^-1]
+
     %Calculate change in temperature from last
     deltaT(:,:,i) = (alpha_O2 - C1a.*C2a.*Line{1}.lineshape.*q - C1b.*C2b.*Line{2}.lineshape.*q)./(C1a.*C2a.*C3a.*Line{1}.lineshape.*q+C1b.*C2b.*C3b.*Line{2}.lineshape.*q); %[K] calculate a change in temperatre
 

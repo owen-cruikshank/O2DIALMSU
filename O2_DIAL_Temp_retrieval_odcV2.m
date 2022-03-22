@@ -1,13 +1,8 @@
 % O2_DIAL_Temp_retrieval_odcV2.m
-% Analysis program for O2 DIAL instrument from
+% Analysis program for O2 DIAL instrument from 
 clear 
 
 %=Date Range
-date_start = datetime(2021,9,27,'TimeZone','UTC');%yyyy,mm,dd
-date_end = datetime(2021,9,28,'TimeZone','UTC');%yyyy,mm,dd
-
-date_start = datetime(2021,10,21,'TimeZone','UTC');%yyyy,mm,dd
-date_end = datetime(2021,10,27,'TimeZone','UTC');%yyyy,mm,dd
 
 date_start = datetime(2021,10,22,'TimeZone','UTC');%yyyy,mm,dd
 date_end = datetime(2021,10,23,'TimeZone','UTC');%yyyy,mm,dd
@@ -58,33 +53,23 @@ Constant.No = 2.47937E25;            %[1/m^3] Loschmidt's number  (referenced to
 % date_end   = datetime(2020,9,8);
 
 date_begin   = datetime(2021,6,20);
-date_end   = datetime(2021,7,1);
+date_end   = datetime(2021,6,22);
 span_days = date_begin:date_end;        % Days in set [datetime]
 
 Options.MPDname = '05';
 %Options.MPDname = '01';
 [Range,Time,Counts,Sonde,Model,Spectrum,HSRL,Data] =loadBoulderdata3(span_days,Options,Constant);
-%%
-
-%testing
-% Counts.o2off = Counts.goff-Counts.foff_bg;
-% Counts.o2on = Counts.gon-Counts.fon_bg;
-% Counts.o2off_mol = Counts.goff_mol-Counts.foff_mol_bg;
-% Counts.o2on_mol = Counts.gon_mol-Counts.fon_mol_bg;
 
 %%
 %======================
 %= Cloud and SNR mask =
 %======================
 disp('Calculating masks')
-cloud_p_point = 161.66; %(hours) Time to plot mask data
+cloud_p_point = 113.9183; %(hours) Time to plot mask data
 SNR_threshold = 50;
-%SNR_threshold = 30;
-%SNR_threshold = 4;
-%%%SD_threshold = 5*10^20;
 SD_threshold = 5;
 BGmult =1; % Multiplier for background for SNR calculation
-lowAlt = 0;
+lowAlt = 400;
 %[SNRm , cloud_SDm_above, cloud_SDm,o2on_SNR] = mask_O2_counts(Counts.o2on,Counts.o2off,Range.rm,Time.ts,cloud_p_point,SNR_threshold,SD_threshold,Options.oversample,Options.t_avg,Counts,BGmult);
 [SNRm , cloud_SDm_above, cloud_SDm,o2on_SNR] = mask_O2_BSR(cloud_p_point,SNR_threshold,SD_threshold,Options.oversample,Options.t_avg,Counts,BGmult,Time,Range,HSRL.BSR,lowAlt);
 
@@ -144,6 +129,8 @@ ln_o2 = log((Counts.o2on(ind_r_lo,:).*Counts.o2off(ind_r_hi,:))./(Counts.o2on(in
 Alpha.alpha_0_raw = ln_o2./2./(Range.rangeBin*Options.oversample);                              %[1/m] 
 Alpha.alpha_0 = interp2(Time.ts,Range.rm(ind_r_lo),Alpha.alpha_0_raw,Time.ts,Range.rm);
 
+Alpha.alpha_0 = Alpha.alpha_0 - Model.absorption_off; %Subtract offline absorption
+
 fon = Counts.fon-Counts.fon_bg;
 foff = Counts.foff-Counts.foff_bg;
 gon = Counts.gon-Counts.fon_bg;
@@ -167,10 +154,6 @@ clear ln_o2 foff fon goff gon
 [N_wv0,cross_section,~,~] = cross_section_wv_828_model(Model.T,Model.P,Spectrum.nu_wvon,Alpha.alpha_0wv);
 
 % === Smoothing zeroth order
-% % k = ones(4,4)./(4*4);     % Kernel
-% % alpha_0_pad = padarray(Alpha.alpha_0,[4/2,4/2],'replicate');
-% % Alpha.alpha_0_filt = filter2(k,alpha_0_pad,'valid');
-% % Alpha.alpha_0_filt = interp2(Time.ts-Time.t_step/2,Range.rm-Range.rangeBin/2,Alpha.alpha_0_filt(1:end-1,1:end-1),Time.ts,Range.rm);
 
 Alpha.alpha_0=real(Alpha.alpha_0);
 
@@ -198,21 +181,14 @@ T_etalon_on = double(interp1(double(OnlineWavelength)*10^9,OnlineCombinedTransmi
 T_etalon_off = double(interp1(double(OfflineWavelength)*10^9,OfflineCombinedTransmittance,Spectrum.lambda_scan_3D_short_off));
 
 altitude = 1.5;%altitude in km
-%[alpha_1, alpha_2] = pertAbsorption(alpha_0, T_etalon_on, T, P, rm,rkm,m_air, nu_online, nu_scan_3D_short,nuBin,BSR,ind_r_lo,ind_r_hi,WV,online_index,i_range,i_time,i_scan_3D_short,rangeBin,oversample,c,kb,altitude);
-[Alpha.alpha_total_raw,Alpha.alpha_1,Alpha.alpha_2,Spectrum] = pertAbsorption(Alpha.alpha_0, T_etalon_on, Model.T, Model.P, Range.rm,Time.ts,Range.rm/1000,Constant.m_air, Spectrum.nu_online, Spectrum.nu_scan_3D_short,Spectrum.nuBin,HSRL.BSR,ind_r_lo,ind_r_hi,Model.WV,Spectrum.online_index,Range.i_range,Time.i_time,Spectrum.i_scan_3D_short,Range.rangeBin,Options.oversample,Options.t_avg,Constant.c,Constant.kb,altitude,Spectrum);
+[Alpha.alpha_total_raw,Alpha.alpha_1,Alpha.alpha_2,Spectrum] = pertAbsorption(Alpha.alpha_0, T_etalon_on, Model, Range, Time, Spectrum, HSRL, ind_r_lo,ind_r_hi, Options);
 
+[Alpha.alpha_total_rawf,Alpha.alpha_1f,Alpha.alpha_2f,~] = pertAbsorption(Alpha.alpha_0f, T_etalon_on, Model, Range, Time,Spectrum, HSRL, ind_r_lo,ind_r_hi, Options);
+[Alpha.alpha_total_rawg,Alpha.alpha_1g,Alpha.alpha_2g,~] = pertAbsorption(Alpha.alpha_0g, T_etalon_on, Model, Range, Time,Spectrum, HSRL, ind_r_lo,ind_r_hi, Options);
 
-[Alpha.alpha_total_rawf,Alpha.alpha_1f,Alpha.alpha_2f,~] = pertAbsorption(Alpha.alpha_0f, T_etalon_on, Model.T, Model.P, Range.rm,Time.ts,Range.rm/1000,Constant.m_air, Spectrum.nu_online, Spectrum.nu_scan_3D_short,Spectrum.nuBin,HSRL.BSRf,ind_r_lo,ind_r_hi,Model.WV,Spectrum.online_index,Range.i_range,Time.i_time,Spectrum.i_scan_3D_short,Range.rangeBin,Options.oversample,Options.t_avg,Constant.c,Constant.kb,altitude,Spectrum);
-[Alpha.alpha_total_rawg,Alpha.alpha_1g,Alpha.alpha_2g,~] = pertAbsorption(Alpha.alpha_0g, T_etalon_on, Model.T, Model.P, Range.rm,Time.ts,Range.rm/1000,Constant.m_air, Spectrum.nu_online, Spectrum.nu_scan_3D_short,Spectrum.nuBin,HSRL.BSRg,ind_r_lo,ind_r_hi,Model.WV,Spectrum.online_index,Range.i_range,Time.i_time,Spectrum.i_scan_3D_short,Range.rangeBin,Options.oversample,Options.t_avg,Constant.c,Constant.kb,altitude,Spectrum);
-
-
-[Alpha.alpha_1wv, Alpha.alpha_2wv,Spectrum] = pertAbsorptionwv(Alpha.alpha_0wv, T_etalon_on, Model.T, Model.P, Range.rm,Time.ts,Range.rkm,Constant.m_air, Spectrum.nu_wvon, Spectrum.nu_scanwv_3D_short,Spectrum.nuBin,HSRL.BSR,ind_r_lo,ind_r_hi,Model.WV,Spectrum.online_indexwv,Range.i_range,Time.i_time,Spectrum.i_scan_3D_short,Range.rangeBin,Options.oversample,Options.t_avg,Constant.c,Constant.kb,altitude,Spectrum);
-
+[Alpha.alpha_1wv, Alpha.alpha_2wv,Spectrum] = pertAbsorptionwv(Alpha.alpha_0wv, T_etalon_on, Model, Range, Time, Spectrum, HSRL, ind_r_lo,ind_r_hi, Options, Constant, altitude);
 
 % === Total alpha ===
-% Alpha.alpha_total_raw = Alpha.alpha_0 + Alpha.alpha_1 + Alpha.alpha_2;
-% Alpha.alpha_total_rawf = Alpha.alpha_0f + Alpha.alpha_1f + Alpha.alpha_2f;
-% Alpha.alpha_total_rawg = Alpha.alpha_0g + Alpha.alpha_1g + Alpha.alpha_2g;
 
 Alpha.alpha_total_rawwv = Alpha.alpha_0wv + Alpha.alpha_1wv + Alpha.alpha_2wv;
 
@@ -228,63 +204,56 @@ Alpha.alpha_total_cut = fillmissing(Alpha.alpha_total_cut,'linear');
 %%
 %===== Soothing alpha =====
 %%%k = ones(10,4)./(10*4);     % Kernel
-k = ones(4,6)./(4*6);     % Kernel
-%k = ones(1,1)./(1*1);
+% k = ones(4,6)./(4*6);     % Kernel
+% k = ones(8,6)./(8*6);     % Kernel
+% k = ones(8,8)./(8*8);     % Kernel
+% k = ones(2,4)./(2*4);
+k = ones(1,1)./(1*1);
 
 gg = cloud_SDm_above.*SNRm;
 gg(gg<=0)=nan;
 %Appy cloud mask before smoothing
-%Alpha.alpha_total_cut = Alpha.alpha_total_cut .* cloud_SDm_above .* SNRm; %.* cloud_SDm_above;
 Alpha.alpha_total_cut(isnan(gg)) = NaN;          % Replace mask with NaNs
 
+Alpha.alpha_total_rawmf = Alpha.alpha_total_rawf;
+Alpha.alpha_total_rawmg = Alpha.alpha_total_rawg;
+Alpha.alpha_total_rawmf(isnan(gg))=nan;
+Alpha.alpha_total_rawmg(isnan(gg))=nan;
+
+%%%%[Ez,Et,minSigz,minSigt] = findMinE(Alpha.alpha_total_rawmf,Alpha.alpha_total_rawmg,0);
+%%%%[Alpha.alpha_total_filt2] = applyFilter(minSigz,minSigt,Alpha.alpha_total_cut);
+
+%%
 
 %Convolve with kernel
-%Alpha.alpha_total_filt = filter2(k,Alpha.alpha_total_cut,'same');
 Alpha.alpha_total_filt = nanconv(Alpha.alpha_total_cut,k,'edge','nanout');
 Alpha.alpha_totals = Alpha.alpha_total_filt;
 
+%%%Alpha.alpha_totals = Alpha.alpha_total_filt2;
+
 Alpha.alpha_total_filtf = nanconv(Alpha.alpha_total_rawf,k,'edge','nanout');
-%Alpha.alpha_totalsf = Alpha.alpha_total_filtf.* cloud_SDm_above .* SNRm;
 Alpha.alpha_totalsf = Alpha.alpha_total_filtf;
 Alpha.alpha_total_filtg = nanconv(Alpha.alpha_total_rawg,k,'edge','nanout');
-%Alpha.alpha_totalsg = Alpha.alpha_total_filtg.* cloud_SDm_above .* SNRm;
 Alpha.alpha_totalsg = Alpha.alpha_total_filtg;
-
-%Alpha.alpha_totals = Alpha.alpha_total_cut;
-%%
-%%%%Alpha.alpha_total_filt = Alpha.alpha_total_cut;
-%%%%Alpha.alpha_totals = Alpha.alpha_total_filt;
-
-%%%%Alpha.alpha_total_filtf = Alpha.alpha_total_rawf;
-%Alpha.alpha_totalsf = Alpha.alpha_total_filtf.* cloud_SDm_above .* SNRm;
-%%%%Alpha.alpha_totalsf = Alpha.alpha_total_filtf;
-%%%%Alpha.alpha_total_filtg = Alpha.alpha_total_rawg;
-%Alpha.alpha_totalsg = Alpha.alpha_total_filtg.* cloud_SDm_above .* SNRm;
-%%%%Alpha.alpha_totalsg = Alpha.alpha_total_filtg;
 
 
 %%
 % apply SNR mask again
 Alpha.alpha_0m = Alpha.alpha_0;
-%Alpha.alpha_0m(Alpha.alpha_0m == 0) = NaN;                  % Replace mask with NaNs
 Alpha.alpha_0m(isnan(gg)) = NaN;                  % Replace mask with NaNs
 
 Alpha.alpha_total = real(Alpha.alpha_totals);
-%Alpha.alpha_totalm = Alpha.alpha_total .* cloud_SDm_above .* SNRm; %.* cloud_SDm_above;
-%Alpha.alpha_totalm(Alpha.alpha_totalm <= 0) = NaN;          % Replace mask with NaNs
 Alpha.alpha_totalm = Alpha.alpha_total;
 Alpha.alpha_totalm(isnan(gg)) = NaN;          % Replace mask with NaNs
 
 
-
+%Smooth WV
 gg = cloud_SDm_above.*SNRm;
 gg(gg<=0)=nan;
 N_wvm = nanconv(N_wv,k,'edge','nanout');
-%N_wvm = N_wv.*cloud_SDm_above.*SNRm;
 N_wvm(isnan(gg))=nan;
 
 N_wv0m = nanconv(N_wv0,k,'edge','nanout');
-%N_wv0m = N_wv0.*cloud_SDm_above.*SNRm;
 N_wv0m(isnan(gg))=nan;
 
 AbsHumm = N_wvm.*Constant.mWV*1000; %[g/m3]
@@ -347,20 +316,34 @@ toc
 Temperature.T_final_test_cut = [Model.Ts(1,:); NaN((cut - 2),Time.i_time); Temperature.T_final_test(cut:end,:)];
 Temperature.T_final_test_cut = fillmissing(Temperature.T_final_test_cut,'linear');
 
+gg = cloud_SDm_above.*SNRm;
+gg(gg<=0)=nan;
+%Appy cloud mask before smoothing
+Temperature.T_final_test_cut(isnan(gg)) = NaN;          % Replace mask with NaNs
+
+
+%Temperature.T_final_testf(isnan(gg)) = NaN;
+%Temperature.T_final_testg(isnan(gg)) = NaN;
+%[Ez,Et,minSigz,minSigt] = findMinE(Temperature.T_final_testf,Temperature.T_final_testg,0);
+%[Temperature.T_final_tests2] = applyFilter(minSigz,minSigt,Temperature.T_final_test_cut);
+
+
+% k = ones(4,6)./(4*6);     % Kernel
+% k = ones(8,6)./(8*6);     % Kernel
+% k = ones(8,8)./(8*8);     % Kernel
 k = ones(4,6)./(4*6);     % Kernel
 %=== apply mask
-Temperature.T_final_test_cut = Temperature.T_final_test_cut .* SNRm .* cloud_SDm_above ;
-Temperature.T_final_test_cut(Temperature.T_final_test_cut == 0) = NaN;          % Replace mask with NaNs
 
 %==== Smooth temperature
-Temperature.T_final_tests = filter2(k,Temperature.T_final_test_cut,'same');
+Temperature.T_final_tests = nanconv(Temperature.T_final_test_cut,k,'edge','nanout');
 
+%Temperature.T_final_tests = Temperature.T_final_tests2;
 %%%%%Temperature.T_final_tests = Temperature.T_final_test_cut;
 
 %%%Temperature.T_final_tests = Temperature.T_final_test_cut;
 %=== apply mask
-Temperature.T_finalm = Temperature.T_final_tests .* SNRm .* cloud_SDm_above ;
-Temperature.T_finalm(Temperature.T_finalm <= 0) = NaN;
+Temperature.T_finalm = Temperature.T_final_tests ;
+Temperature.T_finalm((isnan(gg))) = NaN;
 %%
 %====== Deconvolution calculation ==========
 % % clear o2onDecon o2offDecon
@@ -510,8 +493,89 @@ p_point(1:length(Range.rm),1)=p_point;
 
 %= Plot time for profiles with sondes
 sonde_index = 1;
-%p_point = Sonde.sonde_ind(:,sonde_index);
-%Sonde.sonde_ind = [];
+p_point = Sonde.sonde_ind(:,sonde_index);
 %Sonde.WV_sonde = nan(size(Counts.o2on));
 
 plot_O2(p_point,sonde_index,span_days,Sonde,Model,Counts,Range,Time,Options,Temperature,Format,Alpha,cloud_SDm,HSRL,Data,SNRm,cloud_SDm_above,N_wv,N_wv0,N_wvm,N_wv0m,AbsHumm,AbsHum0m)
+
+%%
+function [Ez,Et,minSigz,minSigt] = findMinE(f,g,bg)
+    disp('creating filter')
+    %====find best filter in range====
+    filt_size = logspace(-1,1.5,40); %create filter size in terms of grid points
+    Ez = ones(1,length(f(1,:)),length(filt_size));
+    for jj = 1:length(filt_size) %loop over different filters
+        fprintf('Range %f',jj)
+        nz = round(4*filt_size(jj)); %number of grid points 
+        z = (-nz:nz)'; %filter grid
+        kern = exp(-z.^2/filt_size(jj).^2); %gaussian fitler kernel in range
+        if length(kern) > 1 %set gaussian filter for edge cases
+            if sum(kern) == 0
+                [~,it0] = min(abs(z));
+                kern(it0) = 1.0;
+            end
+        else 
+            kern = ones(1);
+        end
+        kern = kern/sum(sum(kern)); %normalize kernel
+        fFilt = nanconv(f-bg,kern,'edge','nanout'); %apply filter
+        fFilt(fFilt==0)=.001; %avoid inf in log
+        Ez(:,:,jj) = sum(fFilt+bg-g.*log(fFilt+bg),1,'omitnan'); %loss function to optimize
+    end
+    [~,minEind]=min(Ez,[],3); %find minimum of loss function
+    minSigz = ones(1,size(f,2));
+    for ii = 1:size(f,2)
+        minSigz(ii) = filt_size(minEind(ii)); %set filter width to minimum of loss function
+    end
+
+    %====find best filter in time====
+    filt_size = logspace(-1.5,5,100);
+    filt_size = logspace(-1.5,3,100);
+    Et = ones(length(f(:,1)),1,length(filt_size));
+    for jj = 1:length(filt_size)
+        fprintf('time %f',jj)
+        nz = round(4*filt_size(jj)); %number of grid points 
+        z = (-nz:nz);%filter grid
+        %kern = gaussmf(z,[filt_size(jj),0]);%fitler kernel in range
+        kern = exp(-z.^2/filt_size(jj).^2);
+        if length(kern) > 1
+            if sum(kern) == 0
+                [~,it0] = min(abs(z));
+                kern(it0) = 1.0;
+            end
+        else 
+            kern = ones(1);
+        end
+        kern = kern/sum(sum(kern));
+        %norm = ones(size(f));
+        %norm = conv2(norm,kern,'same');
+        %%%%fFilt = conv2(f(:,:)-bg,kern,'same')./norm;
+        fFilt = nanconv(f-bg,kern,'edge','nanout');
+        fFilt(fFilt==0)=.001;%avoid inf in log
+        Et(:,:,jj) = sum(fFilt+bg-g.*log(fFilt+bg),2,'omitnan');
+    end
+    [~,minEind]=min(Et,[],3);
+    minSigt = ones(size(f,1),1);
+    for ii = 1:size(f,1)
+        minSigt(ii) = filt_size(minEind(ii));
+    end       
+end
+
+function [counts] = applyFilter(rangeWidth,timeWidth,counts)
+    %==Filter in range==
+    for iii = 1:size(counts,2) %loop over time
+        nz = round(4*rangeWidth(iii)); %number of grid points 
+        z = (-nz:nz)';%filter grid
+        kern = exp(-z.^2/rangeWidth(iii).^2); %smoothing kernel
+        kern = kern/sum(sum(kern)); %normalized smoothing kernel
+        counts(:,iii) = nanconv(counts(:,iii),kern,'edge','nanout'); %apply kernel to count data
+    end
+    %==Filter in time==
+    for iii = 1:size(counts,1) %loop over range
+        nz = round(4*timeWidth(iii)); %number of grid points 
+        z = (-nz:nz);%filter grid
+        kern = exp(-z.^2/timeWidth(iii).^2);
+        kern = kern/sum(sum(kern));
+        counts(:,iii) = nanconv(counts(:,iii),kern,'edge','nanout');
+    end
+end

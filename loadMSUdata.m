@@ -7,9 +7,6 @@ maindirectory =pwd;
 cd ../
 Options.path = [pwd '\Data\MSU data\RSync\NetCDFOutput\']; %Path for instument netCDF data
 Options.weatherPath = [pwd '\Data\']; %path for weather station data
-
-%%%cd ../../../
-%%%Options.sondepath = [pwd '\Box\Radiosondes\Data\All Data\']; %path for radiosonde data
 Options.sondepath = [pwd '\Data\MSU data\Radiosondes\']; %path for radiosonde data
 
 cd( maindirectory) %back to main directory
@@ -114,7 +111,7 @@ for i = 1:numel(sonde_datetime) % Loop over number of sondes in time period
             Sonde.WV_sonde(:,i) = WV_sonde_int{i}(1:Range.i_range);
         end
         %===interp sonde time
-        [rm_sgp{i},IA,IC] = unique(rm_sgp{i});
+        [rm_sgp{i},IA,~] = unique(rm_sgp{i});
         sonde_time(1:length(rm_sonde_int{i}),i) = interp1(rm_sgp{i},sondeStruc(i).time(IA),rm_sonde_int{i})';  
         if length(sonde_time) < Range.i_range
             sonde_time = [sonde_time; sonde_time(end).*ones(Range.i_range-length(sonde_time),1)];
@@ -228,8 +225,6 @@ Counts.o2off_noise_mol = Counts.o2off_noise_mol ./(1-(deadTime.*Counts.o2off_mol
 
 %%
 %=====Create Spectrum vectors=====
-%lambda_online = 769.2330;                          %[nm] Cobleigh online wavelength
-%lambda_offline = 769.3184;                         %[nm] Cobleigh offline wavelength
 
 %lambda_online = interp1(Options.TimeGrid,Data.Laser.O2Online.WavelengthActual,Time.ts/60/60);
 %lambda_offline = interp1(Options.TimeGrid,Data.Laser.O2Offline.WavelengthActual,Time.ts/60/60);
@@ -364,9 +359,6 @@ if span_days(1)<datetime(2020,10,6,'TimeZone','UTC')
     overlapcorrection = interp1(rm_raw_o2,Correction,rm);
     [HSRL.Bm,HSRL.Ba,HSRL.BSR]= BackscatterRatioV3(ts,rm,o2off./overlapcorrection,o2off_mol,T,P,lambda_offline);
 elseif span_days(1)>=datetime(2021,7,6,'TimeZone','UTC')
-    %addpath '\BSR retrieval'
-    %load('Overlap0304.mat')
-    %LidarData.OfflineCombinedAverageCounts = o2off./overlapcorrection;
     LidarData.Range = Range.rm;
     LidarData.Time = Time.ts;
     LidarData.OfflineCombinedTotalCounts = Counts.o2off;
@@ -383,15 +375,11 @@ elseif span_days(1)>=datetime(2021,7,6,'TimeZone','UTC')
     [LidarData]=BackscatterRetrievalRayleighBrillouin070621(LidarData,WeatherData);
     HSRL.BSRf = LidarData.UnmaskedBackscatterRatio;
 
-        LidarData.OfflineCombinedTotalCounts = Counts.goff;
+    LidarData.OfflineCombinedTotalCounts = Counts.goff;
     LidarData.OfflineMolecularTotalCounts = Counts.goff_mol;
     [LidarData]=BackscatterRetrievalRayleighBrillouin070621(LidarData,WeatherData);
     HSRL.BSRg = LidarData.UnmaskedBackscatterRatio;
-%    Counts.o2off_mol_corrected = LidarData.o2off_mol_corr;
 elseif span_days(1)>=datetime(2021,3,12,'TimeZone','UTC')
-    %addpath '\BSR retrieval'
-    %load('Overlap0304.mat')
-    %LidarData.OfflineCombinedAverageCounts = o2off./overlapcorrection;
     LidarData.Range = Range.rm;
     LidarData.Time = Time.ts;
     LidarData.OfflineCombinedAverageCounts = Counts.o2off;
@@ -404,7 +392,6 @@ elseif span_days(1)>=datetime(2021,3,12,'TimeZone','UTC')
     HSRL.Bm = LidarData.MolecularBackscatterCoefficient;
     Counts.o2off_mol_corrected = LidarData.o2off_mol_corr;
 
-
     LidarData.OfflineCombinedAverageCounts = Counts.foff-Counts.foff_bg;
     LidarData.OfflineMolecularAverageCounts = Counts.foff_mol-Counts.foff_mol_bg;
     [LidarData]=BackscatterRetrievalRayleighBrillouin0312(LidarData,WeatherData);
@@ -415,9 +402,6 @@ elseif span_days(1)>=datetime(2021,3,12,'TimeZone','UTC')
     [LidarData]=BackscatterRetrievalRayleighBrillouin0312(LidarData,WeatherData);
     HSRL.BSRg = LidarData.BackscatterRatio;
 elseif span_days(1)>datetime(2021,2,20,'TimeZone','UTC')
-    %addpath '\BSR retrieval'
-    %load('Overlap0304.mat')
-    %LidarData.OfflineCombinedAverageCounts = o2off./overlapcorrection;
     LidarData.Range = Range.rm;
     LidarData.Time = Time.ts;
     LidarData.OfflineCombinedAverageCounts = Counts.o2off;
@@ -428,9 +412,8 @@ elseif span_days(1)>datetime(2021,2,20,'TimeZone','UTC')
     HSRL.BSR = LidarData.BackscatterRatio; 
     Counts.o2off_mol_corrected = LidarData.o2off_mol_corr;
 elseif span_days(1)>datetime(2021,1,28,'TimeZone','UTC')
-        load('Overlap1104.mat','overlapcorrection')
+    load('Overlap1104.mat','overlapcorrection')
     overlapcorrection = interp1(Range.rm_raw_o2,overlapcorrection,Range.rm);
-    %[Bm,Ba,BR]= BackscatterRetrievalRayleigh(ts,rm,o2off./overlapcorrection,o2off_mol,T,P,lambda_offline);
     LidarData.OfflineCombinedAverageCounts = Counts.o2off./overlapcorrection;
     LidarData.OfflineMolecularAverageCounts = Counts.o2off_mol;
     WeatherData.Temperature = Model.T;
