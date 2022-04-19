@@ -87,19 +87,35 @@ function [sonde_datetime,sondeStruc] =  ChristmanFieldradiosonde(path,span_days)
                 
                 notOutliers = find(sondeStruc(sonde_ind).T~=-32768);
                 
-                sondeStruc(sonde_ind).T = sondeStruc(sonde_ind).T(notOutliers)+274.15;
+                sondeStruc(sonde_ind).T = sondeStruc(sonde_ind).T(notOutliers)+273.15;
                 sondeStruc(sonde_ind).P = sondeStruc(sonde_ind).P(notOutliers);
                 sondeStruc(sonde_ind).Height = sondeStruc(sonde_ind).Height(notOutliers);
+                sondeStruc(sonde_ind).Height = sondeStruc(sonde_ind).GPSHeightMSL(notOutliers);
                 %sondeStruc(sonde_ind).Height = sondeStruc(sonde_ind).Height(notOutliers)+139+400;
                 
-                sondeStruc(sonde_ind).TD = sondeStruc(sonde_ind).TD(notOutliers)+274.15;
+                sondeStruc(sonde_ind).TD = sondeStruc(sonde_ind).TD(notOutliers)+273.15;
                 sondeStruc(sonde_ind).RH = sondeStruc(sonde_ind).RH(notOutliers);
                 
                 
-                sondeStruc(sonde_ind).e = 0.6108*exp(17.27*(sondeStruc(sonde_ind).TD-273.3)./sondeStruc(sonde_ind).TD);%[kPa]water vapor pressure
+                sondeStruc(sonde_ind).e = 0.6108*exp(17.27*(sondeStruc(sonde_ind).TD-273.15)./sondeStruc(sonde_ind).TD);%[kPa]water vapor pressure
                 sondeStruc(sonde_ind).AH = 2165*sondeStruc(sonde_ind).e./sondeStruc(sonde_ind).T;%[g/m^3] absolute Humidity 
                 sondeStruc(sonde_ind).WV = 6.022e23*sondeStruc(sonde_ind).AH/18.01528;%[1/m^3] WV number density
                
+                f = 1.0016+3.15.*10.^-6.*sondeStruc(sonde_ind).P-.074.*sondeStruc(sonde_ind).P.^-1;
+                ew =f.*6.1094.*exp((17.625.*(sondeStruc(sonde_ind).T-273.15)./(243.04+(sondeStruc(sonde_ind).T-273.15))));
+                ew =6.1094.*exp((17.625.*(sondeStruc(sonde_ind).T-273.15)./(243.04+(sondeStruc(sonde_ind).T-273.15))));
+                ew = (1.0007+3.46e-6.*sondeStruc(sonde_ind).P).*6.1121.*exp(17.502.*(sondeStruc(sonde_ind).T-273.15)./(240.97+(sondeStruc(sonde_ind).T-273.15)));
+                e=ew.*sondeStruc(sonde_ind).RH./100;
+                sondeStruc(sonde_ind).AH = e./461.5./(sondeStruc(sonde_ind).T-273.15); %g/m^3
+
+
+                R = 8.31446261815324;%J/K/mol, m^3Pa/K/mol
+
+                sondeStruc(sonde_ind).AH = (e./10).*18.01528./R./sondeStruc(sonde_ind).T*1000; %g/m^3
+
+                A = 6.02214e23; %avagadro number
+                mwv=18.01528/A; %g/molecule
+                sondeStruc(sonde_ind).WV = sondeStruc(sonde_ind).AH./mwv; %1/m^3
                 
 %                 sondeStruc(sonde_ind).T
 %                 [sondeStruc(sonde_ind).T,outliers(sonde_ind)] = rmoutliers(sondeStruc(sonde_ind).T);

@@ -108,6 +108,7 @@ Range.rangeBin = (Constant.c * Range.nsPerBin(1)*10^-9)/2; %range bin length
 Range.rm_raw_o2 = 0:Range.rangeBin:Range.NBins(1)*Range.rangeBin+0-Range.rangeBin;    %[m] Create range vector
 Range.rm_raw_o2 = -150:Range.rangeBin:Range.NBins(1)*Range.rangeBin-150-Range.rangeBin;    %[m] Create range vector
 Range.rm_raw_o2 = -75:Range.rangeBin:Range.NBins(1)*Range.rangeBin-75-Range.rangeBin;    %[m] Create range vector
+%%%Range.rm_raw_o2 = -75-75:Range.rangeBin:Range.NBins(1)*Range.rangeBin-75-75-Range.rangeBin;    %[m] Create range vector
 Range.rm_raw_o2 = Range.rm_raw_o2(:);                           %[m] Convert range vector to column vector
 Range.r_max = 6000;                                       %[m] Max range 
 Range.rm = Range.rm_raw_o2(Range.rm_raw_o2<=Range.r_max & Range.rm_raw_o2>0);     %[m] Shorten range vector to max range
@@ -141,6 +142,13 @@ Model.T = Model.Ts + lapseRate .* Range.rm;                           %[K] (1 x 
 
 
 Model.P = Model.Ps .* (Model.Ts./Model.T).^(-5.2199);                       %[atm] (1 x r) Pressure model as a function of r  
+g0 = 9.80665;               %[m/s/s]Gravitational acceleration
+M_air = 0.0289644;          %[kg/mol] Molar mass of air
+kB = 1.38065E-23;           %[J/K] Boltzman's constant 
+N_A = 6.02214076e23;        %[1/mol] Avagadro's number
+R = kB * N_A;               %[J/K/mol] universal gas constant
+gamma = g0 * M_air / R;     %[K/m]gravity molar mass of air and gas constant
+Model.P = Model.Ps .* (Model.Ts./Model.T).^(gamma./lapseRate);
 
 % Model.P = interp2(double(time_Pressure),double(range_Pressure),double(Pressure),Time.ts,Range.rm,'nearest'); % Interpolate pressure model to range and time to match other data
 % Model.P = fillmissing(Model.P,'nearest',1);
@@ -199,13 +207,28 @@ for i = 1:numel(sonde_datetime) % Loop over number of sondes in time period
         % ===Subtract first range value (site elevation) from whole vector
         %rm_sgp{i} = sondeStruc(i).Height - sondeStruc(i).Height(1);
         rm_sgp{i} = sondeStruc(i).Height - 1571.9;
+
+        rm_sgp{i} = sondeStruc(i).Height - 1571.9;
         %===convert to same units====
         sondeStruc(i).P = sondeStruc(i).P./1013.25;%atm
+
+        Sonde.Psurf(:,i) = sondeStruc(i).P(1);
+        Sonde.Tsurf(:,i) = sondeStruc(i).T(1);
         % ==Collect radiosonde surface measurements==
 %         T_sgp_surf(i) = sondeStruc(i).T(1);
 %         P_sgp_surf(i) = sondeStruc(i).P(1);
         % ==Custom interpolation function==
         [T_sonde_int{i},P_sonde_int{i},WV_sonde_int{i},rm_sonde_int{i}] = interp_sonde2(sondeStruc(i).T,sondeStruc(i).P,sondeStruc(i).WV,rm_sgp{i},Range.rangeBin);  
+        
+
+        [rm_sgp{i},IA,IC] = unique(rm_sgp{i});
+        sondeStruc(i).T = sondeStruc(i).T(IA);
+        sondeStruc(i).P = sondeStruc(i).P(IA);
+        sondeStruc(i).WV = sondeStruc(i).WV(IA);
+        T_sonde_int{i} = interp1(rm_sgp{i},sondeStruc(i).T,Range.rm,'makima',nan);
+        P_sonde_int{i} = interp1(rm_sgp{i},sondeStruc(i).P,Range.rm,'makima',nan);
+        WV_sonde_int{i} = interp1(rm_sgp{i},sondeStruc(i).WV,Range.rm,'makima',nan);
+        
         if length(T_sonde_int{i})<Range.i_range % ==If sonde does not reach full lidar range
             disp('ran')
             Sonde.T_sonde(1:length(T_sonde_int{i}),i) = T_sonde_int{i};
@@ -384,7 +407,7 @@ Spectrum.nu_online = 10^7./Spectrum.lambda_online;                    %[cm-1] On
 Spectrum.nu_offline = 10^7./Spectrum.lambda_offline;                  %[cm-1] Offline wavenumber
 
 Spectrum.nu_wvon = 10^7./Spectrum.lambda_wvon;                    %[cm-1] Online wavenumber
-Spectrum.nu_vwoff = 10^7./Spectrum.lambda_wvon;                  %[cm-1] Offline wavenumber
+Spectrum.nu_wvoff = 10^7./Spectrum.lambda_wvoff;                  %[cm-1] Offline wavenumber
 
 nuMin = Spectrum.nu_online-0.334;                                 %[cm-1] Scan lower bound
 nuMax = Spectrum.nu_online+0.334;                                 %[cm-1] Scan upper bound
@@ -472,7 +495,8 @@ Counts = poissonThin(Counts);
 %===== Calucation Model absorption for radiosondes =======
 for i=1:numel(sonde_datetime) 
         if isdatetime(sonde_datetime(i)) %Check if there are any sondes
-            Sonde.absorption_sonde{i} = diag(absorption_O2_770_model(Sonde.T_sonde(:,i),Sonde.P_sonde(:,i),Spectrum.nu_online(Sonde.sonde_ind(:,i)),Model.WV(:,Sonde.sonde_ind(:,i)))); %[m-1] Funcrtion to calculate theoretical absorption
+           % Sonde.absorption_sonde{i} = diag(absorption_O2_770_model(Sonde.T_sonde(:,i),Sonde.P_sonde(:,i),Spectrum.nu_online(Sonde.sonde_ind(:,i)),Model.WV(:,Sonde.sonde_ind(:,i)))); %[m-1] Funcrtion to calculate theoretical absorption
+           Sonde.absorption_sonde{i} = absorption_O2_770_model(Sonde.T_sonde(:,i),Sonde.P_sonde(:,i),Spectrum.nu_online(Sonde.sonde_ind(1,i)),Sonde.WV_sonde(:,i)); %[m-1] Funcrtion to calculate theoretical absorption
             Sonde.trasmission_sonde{i} = exp(-cumtrapz(Range.rm,Sonde.absorption_sonde{i})); %O2 transmission
         else
             Sonde.absorption_sonde{i} = nan(Range.i_range,1);
