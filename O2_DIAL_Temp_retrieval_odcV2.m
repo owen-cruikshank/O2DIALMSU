@@ -333,11 +333,220 @@ disp('Temp retrieval function')
 % Model.P = Model.Ps .* (Model.Ts./Model.T).^(-5.2199);                       %[atm] (1 x r) Pressure model as a function of r  
 
 tic
-[Temperature.T_final_test,Temperature.L_fit_sm_test,Temperature.Ts_fit,Temperature.Patm_final,Temperature.mean_lapse_rate,Temperature.exclusion,Temperature.Titer] =  temperatureRetrieval(Model.T,Time.ts,Range.rm,Model.P,Model.WV,Spectrum.nu_online,Alpha.alpha_totals,SNRm,cloud_SDm_above);
+startLapse = -.0065;
+startLapse = Model.lapseRate;
+[Temperature.T_final_test,Temperature.L_fit_sm_test,Temperature.Ts_fit,Temperature.Patm_final,Temperature.mean_lapse_rate,Temperature.exclusion,Temperature.Titer] =  temperatureRetrieval(Model.T,Time.ts,Range.rm,Model.P,Model.WV,Spectrum.nu_online,Alpha.alpha_totals,0,cloud_SDm_above,Model.Ts,Model.Ps,startLapse);
+%[Temperature.T_final_test,Temperature.L_fit_sm_test,Temperature.Ts_fit,Temperature.Patm_final,Temperature.mean_lapse_rate,Temperature.exclusion,Temperature.Titer] =  temperatureRetrieval(Model.T,Time.ts,Range.rm,Model.P,Model.WV,Spectrum.nu_online,Alpha.alpha_0,SNRm,cloud_SDm_above,Model.Ts,Model.Ps);
+%[Temperature.T_final_test,Temperature.L_fit_sm_test,Temperature.Ts_fit,Temperature.Patm_final,Temperature.mean_lapse_rate,Temperature.exclusion,Temperature.Titer] =  temperatureRetrieval(Model.T,Time.ts,Range.rm,Model.P,N_wv,Spectrum.nu_online,Alpha.alpha_totals,SNRm,cloud_SDm_above,Model.Ts,Model.Ps);
+%%
+sonde_index = 10;
 
-[Temperature.T_final_testf,Temperature.L_fit_sm_test,Temperature.Ts_fit,Temperature.Patm_final,Temperature.mean_lapse_rate,Temperature.exclusion,Temperature.Titer] =  temperatureRetrieval(Model.T,Time.ts,Range.rm,Model.P,Model.WV,Spectrum.nu_online,Alpha.alpha_totalsf,SNRm,cloud_SDm_above);
-[Temperature.T_final_testg,Temperature.L_fit_sm_test,Temperature.Ts_fit,Temperature.Patm_final,Temperature.mean_lapse_rate,Temperature.exclusion,Temperature.Titer] =  temperatureRetrieval(Model.T,Time.ts,Range.rm,Model.P,Model.WV,Spectrum.nu_online,Alpha.alpha_totalsg,SNRm,cloud_SDm_above);
-toc
+TPerfect = 296+Range.rm*-6.5/1000;
+PPerfect = 1 * (296./TPerfect).^(-5.2199);
+WVPerfect = zeros(size(TPerfect));
+absorptionPerfect = absorption_O2_770_model(TPerfect,PPerfect,Spectrum.nu_online(1),WVPerfect);
+Temperature.T_final_test2=zeros(Range.i_range,size(Sonde.sonde_ind,2));
+
+for iii = 1:size(Sonde.sonde_ind,2)
+   % for iii = 1:1
+    sonde_index = iii;
+    %sonde_index = 1;
+p_point = Sonde.sonde_ind(:,sonde_index);
+
+
+
+k = ones(4,1)./(4);
+k = ones(1,1)./(1);
+abssorptionSonde(:,iii) = [nanconv(Sonde.absorption_sonde{sonde_index}(1:end-1),k,'edge','nanout') ;0];
+
+%abssorptionSonde(:,iii) = filter2(k,Sonde.absorption_sonde{sonde_index},'same');
+%abssorptionSonde = Sonde.absorption_sonde{sonde_index};
+%abssorptionSonde = absorptionPerfect;
+
+sondeModelT = Sonde.Tsurf(sonde_index)+Range.rm*-6.5/1000;
+sondeModelT = Sonde.T_sonde(1,sonde_index)+Range.rm*-6.5/1000;
+sondeModelP = Sonde.Psurf(sonde_index) .* (Sonde.Tsurf(sonde_index)./sondeModelT).^(-5.2199);
+sondeModelP = Sonde.Psurf(sonde_index) .* (Sonde.Tsurf(sonde_index)./sondeModelT).^(-5.2558);
+
+%[Tfinal,~,~,Pfinal,~,~,~] =  temperatureRetrieval(Model.T(:,p_point(1)),Time.ts(:,p_point(1)),Range.rm,Model.P(:,p_point(1)),Sonde.WV_sonde(:,sonde_index),Spectrum.nu_online(:,p_point(1)),abssorptionSonde,SNRm(:,p_point(1)),cloud_SDm_above(:,p_point(1)),Model.Ts(:,p_point(1)),Model.Ps(:,p_point(1)));
+%%[Tfinal,~,~,Pfinal,~,~,~] =  temperatureRetrieval(diag(Model.T(:,p_point)),Time.ts(:,p_point(1)),Range.rm,diag(Model.P(:,p_point)),Sonde.WV_sonde(:,sonde_index),Spectrum.nu_online(:,p_point(1)),abssorptionSonde,diag(SNRm(:,p_point)),diag(cloud_SDm_above(:,p_point)),Sonde.Tsurf(sonde_index),Sonde.Psurf(sonde_index));
+[Tfinal,Lapse,Ts_fit,Pfinal,~,~,Titer(:,iii,:)] =  temperatureRetrieval(diag(Model.T(:,p_point)),Time.ts(:,p_point(1)),Range.rm,diag(Model.P(:,p_point)),Sonde.WV_sonde(:,sonde_index),Spectrum.nu_online(:,p_point(1)),abssorptionSonde(:,iii),0,diag(cloud_SDm_above(:,p_point)),Sonde.Tsurf(sonde_index),Sonde.Psurf(sonde_index),startLapse);
+%[Tfinal,Lapse,Ts_fit,Pfinal,~,~,Titer(:,iii,:)] =  temperatureRetrieval(diag(Model.T(:,p_point)),Time.ts(:,p_point(1)),Range.rm,diag(Model.P(:,p_point)),Sonde.WV_sonde(:,sonde_index),Spectrum.nu_online(:,p_point(1)),abssorptionSonde(:,iii),0,diag(cloud_SDm_above(:,p_point)),Model.Ts(Sonde.sonde_ind(1,sonde_index)),(Model.Ps(Sonde.sonde_ind(1,sonde_index))));
+%%%[Tfinal,Lapse,Ts_fit,Pfinal,~,~,Titer(:,iii,:)] =  temperatureRetrieval(sondeModelT,Time.ts(:,p_point(1)),Range.rm,sondeModelP,Sonde.WV_sonde(:,sonde_index),Spectrum.nu_online(:,p_point(1)),abssorptionSonde,diag(SNRm(:,p_point)),diag(cloud_SDm_above(:,p_point)),Sonde.Tsurf(sonde_index),Sonde.Psurf(sonde_index));
+%%[Tfinal,Lapse,Ts_fit,Pfinal,~,~,~] =  temperatureRetrieval(sondeModelT,Time.ts(:,p_point(1)),Range.rm,sondeModelP,zeros(size(Sonde.WV_sonde(:,sonde_index))),Spectrum.nu_online(:,p_point(1)),abssorptionSonde,diag(SNRm(:,p_point)),diag(cloud_SDm_above(:,p_point)),Sonde.T_sonde(1,sonde_index),Sonde.P_sonde(1,sonde_index));
+%%[Tfinal,Lapse,Ts_fit,Pfinal,~,~,~] =  temperatureRetrieval(sondeModelT,Time.ts(:,p_point(1)),Range.rm,sondeModelP,diag(N_wvm(:,Sonde.sonde_ind(:,sonde_index))),Spectrum.nu_online(:,p_point(1)),abssorptionSonde,diag(SNRm(:,p_point)),diag(cloud_SDm_above(:,p_point)),Sonde.T_sonde(1,sonde_index),Sonde.P_sonde(1,sonde_index));
+%[Tfinal,~,~,Pfinal,~,~,~] =  temperatureRetrieval(sondeModelT,Time.ts(:,p_point(1)),Range.rm,sondeModelP,WVPerfect,Spectrum.nu_online(:,p_point(1)),abssorptionSonde,diag(SNRm(:,p_point)),diag(cloud_SDm_above(:,p_point)),Sonde.Tsurf(sonde_index),Sonde.Psurf(sonde_index));
+%[Tfinal,~,~,Pfinal,~,~,~] =  temperatureRetrieval(Model.T(:,p_point(1)),Time.ts(:,p_point(1)),Range.rm,Model.P(:,p_point(1)),WVPerfect,Spectrum.nu_online(1),absorptionPerfect,SNRm(:,p_point(1)),cloud_SDm_above(:,p_point(1)),296,1+.001);
+
+Tfinal(diag(cloud_SDm_above(:,p_point))) = NaN;
+Pfinal(diag(cloud_SDm_above(:,p_point))) = NaN;
+Pfinal2(:,iii) = Pfinal;
+Temperature.T_final_test2(:,iii)=Tfinal;
+
+
+%%%[Temperature.T_final_testf,Temperature.L_fit_sm_test,Temperature.Ts_fit,Temperature.Patm_final,Temperature.mean_lapse_rate,Temperature.exclusion,Temperature.Titer] =  temperatureRetrieval(Model.T,Time.ts,Range.rm,Model.P,Model.WV,Spectrum.nu_online,Alpha.alpha_totalsf,SNRm,cloud_SDm_above);
+%%%[Temperature.T_final_testg,Temperature.L_fit_sm_test,Temperature.Ts_fit,Temperature.Patm_final,Temperature.mean_lapse_rate,Temperature.exclusion,Temperature.Titer] =  temperatureRetrieval(Model.T,Time.ts,Range.rm,Model.P,Model.WV,Spectrum.nu_online,Alpha.alpha_totalsg,SNRm,cloud_SDm_above);
+
+
+end
+
+tempComparison = ones(Range.i_range,size(Sonde.sonde_ind,2));
+for jj = 1:size(Sonde.sonde_ind,2)
+    tempComparison(:,jj) = Temperature.T_final_test2(:,jj)-Sonde.T_sonde(:,jj);
+end
+meanTemp = mean(tempComparison,2,'omitnan');
+stdTemp = std(tempComparison,0,2,'omitnan');
+
+divider = 12;
+figure(49)
+tempProb = zeros(Range.i_range,121);
+for ii = 1:size(Sonde.sonde_ind,2)
+    for i = 1:Range.i_range
+        for j = -60:60
+            tempDiff = Temperature.T_final_test2(i,ii)-Sonde.T_sonde(i,ii);
+            tempProb(i,j+61) = tempProb(i,j+61) + double((tempDiff<(j+1)/divider)&&(tempDiff>=j/divider));
+        end
+    end
+end
+tempProb(tempProb==0)=nan;
+imAlpha=ones(size(tempProb));
+imAlpha(isnan(tempProb))=0;%Set AlphaData to not plot NaNs
+imagesc((-60:60)/divider,Range.rkm,tempProb,'AlphaData',imAlpha)
+hold on
+plot(meanTemp,Range.rkm,'b','linewidth',2)
+plot(meanTemp+stdTemp,Range.rkm,'--k')
+plot(meanTemp-stdTemp,Range.rkm,'--k')
+hold off
+colormap(flipud(hot))%colormap hot
+set(gca,'Color','#D3D3D3')
+a = colorbar;
+a.Label.String = 'Occurrences';
+hold on
+xline(0)
+hold off
+ylim([0 4])
+xlim([-3 3])
+set(gca, 'YDir','normal')
+xlabel('\DeltaT MPD-Sonde (^oC)')
+ylabel('Range (km)')
+grid on
+title('temperature')
+
+figure(50)
+int = 1;
+%hist11 = zeros(size(Sonde.sonde_ind,2)*size(Sonde.sonde_ind,1));
+for ii = 1:size(Sonde.sonde_ind,2)
+    for jj = 1:size(Sonde.sonde_ind,1)
+        hist11(int)=Temperature.T_final_test2(jj,ii)-Sonde.T_sonde(jj,ii);
+        int=int+1;
+    end
+end
+    meanHist = mean(hist11,'omitnan');
+    stdHist = std(hist11,'omitnan');
+    histogram(hist11,'BinWidth',.01)
+    title(sprintf('Histogram T_{DIAL}-T_{sonde}\n Mean %0.5f, std %0.5f',meanHist,stdHist))
+
+    figure(53)
+    plot(Temperature.T_final_test2-Sonde.T_sonde,Range.rm)
+    hold on
+    plot(meanTemp,Range.rm,'linewidth',3)
+    title(sprintf('temperature\n mean %0.3d std %0.3d',meanHist,stdHist))
+    xlabel('T_{retrieval}-T_{sonde} (K)')
+   hold off
+    grid on
+
+    figure(54)
+    plot(Pfinal2-Sonde.P_sonde,Range.rm)
+    title('pressure')
+    xlabel('P_{retrieval}-P_{sonde} (atm)')
+    grid on
+
+figure
+subplot(2,1,1)
+for ii = 1:size(Sonde.sonde_ind,2)
+    plot(Time.thr(Sonde.sonde_ind(1,ii)),Model.Ts(Sonde.sonde_ind(1,ii))- Sonde.Tsurf(ii),'.')
+    hold on
+end
+ylabel('surface weather - sonde (K)')
+hold off
+subplot(2,1,2)
+for ii = 1:size(Sonde.sonde_ind,2)
+    plot(Time.thr(Sonde.sonde_ind(1,ii)),Model.Ps(Sonde.sonde_ind(1,ii))- Sonde.Psurf(ii),'.')
+    hold on
+end
+ylabel('surface weather - sonde (atm)')
+xlabel('Time (hr)')
+hold off
+
+
+%%
+sonde_index=1;
+figure(51)
+plot(Temperature.T_final_test2(:,sonde_index),Range.rkm)
+hold on
+plot(permute(Titer(:,sonde_index,:),[1 3 2]),Range.rkm)
+plot(Sonde.T_sonde(:,sonde_index),Range.rkm,'--')
+plot(Sonde.Tsurf(1,sonde_index),0,'*')
+plot(Model.Ts(1,Sonde.sonde_ind(1,sonde_index)),0,'+')
+title('Temparature')
+hold off
+ylim([0 5])
+
+figure(511)
+plot(Pfinal2(:,sonde_index),Range.rkm)
+hold on
+plot(Sonde.P_sonde(:,sonde_index),Range.rkm,'--')
+plot(Sonde.Psurf(1,sonde_index),0,'*')
+plot(Model.Ps(1,Sonde.sonde_ind(1,sonde_index)),0,'+')
+plot(Model.P(:,Sonde.sonde_ind(1,sonde_index)),Range.rkm,'+')
+hold off
+title('Pressure')
+ylim([0 5])
+
+figure(5111)
+plot(Sonde.absorption_sonde{sonde_index},Range.rkm)
+hold on
+plot(abssorptionSonde(:,sonde_index),Range.rkm)
+hold off
+legend('unsmoothed','smoothed')
+title('absorption')
+ylim([0 5])
+
+figure(52)
+plot(Temperature.T_final_test2(:,sonde_index)-Sonde.T_sonde(:,sonde_index),Range.rkm)
+xlim([-10 10])
+ylim([0 5])
+title('temperature')
+xline(1)
+xline(-1)
+
+figure(522)
+plot(Pfinal2(:,sonde_index)-Sonde.P_sonde(:,sonde_index),Range.rkm)
+title('Pressure')
+%xlim([-10 10])
+ylim([0 5])
+%xline(1)
+%xline(-1)
+
+
+%%
+% figure
+% plot(Pfinal,Range.rkm)
+% hold on
+% plot(Sonde.P_sonde(:,sonde_index),Range.rkm)
+% hold off
+% 
+% figure
+% plot(TPerfect,Range.rm)
+% hold on
+% plot(Tfinal,Range.rm)
+% hold off
+% 
+% figure
+% plot(TPerfect-Tfinal,Range.rm)
+% hold on
+% 
+% hold off
 
 %%
 
@@ -357,10 +566,11 @@ Temperature.T_final_test_cut(isnan(gg)) = NaN;          % Replace mask with NaNs
 %[Temperature.T_final_tests2] = applyFilter(minSigz,minSigt,Temperature.T_final_test_cut);
 
 
-% k = ones(4,6)./(4*6);     % Kernel
-% k = ones(8,6)./(8*6);     % Kernel
-% k = ones(8,8)./(8*8);     % Kernel
 k = ones(4,6)./(4*6);     % Kernel
+k = ones(4,8)./(4*8);     % Kernel
+k = ones(4,8)./(4*8);     % Kernel
+k = ones(3,7)./(3*7);     % Kernel
+%k = ones(1,1)./(1);     % Kernel
 %=== apply mask
 
 %==== Smooth temperature
