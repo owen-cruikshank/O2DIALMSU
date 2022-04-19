@@ -11,6 +11,8 @@ cd( fullfile('analysis'))
 
 Options.BinTotal = 490;
 [Data, Options] = loadMSUNETcdf(span_days,Options);
+
+%%%load('PrePrecipdata041522.mat','Options','Data','Counts')
 %%
 
 % for jj = 1:length(span_days)
@@ -131,8 +133,9 @@ Model.Ts = Data.WS.all.Temperature+273.15;
 Model.Ps = Data.WS.all.Pressure*0.000987;
 
 lapseRate = -6.5;                                   %[K/km] Guess adiabatic lapse rate  typically -6.5 up to 10km
+%%%lapseRate = -8; 
 lapseRate = lapseRate / 1000;                       %[K/m] 
-
+Model.lapseRate = lapseRate;
 Model.T = Model.Ts + lapseRate .* Range.rm;                           %[K] (1 x r) Temperature model as a function of r 
 
 % Model.T = interp2(double(time_Temperature),double(range_Temperature),double(Temperature),Time.ts,Range.rm,'nearest'); % Interpolate Temperature model to range and time to match other data
@@ -440,7 +443,7 @@ Spectrum.lambda_scanwv_3D_short = 10^7./Spectrum.nu_scan_3D_short;
 [~,Spectrum.online_indexwv] = min(abs(Spectrum.nu_wvon - Spectrum.nu_scanwv_3D_short),[],3);%finding index of online wavenumber
 
 Model.absorption = absorption_O2_770_model(Model.T,Model.P,Spectrum.nu_online,Model.WV); %[m-1] Funcrtion to calculate theoretical absorption
-Model.transmission = exp(-cumtrapz(Range.rm,Model.absorption));
+%Model.transmission = exp(-cumtrapz(Range.rm,Model.absorption));
 Model.absorption_off = absorption_O2_770_model(Model.T,Model.P,Spectrum.nu_offline,Model.WV); %[m-1] Funcrtion to calculate theoretical absorption
 
 %%
@@ -472,7 +475,9 @@ Counts.wvoff = filter2(k,Counts.wvoff_noise,'same');
 %%
 
 %====== Calucate any appy optimal filtering based on Poisson thinning ====
+tic
 Counts = poissonThin(Counts);
+toc
 %%
 
 % Pulse Decon
@@ -510,6 +515,7 @@ Data.Thermocouple.TSOA.Temperature = nan(size(Data.Thermocouple.InsideCell.Tempe
 Data.Thermocouple.OutsideCell.Temperature = nan(size(Data.Thermocouple.InsideCell.Temperature));
 
 %%
+disp('Calculating HSRL')
     LidarData.Range = Range.rm;
     LidarData.Time = Time.ts;
     LidarData.OfflineCombinedTotalCounts = Counts.o2off;
@@ -524,16 +530,16 @@ Data.Thermocouple.OutsideCell.Temperature = nan(size(Data.Thermocouple.InsideCel
     %Bm828 = LidarData.MolecularBackscatterCoefficient828;
     HSRL.BSR828 =LidarData.UnmaskedBackscatterRatio828;
 
-
-    LidarData.OfflineCombinedTotalCounts = Counts.foff-Counts.foff_bg;
-    LidarData.OfflineMolecularTotalCounts = Counts.foff_mol-Counts.foff_mol_bg;
-    [LidarData]=BackscatterRetrievalBoulder062021(LidarData,WeatherData);
-    HSRL.BSRf = LidarData.UnmaskedBackscatterRatio;
-
-    LidarData.OfflineCombinedTotalCounts = Counts.goff-Counts.foff_bg;
-    LidarData.OfflineMolecularTotalCounts = Counts.goff_mol-Counts.foff_mol_bg;
-    [LidarData]=BackscatterRetrievalBoulder062021(LidarData,WeatherData);
-    HSRL.BSRg = LidarData.UnmaskedBackscatterRatio;
+% 
+%     LidarData.OfflineCombinedTotalCounts = Counts.foff-Counts.foff_bg;
+%     LidarData.OfflineMolecularTotalCounts = Counts.foff_mol-Counts.foff_mol_bg;
+%     [LidarData]=BackscatterRetrievalBoulder062021(LidarData,WeatherData);
+%     HSRL.BSRf = LidarData.UnmaskedBackscatterRatio;
+% 
+%     LidarData.OfflineCombinedTotalCounts = Counts.goff-Counts.foff_bg;
+%     LidarData.OfflineMolecularTotalCounts = Counts.goff_mol-Counts.foff_mol_bg;
+%     [LidarData]=BackscatterRetrievalBoulder062021(LidarData,WeatherData);
+%     HSRL.BSRg = LidarData.UnmaskedBackscatterRatio;
 
 
     %HSRL.BSR = interp2(time_Backscatter_Ratio,range_Backscatter_Ratio,Backscatter_Ratio,Time.ts,Range.rm);

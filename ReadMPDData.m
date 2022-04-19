@@ -81,6 +81,9 @@ try
         A = double(ncread(Filename,FileVar));
     elseif strcmp(VariableType,'Native')
         A = ncread(Filename,FileVar);
+
+%             elseif strcmp(VariableType,'Native')
+%         A = double(ncread(Filename,FileVar));
     elseif strcmp(VariableType,'String')
         A = h5read(Filename,['/',FileVar]);
     else

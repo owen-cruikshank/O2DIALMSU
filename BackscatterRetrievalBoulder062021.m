@@ -13,7 +13,7 @@ function [LidarData]=BackscatterRetrievalBoulder062021(LidarData,WeatherData)
     %file=pwd;
     %cd("F:\Research\Calibration_Data")
     %%%%%load('CalibrationTablesBoulder062021.mat');
-    load('CalibrationTablesBoulderSponS6062021.mat');
+    load('CalibrationTablesBoulderSponS6062021.mat','BoulderHSRLcoefficentsSponS6_062021');
     BoulderHSRLcoefficents062021 = BoulderHSRLcoefficentsSponS6_062021;
     %cd(file)
     P=BoulderHSRLcoefficents062021.P; 
@@ -26,15 +26,26 @@ function [LidarData]=BackscatterRetrievalBoulder062021(LidarData,WeatherData)
     Cac=BoulderHSRLcoefficents062021.Cac;
     
     
-    LidarData.Cmm=zeros(length(LidarData.Range),length(LidarData.Time));
-    LidarData.Cmc=zeros(length(LidarData.Range),length(LidarData.Time));
+    Cmm2=zeros(length(LidarData.Range),length(LidarData.Time));
+    Cmc2=zeros(length(LidarData.Range),length(LidarData.Time));
 
-    for i=1:length(LidarData.Time)
-       for j=1:length(LidarData.Range)
-        LidarData.Cmm(j,i)=interp2(P,T,Cmm,WeatherData.Pressure(j,i),WeatherData.Temperature(j,i));
-        LidarData.Cmc(j,i)=interp2(P,T,Cmc,WeatherData.Pressure(j,i),WeatherData.Temperature(j,i));
-       end
+    wdP = WeatherData.Pressure;
+    wdT = WeatherData.Temperature;
+
+%     for i=1:length(LidarData.Time)
+%        parfor j=1:length(LidarData.Range)
+%         Cmm2(j,i)=interp2(P,T,Cmm,wdP(j,i),wdT(j,i));
+%         Cmc2(j,i)=interp2(P,T,Cmc,wdP(j,i),wdT(j,i));
+%        end
+%     end
+
+    for j=1:length(LidarData.Range)
+    Cmm2(j,:)=interp2(P,T,Cmm,wdP(j,:),wdT(j,:));
+    Cmc2(j,:)=interp2(P,T,Cmc,wdP(j,:),wdT(j,:));
     end
+
+    LidarData.Cmm = Cmm2;
+    LidarData.Cmc = Cmc2;
     
     %Calibration Constants
     LidarData.Cac=Cac; %Aerosol in Combined

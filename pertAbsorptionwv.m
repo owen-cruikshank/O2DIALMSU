@@ -12,9 +12,12 @@
     c_doppler_O2 = Constant.m_air*Constant.c^2./(8*(Spectrum.nu_wvon*100).^2*Constant.kb);                   %[m^2 K] Doppler coefficient
     doppler_O2_ret = ((c_doppler_O2./Model.T/pi).^0.5).*exp(-c_doppler_O2.*(Spectrum.nu_wvon*100-Spectrum.nu_scanwv_3D_short*100).^2./Model.T./cB.^2); %[m] Doppler broadended lineshape         
 
-    norm_O2_ret = trapz(doppler_O2_un_ret,3).*Spectrum.nuBin*100;                   %[none] Lineshape integral
-    doppler_O2_ret = doppler_O2_un_ret./norm_O2_ret;                       %[m] Normalized doppler lineshape
+    clear c_doppler_O2
 
+    norm_O2_ret = trapz(doppler_O2_ret,3).*Spectrum.nuBin*100;                   %[none] Lineshape integral
+    doppler_O2_ret = doppler_O2_ret./norm_O2_ret;                       %[m] Normalized doppler lineshape
+
+    clear norm_O2_ret
     % Check if doppler_o2_ret is normalized to 1 when integrated across frequency
     %doppler_o2_ret_check = trapz(doppler_O2_ret,3).*nuBin*100;              %[none]
 
@@ -39,14 +42,15 @@
     %%
   
     % --- Backscatter Lineshape g ---
-    g1_m = 1./HSRL.BSR .* doppler_O2_ret ;%.*nuBin*100;                         %[m] Molecular backscatter lineshape
+    g1_m = 1./HSRL.BSR828 .* doppler_O2_ret ;%.*nuBin*100;                         %[m] Molecular backscatter lineshape
     g1_a = zeros(Range.i_range,Time.i_time,size(Spectrum.nu_scanwv_3D_short,3));                       % Initalize aerosol lineshape
     for i = 1:Time.i_time
-        g1_a(:,i,Spectrum.online_indexwv(i)) = (1 - 1./HSRL.BSR(:,i))/ Spectrum.nuBin / 100 ; %[m] aerosol backscatter lineshape
+        g1_a(:,i,Spectrum.online_indexwv(i)) = (1 - 1./HSRL.BSR828(:,i))/ Spectrum.nuBin / 100 ; %[m] aerosol backscatter lineshape
     end
     g1 = g1_a + g1_m;                                                   %[m] Combined backscatter lineshape
     %g1_check = trapz(g1,3).*nuBin*100;                                %[none] Check if integral of g1 is normalized to 1
 
+    clear g1_a g1_m doppler_O2_ret
     %derivative of lineshape dg/dr
     dg1_dr = (g1(ind_r_hi,:,:) - g1(ind_r_lo,:,:)) ./(Range.rangeBin*Options.oversample); %[none] Derivative over oversamped range
     dg1_dr = interp1(Range.rm(ind_r_lo),dg1_dr,Range.rm,'nearest',nan);         %[none] Make dg/dr the same size as g
@@ -73,6 +77,7 @@
         f(:,i,:) = absorption_f(:,i,:) ./ absorption_f(:,i,Spectrum.online_indexwv(i));  %[none] Normalize lineshape function
     end
 
+    clear absorption_f
      %%    
     % --- Zeroth Order Transmission ---
     Tm0 = exp(-cumtrapz(Range.rm,alpha_0.*f,1));      %[none] Zeroth order transmission  
@@ -82,6 +87,8 @@
     zeta = g1.*T_etalon;                        %[m]
     eta = dg1_dr.*T_etalon;                     %[none]
 
+
+    clear dg1_dr g1
     % Integrated terms
     % Online
     zeta_int = trapz(zeta.*Tm0,3)*Spectrum.nuBin*100;              %[none]
@@ -95,8 +102,8 @@
     W1 = zeta_ls_int./zeta_int;                 %[none]
     G1 = eta_int./zeta_int - eta2_int./zeta2_int;%[1/m]
 
-    alpha_1_raw = 0.5.*(alpha_0.*W1 + G1);      %[1/m]
-    alpha_1 = alpha_1_raw;
+    alpha_1 = 0.5.*(alpha_0.*W1 + G1);      %[1/m]
+
 
     % --- First Order Transmission Tm1 ---
     Tm1 = exp(-cumtrapz(Range.rm,Options.oversample.*alpha_1.*f,1));      %[none] First order transmission
@@ -110,11 +117,11 @@
     W2 = (zeta_ls_int.*zeta_ls_Tm1_int./(zeta_int.^2)) - (zeta_ls_Tm1_int./zeta_int);   %[none]
     G2 = (eta_int.*zeta_Tm1_int./(zeta_int.^2)) - (eta_Tm1_int./zeta_int);              %[1/m]
 
-    alpha_2_raw = 0.5.*(alpha_1.*W1 + alpha_0.*W2 + G2);    %[1/m]
-    alpha_2=alpha_2_raw;
+    alpha_2 = 0.5.*(alpha_1.*W1 + alpha_0.*W2 + G2);    %[1/m]
 
-    Spectrum.gwv = doppler_O2_ret;
-    Spectrum.g1wv = g1;
-    Spectrum.lwv = absorption_f;
+
+%     Spectrum.gwv = doppler_O2_ret;
+%     Spectrum.g1wv = g1;
+%     Spectrum.lwv = absorption_f;
 
 end

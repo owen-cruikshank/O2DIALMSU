@@ -64,13 +64,21 @@ end
                      {'TimeStamp';'Temperature'};
                      {'TimeStamp';'BatteryNominal';'BatteryReplace';'BatteryInUse';'BatteryLow';'BatteryCapacity';'BatteryTimeLeft';'UPSTemperature';'HoursOnBattery'};
                      {'TimeStamp';'Temperature';'RelHum';'Pressure';'AbsHum'}}; 
-    VarDesiredTypes = {{'-';'-';'-';'-';'String'};
-                       {'-';'-';'-';'-';'-';'-';'-';'-';'String'};
-                       {'-';'-';'-';'-';'-';'-';'-'};
+%     VarDesiredTypes = {{'-';'-';'-';'-';'String'};
+%                        {'-';'-';'-';'-';'-';'-';'-';'-';'String'};
+%                        {'-';'-';'-';'-';'-';'-';'-'};
+%                        {'-';'-';'-';'-';'-'};
+%                        {'-';'-'};
+%                        {'-';'-';'-';'-';'-';'-';'-';'-';'-'};
+%                        {'-';'-';'-';'-';'-'}};
+
+        VarDesiredTypes = {{'-';'-';'-';'-';'String'};
+                       {'-';'Double';'-';'-';'-';'-';'-';'-';'String'};
+                       {'Double';'Double';'Double';'Double';'Double';'Double';'Double'};
                        {'-';'-';'-';'-';'-'};
                        {'-';'-'};
                        {'-';'-';'-';'-';'-';'-';'-';'-';'-'};
-                       {'-';'-';'-';'-';'-'}};
+                       {'Double';'Double';'Double';'Double';'Double'}};
     else
     DataTypes = {'Etalon*.nc';'LL*.nc';'MCS*.nc';'Power*.nc'; 'HKeep*.nc'; 'UPS*.nc'};
     DataNames = {'Etalon';'Laser';'MCS';'Power';'Thermocouple';'UPS'};
@@ -297,7 +305,7 @@ TimeGrid = Options.TimeGrid(Options.TimeGrid>=((i-1)*24) & Options.TimeGrid<(i*2
                        
                        %Integrate counts in range
                        increment = 1;
-                       clear rangeSummedData
+                       %clear rangeSummedData
                        %for jj = Options.intRange:Options.intRange:560
                        for jj = Options.intRange:Options.intRange:Options.BinTotal
                            rangeSummedData(:,increment) = sum(SummedData(:,jj-Options.intRange+1:jj),2);
@@ -350,6 +358,7 @@ TimeGrid = Options.TimeGrid(Options.TimeGrid>=((i-1)*24) & Options.TimeGrid<(i*2
         end
     end
 
+    clear rangeSummedData NBinsInc NewTimeGrid
 
     end %end big loop over days
 

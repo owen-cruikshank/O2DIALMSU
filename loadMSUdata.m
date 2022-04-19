@@ -9,6 +9,8 @@ Options.path = [pwd '\Data\MSU data\RSync\NetCDFOutput\']; %Path for instument n
 Options.weatherPath = [pwd '\Data\']; %path for weather station data
 Options.sondepath = [pwd '\Data\MSU data\Radiosondes\']; %path for radiosonde data
 
+Options.path = fullfile(pwd,'Data','MSU data','RSync','NetCDFOutput');
+
 cd( maindirectory) %back to main directory
 
 Options.MPDname = 'MSU';
@@ -73,6 +75,7 @@ lapseRate = lapseRate / 1000;                       %[K/m]
 Model.T = Model.Ts + lapseRate .* Range.rm;                           %[K] (1 x r) Temperature model as a function of r 
 Model.P = Model.Ps .* (Model.Ts./Model.T).^(-5.2199);                       %[atm] (1 x r) Pressure model as a function of r  
 
+Model.lapseRate = lapseRate;
 % == water vapor model ==
 %Pws = exp(77.3450+0.0057.*Model.T-7235./Model.T)./Model.T.^8.2;
 %WV = weather_WV_interp.*0.0022.*Pws./T./100;
@@ -243,7 +246,7 @@ Spectrum.nu_online = 10^7./Spectrum.lambda_online;                    %[cm-1] On
 Spectrum.nu_offline = 10^7./Spectrum.lambda_offline;                  %[cm-1] Offline wavenumber
 
 Spectrum.nu_wvon = 10^7./Spectrum.lambda_wvon;                    %[cm-1] Online wavenumber
-Spectrum.nu_vwoff = 10^7./Spectrum.lambda_wvon;                  %[cm-1] Offline wavenumber
+Spectrum.nu_wvoff = 10^7./Spectrum.lambda_wvon;                  %[cm-1] Offline wavenumber
 
 nuMin = Spectrum.nu_online-0.334;                                 %[cm-1] Scan lower bound
 nuMax = Spectrum.nu_online+0.334;                                 %[cm-1] Scan upper bound
@@ -277,9 +280,12 @@ Spectrum.del_lambda = Spectrum.lambda_scan_3D_short-Spectrum.lambda_online;
 [~,Spectrum.offline_index] = min(abs(Spectrum.nu_offline - Spectrum.nu_scan_3D_short_off),[],3);%finding index of online wavenumber
 
 [~,Spectrum.online_indexwv] = min(abs(Spectrum.nu_wvon - Spectrum.nu_scanwv_3D_short),[],3);%finding index of online wavenumber
+
+
 %%
 %===== Calculate Model absorption from Model T and P =======
 Model.absorption = absorption_O2_770_model(Model.T,Model.P,Spectrum.nu_online,Model.WV); %[m-1] Funcrtion to calculate theoretical absorption
+Model.absorption_off = absorption_O2_770_model(Model.T,Model.P,Spectrum.nu_offline,Model.WV); %[m-1] Funcrtion to calculate theoretical absorption
 Model.transmission = exp(-cumtrapz(Range.rm,Model.absorption));
 
 %===== Calucation Model absorption for radiosondes =======
@@ -379,10 +385,10 @@ elseif span_days(1)>=datetime(2021,7,6,'TimeZone','UTC')
     [LidarData]=BackscatterRetrievalRayleighBrillouin070621(LidarData,WeatherData);
     HSRL.BSRf = LidarData.UnmaskedBackscatterRatio;
 
-    LidarData.OfflineCombinedTotalCounts = Counts.goff;
-    LidarData.OfflineMolecularTotalCounts = Counts.goff_mol;
-    [LidarData]=BackscatterRetrievalRayleighBrillouin070621(LidarData,WeatherData);
-    HSRL.BSRg = LidarData.UnmaskedBackscatterRatio;
+%     LidarData.OfflineCombinedTotalCounts = Counts.goff;
+%     LidarData.OfflineMolecularTotalCounts = Counts.goff_mol;
+%     [LidarData]=BackscatterRetrievalRayleighBrillouin070621(LidarData,WeatherData);
+%     HSRL.BSRg = LidarData.UnmaskedBackscatterRatio;
 elseif span_days(1)>=datetime(2021,3,12,'TimeZone','UTC')
     LidarData.Range = Range.rm;
     LidarData.Time = Time.ts;

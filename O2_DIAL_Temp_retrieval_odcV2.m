@@ -81,6 +81,7 @@ SNRm = ~(logical(SNRm));
 
 cloud_SDm_above = cloud_SDm_above|SNRm;
 cloud_SDm = logical(cloud_SDm);
+clear  o2on_SNR SNRm
 %%
 % ==== Afterpulse correction ====
 % pulseON = 4.146e+07*10*(Range.rm).^(-2.536*1);
@@ -240,15 +241,11 @@ Alpha.alpha_total_cut = fillmissing(Alpha.alpha_total_cut,'linear');
 
 %%
 %===== Soothing alpha =====
-%%%k = ones(10,4)./(10*4);     % Kernel
-% k = ones(4,6)./(4*6);     % Kernel
-% k = ones(8,6)./(8*6);     % Kernel
-% k = ones(8,8)./(8*8);     % Kernel
-% k = ones(2,4)./(2*4);
-k = ones(1,1)./(1*1);
+ k = ones(4,6)./(4*6);     % Kernel
+ k = ones(2,4)./(2*4);
+%k = ones(1,1)./(1);
 
-gg = cloud_SDm_above.*SNRm;
-gg(gg<=0)=nan;
+
 %Appy cloud mask before smoothing
 Alpha.alpha_total_cut(cloud_SDm_above) = NaN;          % Replace mask with NaNs
 
@@ -257,8 +254,6 @@ Alpha.alpha_total_cut(cloud_SDm_above) = NaN;          % Replace mask with NaNs
 % Alpha.alpha_total_rawmf(isnan(gg))=nan;
 % Alpha.alpha_total_rawmg(isnan(gg))=nan;
 
-%%%%[Ez,Et,minSigz,minSigt] = findMinE(Alpha.alpha_total_rawmf,Alpha.alpha_total_rawmg,0);
-%%%%[Alpha.alpha_total_filt2] = applyFilter(minSigz,minSigt,Alpha.alpha_total_cut);
 
 %%
 
@@ -623,7 +618,7 @@ for ii=1:size(Sonde.sonde_ind,2)
 Sonde.O_on_O_off(:,ii) = Counts.o2on(:,Sonde.sonde_ind(1,ii))./Counts.o2off(:,Sonde.sonde_ind(1,ii)) ./ Sonde.trasmission_sonde{ii}.^2;
 end
 
-Model.O_on_O_off = Counts.o2on./Counts.o2off ./ Model.transmission.^2;
+Model.O_on_O_off = Counts.o2on./Counts.o2off ./ exp(-cumtrapz(Range.rm,Model.absorption)).^2;
 
 %  tic
 % %p_point = 481;

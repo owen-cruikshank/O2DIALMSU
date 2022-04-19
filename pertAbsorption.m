@@ -25,6 +25,7 @@ function [alpha_final,alpha_1_raw,alpha_2_raw,Spectrum] = pertAbsorption(alpha, 
   
     % --- Backscatter Lineshape g ---
     g1_m = 1./HSRL.BSR .* doppler_O2_ret ;%.*nuBin*100;                         %[m] Molecular backscatter lineshape
+    clear doppler_O2_ret
     g1_a = zeros(Range.i_range,Time.i_time,Spectrum.i_scan_3D_short);                       % Initalize aerosol lineshape
     for i = 1:Time.i_time
         g1_a(:,i,Spectrum.online_index(1)) = (1 - 1./HSRL.BSR(:,i))/ Spectrum.nuBin / 100 ; %[m] aerosol backscatter lineshape
@@ -32,6 +33,7 @@ function [alpha_final,alpha_1_raw,alpha_2_raw,Spectrum] = pertAbsorption(alpha, 
     g1 = g1_a + g1_m;                                                   %[m] Combined backscatter lineshape
     %g1_check = trapz(g1,3).*nuBin*100;                                %[none] Check if integral of g1 is normalized to 1
 
+    clear g1_m g1_a
     %derivative of lineshape dg/dr
     dg1_dr = (g1(ind_r_hi,:,:) - g1(ind_r_lo,:,:)) ./(Range.rangeBin*Options.oversample); %[none] Derivative over oversamped range
     dg1_dr = interp1(Range.rm(ind_r_lo),dg1_dr,Range.rm,'nearest',nan);         %[none] Make dg/dr the same size as g
@@ -64,20 +66,27 @@ function [alpha_final,alpha_1_raw,alpha_2_raw,Spectrum] = pertAbsorption(alpha, 
     zeta = g1.*T_etalon;                        %[m]
     eta = dg1_dr.*T_etalon;                     %[none]
 
+    clear g1 dg1_dr
     % Integrated terms
     % Online
-    zeta_int = trapz(zeta.*Tm0,3)*Spectrum.nuBin*100;              %[none]
-    eta_int = trapz(eta.*Tm0,3)*Spectrum.nuBin*100;                %[1/m]
-    zeta_ls_int = trapz(zeta.*Tm0.*(1-absorption_f),3)*Spectrum.nuBin*100;    %[none]
+   % zeta_int = trapz(zeta.*Tm0,3)*Spectrum.nuBin*100;              %[none]
+    %eta_int = trapz(eta.*Tm0,3)*Spectrum.nuBin*100;                %[1/m]
+    %zeta_ls_int = trapz(zeta.*Tm0.*(1-absorption_f),3)*Spectrum.nuBin*100;    %[none]
     % Offline
-    zeta2_int = trapz(zeta,3)*Spectrum.nuBin*100;                  %[none]
-    eta2_int = trapz(eta,3)*Spectrum.nuBin*100;                    %[1/m]
+    %zeta2_int = trapz(zeta,3)*Spectrum.nuBin*100;                  %[none]
+    %eta2_int = trapz(eta,3)*Spectrum.nuBin*100;                    %[1/m]
 
     % === First Order ===
-    W1 = zeta_ls_int./zeta_int;                 %[none]
-    G1 = eta_int./zeta_int - eta2_int./zeta2_int;%[1/m]
+   % W1 = zeta_ls_int./zeta_int;                 %[none]
+    W1 = trapz(zeta.*Tm0.*(1-absorption_f),3)./trapz(zeta.*Tm0,3);                 %[none]
 
-    alpha_1_raw = 0.5.*(alpha.*W1 + G1);      %[1/m]
+    %G1 = eta_int./zeta_int - eta2_int./zeta2_int;%[1/m]
+    %G1 = eta_int./zeta_int - trapz(zeta,3)./trapz(eta,3);%[1/m]
+    %G1 = trapz(eta.*Tm0,3)./trapz(zeta.*Tm0,3) - trapz(eta,3)./trapz(zeta,3);%[1/m]
+
+    %alpha_1_raw = 0.5.*(alpha.*W1 + G1);      %[1/m]
+
+    alpha_1_raw = 0.5.*(alpha.*W1 +  trapz(eta.*Tm0,3)./trapz(zeta.*Tm0,3) - trapz(eta,3)./trapz(zeta,3));      %[1/m]
 
     % --- First Order Transmission Tm1 ---
     Tm1 = exp(-cumtrapz(Range.rm,Options.oversample.*alpha_1_raw.*absorption_f,1));      %[none] First order transmission
@@ -87,16 +96,22 @@ function [alpha_final,alpha_1_raw,alpha_2_raw,Spectrum] = pertAbsorption(alpha, 
     zeta_Tm1_int = trapz(zeta.*Tm0.*(1-Tm1),3)*Spectrum.nuBin*100;             %[none]
     eta_Tm1_int = trapz(eta.*Tm0.*(1-Tm1),3)*Spectrum.nuBin*100;               %[1/m]
     zeta_ls_Tm1_int = trapz(zeta.*Tm0.*(1-Tm1).*(1-absorption_f),3)*Spectrum.nuBin*100;   %[none]
+    
+    clear Tm1
 
-    W2 = (zeta_ls_int.*zeta_ls_Tm1_int./(zeta_int.^2)) - (zeta_ls_Tm1_int./zeta_int);   %[none]
-    G2 = (eta_int.*zeta_Tm1_int./(zeta_int.^2)) - (eta_Tm1_int./zeta_int);              %[1/m]
+%     W2 = (zeta_ls_int.*zeta_ls_Tm1_int./(zeta_int.^2)) - (zeta_ls_Tm1_int./zeta_int);   %[none]
+%     G2 = (eta_int.*zeta_Tm1_int./(zeta_int.^2)) - (eta_Tm1_int./zeta_int);              %[1/m]
+
+    W2 = ((trapz(zeta.*Tm0.*(1-absorption_f),3)*Spectrum.nuBin*100).*zeta_ls_Tm1_int./((trapz(zeta.*Tm0,3)*Spectrum.nuBin*100).^2)) - (zeta_ls_Tm1_int./(trapz(zeta.*Tm0,3)*Spectrum.nuBin*100));   %[none]
+    G2 = ((trapz(eta.*Tm0,3)*Spectrum.nuBin*100).*zeta_Tm1_int./((trapz(zeta.*Tm0,3)*Spectrum.nuBin*100).^2)) - (eta_Tm1_int./(trapz(zeta.*Tm0,3)*Spectrum.nuBin*100));              %[1/m]
 
     alpha_2_raw = 0.5.*(alpha_1_raw.*W1 + alpha.*W2 + G2);    %[1/m]
     
     alpha_final = alpha_2_raw+alpha_1_raw+alpha;
+    
 
-    Spectrum.g = doppler_O2_ret;
-    Spectrum.g1 = g1;
-    Spectrum.l = absorption_f;
+%     Spectrum.g = doppler_O2_ret;
+%     Spectrum.g1 = g1;
+%     Spectrum.l = absorption_f;
 
 end

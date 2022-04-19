@@ -20,6 +20,10 @@ h = 6.62607004E-34;                     %[Js] Planck's constant
 
 mwv = 2.991577548987048e-26; % Mass wv molecule [kg]
 
+A = 6.02214e23;
+mwv=18.01528/A/1000;
+
+
 %reference T and P
 T0 = 296;                               %[K]
 P0 = 1.0;                               %[atm]

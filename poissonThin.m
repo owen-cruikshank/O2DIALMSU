@@ -67,37 +67,35 @@ Counts.fwvoff = TEST_SUB_mybinornd( round((Counts.wvoff+Counts.bg_wvoff).*Counts
 
 
 % subtract set f from counts to make set g
-Counts.gon = round((Counts.o2on+Counts.bg_o2on).*Counts.NBins)-Counts.fon;
-Counts.goff = round((Counts.o2off+Counts.bg_o2off).*Counts.NBins)-Counts.foff;
-Counts.gon_mol = round((Counts.o2on_mol+Counts.bg_o2on_mol).*Counts.NBins)-Counts.fon_mol;
-Counts.goff_mol = round((Counts.o2off_mol+Counts.bg_o2off_mol).*Counts.NBins)-Counts.foff_mol;
-Counts.gwvon = round((Counts.wvon+Counts.bg_wvon).*Counts.NBins)-Counts.fwvon;
-Counts.gwvoff = round((Counts.wvoff+Counts.bg_wvoff).*Counts.NBins)-Counts.fwvoff;
+gon = round((Counts.o2on+Counts.bg_o2on).*Counts.NBins)-Counts.fon;
+goff = round((Counts.o2off+Counts.bg_o2off).*Counts.NBins)-Counts.foff;
+gon_mol = round((Counts.o2on_mol+Counts.bg_o2on_mol).*Counts.NBins)-Counts.fon_mol;
+goff_mol = round((Counts.o2off_mol+Counts.bg_o2off_mol).*Counts.NBins)-Counts.foff_mol;
+gwvon = round((Counts.wvon+Counts.bg_wvon).*Counts.NBins)-Counts.fwvon;
+gwvoff = round((Counts.wvoff+Counts.bg_wvoff).*Counts.NBins)-Counts.fwvoff;
 toc
 
 %=====Find background of thinned profiles=====
-Counts.fon_bg = (Counts.bg_o2on.*Counts.NBins)/2;% Take mean of last data points
-Counts.fon_mol_bg = (Counts.bg_o2on_mol.*Counts.NBins)/2;% Take mean of last data points
-Counts.foff_bg = (Counts.bg_o2off.*Counts.NBins)/2;% Take mean of last data points
-Counts.foff_mol_bg = (Counts.bg_o2off_mol.*Counts.NBins)/2;% Take mean of last data points
+fon_bg = (Counts.bg_o2on.*Counts.NBins)/2;% Take mean of last data points
+fon_mol_bg = (Counts.bg_o2on_mol.*Counts.NBins)/2;% Take mean of last data points
+foff_bg = (Counts.bg_o2off.*Counts.NBins)/2;% Take mean of last data points
+foff_mol_bg = (Counts.bg_o2off_mol.*Counts.NBins)/2;% Take mean of last data points
 
-Counts.fwvon_bg = (Counts.bg_wvon.*Counts.NBins)/2;% Take mean of last data points
-Counts.fwvoff_bg = (Counts.bg_wvoff.*Counts.NBins)/2;% Take mean of last data points
+fwvon_bg = (Counts.bg_wvon.*Counts.NBins)/2;% Take mean of last data points
+fwvoff_bg = (Counts.bg_wvoff.*Counts.NBins)/2;% Take mean of last data points
 
+disp('creating filter')
 %=====Find optimal filters====
-[~,~,rangeWidthon,timeWidthon] = findMinE(Counts.fon,Counts.gon,Counts.fon_bg);
-clear Counts.fon Counts.gon Counts.fon_bg
-[~,~,rangeWidthoff,timeWidthoff] = findMinE(Counts.foff,Counts.goff,Counts.foff_bg);
-clear Counts.foff Counts.goff Counts.foff_bg
-[~,~,rangeWidthon_mol,timeWidthon_mol] = findMinE(Counts.fon_mol,Counts.gon_mol,Counts.fon_mol_bg);
-clear Counts.fon_mol Counts.gon_mol Counts.fon_mol_bg
-[~,~,rangeWidthoff_mol,timeWidthoff_mol] = findMinE(Counts.foff_mol,Counts.goff_mol,Counts.foff_mol_bg);
-clear Counts.foff_mol Counts.goff_mol Counts.foff_mol_bg
+[~,~,rangeWidthon,timeWidthon] = findMinE(Counts.fon,gon,fon_bg);
 
-[~,~,rangeWidthwvon,timeWidthwvon] = findMinE(Counts.fwvon,Counts.gwvon,Counts.fwvon_bg);
-clear Counts.fwvon Counts.gwvon Counts.fwvon_bg
-[~,~,rangeWidthwvoff,timeWidthwvoff] = findMinE(Counts.fwvoff,Counts.gwvoff,Counts.fwvoff_bg);
-clear Counts.fwvoff Counts.gwvoff Counts.fwvoff_bg
+[~,~,rangeWidthoff,timeWidthoff] = findMinE(Counts.foff,goff,foff_bg);
+
+[~,~,rangeWidthon_mol,timeWidthon_mol] = findMinE(Counts.fon_mol,gon_mol,fon_mol_bg);
+
+[~,~,rangeWidthoff_mol,timeWidthoff_mol] = findMinE(Counts.foff_mol,goff_mol,foff_mol_bg);
+
+[~,~,rangeWidthwvon,timeWidthwvon] = findMinE(Counts.fwvon,gwvon,fwvon_bg);
+[~,~,rangeWidthwvoff,timeWidthwvoff] = findMinE(Counts.fwvoff,gwvoff,fwvoff_bg);
 
 
 % assign outputs to structure
@@ -158,12 +156,13 @@ function [counts] = applyFilter(rangeWidth,timeWidth,counts)
 end
 
 function [Ez,Et,minSigz,minSigt] = findMinE(f,g,bg)
-    disp('creating filter')
+    
     %====find best filter in range====
     filt_size = logspace(-1,1.5,40); %create filter size in terms of grid points
     Ez = ones(1,length(f(1,:)),length(filt_size));
+    fprintf('Range ')
     for jj = 1:length(filt_size) %loop over different filters
-        fprintf('Range %f',jj)
+        fprintf('%g ',jj)
         nz = round(4*filt_size(jj)); %number of grid points 
         z = (-nz:nz)'; %filter grid
         kern = exp(-z.^2/filt_size(jj).^2); %gaussian fitler kernel in range
@@ -180,6 +179,7 @@ function [Ez,Et,minSigz,minSigt] = findMinE(f,g,bg)
         fFilt(fFilt==0)=.001; %avoid inf in log
         Ez(:,:,jj) = sum(fFilt+bg-g.*log(fFilt+bg),1,'omitnan'); %loss function to optimize
     end
+    fprintf('\n')
     [~,minEind]=min(Ez,[],3); %find minimum of loss function
     minSigz = ones(1,size(f,2));
     for ii = 1:size(f,2)
@@ -189,8 +189,9 @@ function [Ez,Et,minSigz,minSigt] = findMinE(f,g,bg)
     %====find best filter in time====
     filt_size = logspace(-1.5,3,100);
     Et = ones(length(f(:,1)),1,length(filt_size));
+    fprintf('time ')
     for jj = 1:length(filt_size)
-        fprintf('time %f',jj)
+        fprintf('%g ',jj)
         nz = round(4*filt_size(jj)); %number of grid points 
         z = (-nz:nz);%filter grid
         %kern = gaussmf(z,[filt_size(jj),0]);%fitler kernel in range
@@ -211,6 +212,7 @@ function [Ez,Et,minSigz,minSigt] = findMinE(f,g,bg)
         fFilt(fFilt==0)=.001;%avoid inf in log
         Et(:,:,jj) = sum(fFilt+bg-g.*log(fFilt+bg),2,'omitnan');
     end
+    fprintf('\n')
     [~,minEind]=min(Et,[],3);
     minSigt = ones(size(f,1),1);
     for ii = 1:size(f,1)
