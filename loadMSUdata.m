@@ -370,6 +370,10 @@ elseif span_days(1)>=datetime(2021,7,6,'TimeZone','UTC')
     HSRL.Ba = LidarData.UnmaskedAerosolBackscatterCoefficient;
     HSRL.Bm = LidarData.MolecularBackscatterCoefficient;
 
+    HSRL.Bm828 = LidarData.MolecularBackscatterCoefficient *(770/828)^4;
+    HSRL.Ba828 = LidarData.UnmaskedAerosolBackscatterCoefficient*(770/828);
+    HSRL.BSR828 = HSRL.Ba828./HSRL.Bm828+1;
+
     LidarData.OfflineCombinedTotalCounts = Counts.foff;
     LidarData.OfflineMolecularTotalCounts = Counts.foff_mol;
     [LidarData]=BackscatterRetrievalRayleighBrillouin070621(LidarData,WeatherData);

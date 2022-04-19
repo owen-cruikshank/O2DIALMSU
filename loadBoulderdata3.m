@@ -520,6 +520,9 @@ Data.Thermocouple.OutsideCell.Temperature = nan(size(Data.Thermocouple.InsideCel
     HSRL.BSR = LidarData.UnmaskedBackscatterRatio;
     HSRL.Ba = LidarData.UnmaskedAerosolBackscatterCoefficient;
     HSRL.Bm = LidarData.MolecularBackscatterCoefficient;
+    %Ba828 = LidarData.UnmaskedAerosolBackscatterCoefficient828;
+    %Bm828 = LidarData.MolecularBackscatterCoefficient828;
+    HSRL.BSR828 =LidarData.UnmaskedBackscatterRatio828;
 
 
     LidarData.OfflineCombinedTotalCounts = Counts.foff-Counts.foff_bg;

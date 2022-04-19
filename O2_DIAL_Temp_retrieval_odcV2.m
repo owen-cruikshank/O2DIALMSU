@@ -131,19 +131,19 @@ Alpha.alpha_0 = interp2(Time.ts,Range.rm(ind_r_lo),Alpha.alpha_0_raw,Time.ts,Ran
 
 Alpha.alpha_0 = Alpha.alpha_0 - Model.absorption_off; %Subtract offline absorption
 
-fon = Counts.fon-Counts.fon_bg;
-foff = Counts.foff-Counts.foff_bg;
-gon = Counts.gon-Counts.fon_bg;
-goff = Counts.goff-Counts.foff_bg;
-ln_o2 = log((fon(ind_r_lo,:).*foff(ind_r_hi,:))./(fon(ind_r_hi,:).*foff(ind_r_lo,:))); % Natural log of counts  
-Alpha.alpha_0f_raw = ln_o2./2./(Range.rangeBin*Options.oversample);                              %[1/m] 
-Alpha.alpha_0f = interp2(Time.ts,Range.rm(ind_r_lo),Alpha.alpha_0f_raw,Time.ts,Range.rm);
-Alpha.alpha_0f = real(Alpha.alpha_0f);
-
-ln_o2 = log((gon(ind_r_lo,:).*goff(ind_r_hi,:))./(gon(ind_r_hi,:).*goff(ind_r_lo,:))); % Natural log of counts  
-Alpha.alpha_0g_raw = ln_o2./2./(Range.rangeBin*Options.oversample);                              %[1/m] 
-Alpha.alpha_0g = interp2(Time.ts,Range.rm(ind_r_lo),Alpha.alpha_0g_raw,Time.ts,Range.rm);
-Alpha.alpha_0g = real(Alpha.alpha_0g);
+% fon = Counts.fon-Counts.fon_bg;
+% foff = Counts.foff-Counts.foff_bg;
+% gon = Counts.gon-Counts.fon_bg;
+% goff = Counts.goff-Counts.foff_bg;
+% ln_o2 = log((fon(ind_r_lo,:).*foff(ind_r_hi,:))./(fon(ind_r_hi,:).*foff(ind_r_lo,:))); % Natural log of counts  
+% Alpha.alpha_0f_raw = ln_o2./2./(Range.rangeBin*Options.oversample);                              %[1/m] 
+% Alpha.alpha_0f = interp2(Time.ts,Range.rm(ind_r_lo),Alpha.alpha_0f_raw,Time.ts,Range.rm);
+% Alpha.alpha_0f = real(Alpha.alpha_0f);
+% 
+% ln_o2 = log((gon(ind_r_lo,:).*goff(ind_r_hi,:))./(gon(ind_r_hi,:).*goff(ind_r_lo,:))); % Natural log of counts  
+% Alpha.alpha_0g_raw = ln_o2./2./(Range.rangeBin*Options.oversample);                              %[1/m] 
+% Alpha.alpha_0g = interp2(Time.ts,Range.rm(ind_r_lo),Alpha.alpha_0g_raw,Time.ts,Range.rm);
+% Alpha.alpha_0g = real(Alpha.alpha_0g);
 
 ln_o2 = log((Counts.wvon(ind_r_lo,:).*Counts.wvoff(ind_r_hi,:))./(Counts.wvon(ind_r_hi,:).*Counts.wvoff(ind_r_lo,:))); % Natural log of counts  
 Alpha.alpha_0wv_raw = ln_o2./2./(Range.rangeBin*Options.oversample); 
@@ -151,48 +151,77 @@ Alpha.alpha_0wv = interp2(Time.ts,Range.rm(ind_r_lo),Alpha.alpha_0wv_raw,Time.ts
 
 clear ln_o2 foff fon goff gon
 
-[N_wv0,cross_section,~,~] = cross_section_wv_828_model(Model.T,Model.P,Spectrum.nu_wvon,Alpha.alpha_0wv);
+[~,cross_section,~,~] = cross_section_wv_828_model(Model.T,Model.P,Spectrum.nu_wvon,Alpha.alpha_0wv);
 
-% === Smoothing zeroth order
+[~,cross_sectionOff,~,~] = cross_section_wv_828_model(Model.T,Model.P,Spectrum.nu_wvoff,Alpha.alpha_0wv);
 
-Alpha.alpha_0=real(Alpha.alpha_0);
-
-% === Molecular alpha calcultion =====
-% %ln_o2_mol = log((Counts.o2on_mol(ind_r_lo,:).*(Counts.o2off_mol(ind_r_hi,:).*BSR(ind_r_hi,:)))./(Counts.o2on_mol(ind_r_hi,:).*(Counts.o2off_mol(ind_r_lo,:).*BSR(ind_r_lo,:)))); % Natural log of counts
-% ln_o2_mol = log((Counts.o2on_mol(ind_r_lo,:).*(Counts.o2off_mol_corrected(ind_r_hi,:)))./(Counts.o2on_mol(ind_r_hi,:).*(Counts.o2off_mol_corrected(ind_r_lo,:)))); % Natural log of counts
-% alpha_0_raw_mol = ln_o2_mol./2./(Range.rangeBin*Options.oversample);                              %[1/m] 
-% alpha_0_mol = interp2(Time.ts,Range.rm(ind_r_lo),alpha_0_raw_mol,Time.ts,Range.rm);
-% 
-% alpha_0_mol = fillmissing(alpha_0_mol,'nearest');
-% k = ones(8,4)./(8*4);     % Kernel
-% alpha_0_pad_mol = padarray(alpha_0_mol,[8/2,4/2],'replicate');
-% alpha_0_filt_mol = filter2(k,alpha_0_pad_mol,'valid');
-% alpha_0_filt_mol = interp2(Time.ts-Time.t_step/2,Range.rm-Range.rangeBin/2,alpha_0_filt_mol(1:end-1,1:end-1),Time.ts,Range.rm);
-% %%%%%%%%%%%%%%%
-% alpha_0_mol=real(alpha_0_mol);
-
-%%%%%alpha_0 = (alpha_0+alpha_0_mol)/2;
-
+N_wv0 = Alpha.alpha_0wv./(cross_section-cross_sectionOff);
 %%
-% === Purtabative absorption ===
-%loading etalon transmission
+%%==============Set Model WV to DIAL======
+
+%%%%Purturbative WV
 load('TransmittanceData.mat')
 T_etalon_on = double(interp1(double(OnlineWavelength)*10^9,OnlineCombinedTransmittance,Spectrum.lambda_scan_3D_short));
 T_etalon_off = double(interp1(double(OfflineWavelength)*10^9,OfflineCombinedTransmittance,Spectrum.lambda_scan_3D_short_off));
 
 altitude = 1.5;%altitude in km
-[Alpha.alpha_total_raw,Alpha.alpha_1,Alpha.alpha_2,Spectrum] = pertAbsorption(Alpha.alpha_0, T_etalon_on, Model, Range, Time, Spectrum, HSRL, ind_r_lo,ind_r_hi, Options);
-
-[Alpha.alpha_total_rawf,Alpha.alpha_1f,Alpha.alpha_2f,~] = pertAbsorption(Alpha.alpha_0f, T_etalon_on, Model, Range, Time,Spectrum, HSRL, ind_r_lo,ind_r_hi, Options);
-[Alpha.alpha_total_rawg,Alpha.alpha_1g,Alpha.alpha_2g,~] = pertAbsorption(Alpha.alpha_0g, T_etalon_on, Model, Range, Time,Spectrum, HSRL, ind_r_lo,ind_r_hi, Options);
+altitude = 1.5719;
 
 [Alpha.alpha_1wv, Alpha.alpha_2wv,Spectrum] = pertAbsorptionwv(Alpha.alpha_0wv, T_etalon_on, Model, Range, Time, Spectrum, HSRL, ind_r_lo,ind_r_hi, Options, Constant, altitude);
 
+N_wv = (Alpha.alpha_0wv+Alpha.alpha_1wv+ Alpha.alpha_2wv)./(cross_section-cross_sectionOff);
+
+%Smooth WV
+k = ones(4,8)./(4*8);     % Kernel
+%k = ones(3,7)./(3*7);     % Kernel
+
+
+
+N_wvm = nanconv(N_wv,k,'edge','nanout');
+N_wvm(cloud_SDm_above)=nan;
+
+N_wv0m = nanconv(N_wv0,k,'edge','nanout');
+N_wv0m(cloud_SDm_above)=nan;
+
+AbsHumm = N_wvm.*Constant.mWV*1000; %[g/m3]
+AbsHum0m = N_wv0m.*Constant.mWV*1000; %[g/m3]
+
+AbsHumRawm = N_wv.*Constant.mWV*1000; %[g/m3]
+AbsHumRawm(cloud_SDm_above)=nan;
+AbsHum0Rawm = N_wv0.*Constant.mWV*1000; %[g/m3]
+AbsHum0Rawm(cloud_SDm_above)=nan;
+%%%%%%SET MODEL TO WV RETRIEVAL
+%%%%%%%%%%%Model.WV = fillmissing(N_wvm,'linear');
+
+
+%%
 % === Total alpha ===
 
 Alpha.alpha_total_rawwv = Alpha.alpha_0wv + Alpha.alpha_1wv + Alpha.alpha_2wv;
 
 N_wv = Alpha.alpha_total_rawwv./cross_section; %[molecule/m3] wv number density
+
+
+
+% === Smoothing zeroth order
+
+Alpha.alpha_0=real(Alpha.alpha_0);
+
+
+
+% === Molecular alpha calcultion =====
+
+
+%%
+% === Purtabative absorption ===
+%loading etalon transmission
+
+[Alpha.alpha_total_raw,Alpha.alpha_1,Alpha.alpha_2,Spectrum] = pertAbsorption(Alpha.alpha_0, T_etalon_on, Model, Range, Time, Spectrum, HSRL, ind_r_lo,ind_r_hi, Options);
+
+%%%[Alpha.alpha_total_rawf,Alpha.alpha_1f,Alpha.alpha_2f,~] = pertAbsorption(Alpha.alpha_0f, T_etalon_on, Model, Range, Time,Spectrum, HSRL, ind_r_lo,ind_r_hi, Options);
+%%%[Alpha.alpha_total_rawg,Alpha.alpha_1g,Alpha.alpha_2g,~] = pertAbsorption(Alpha.alpha_0g, T_etalon_on, Model, Range, Time,Spectrum, HSRL, ind_r_lo,ind_r_hi, Options);
+%%
+
 
 
 %== Force total alpha to its modeled surface value ==

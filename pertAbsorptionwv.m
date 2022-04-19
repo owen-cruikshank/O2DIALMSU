@@ -10,7 +10,7 @@
     cB = -0.01*(Range.rkm+altitude) + 1.2;%Brullouin correction for 1.2 at 0km and 1.1 at 10km
 
     c_doppler_O2 = Constant.m_air*Constant.c^2./(8*(Spectrum.nu_wvon*100).^2*Constant.kb);                   %[m^2 K] Doppler coefficient
-    doppler_O2_un_ret = ((c_doppler_O2./Model.T/pi).^0.5).*exp(-c_doppler_O2.*(Spectrum.nu_wvon*100-Spectrum.nu_scanwv_3D_short*100).^2./Model.T./cB.^2); %[m] Doppler broadended lineshape         
+    doppler_O2_ret = ((c_doppler_O2./Model.T/pi).^0.5).*exp(-c_doppler_O2.*(Spectrum.nu_wvon*100-Spectrum.nu_scanwv_3D_short*100).^2./Model.T./cB.^2); %[m] Doppler broadended lineshape         
 
     norm_O2_ret = trapz(doppler_O2_un_ret,3).*Spectrum.nuBin*100;                   %[none] Lineshape integral
     doppler_O2_ret = doppler_O2_un_ret./norm_O2_ret;                       %[m] Normalized doppler lineshape
@@ -22,6 +22,20 @@
     %%
     %Calculate RB spectrum by PCA
     %[doppler_O2_ret] = RB_O2_770_PCA(T,P,nu_scan_3D_short);  
+    [doppler_O2_ret] = RB_828_PCA(Model.T,Model.P,Spectrum.nu_scan_3D_short);
+
+    %shift to correct online wavelength
+    RBshift = 151-Spectrum.online_indexwv;
+    RBshift = 145-Spectrum.online_indexwv;
+    RBshift = zeros(size(Spectrum.online_indexwv));
+    RBshift = 152-Spectrum.online_indexwv;
+    for iii=1:length(Spectrum.online_indexwv)
+        if RBshift(iii)<=0
+            doppler_O2_ret(:,iii,:) = cat(3,zeros(Range.i_range,1,-RBshift(iii)),doppler_O2_ret(:,iii,1:end+RBshift(iii)));
+        elseif RBshift(iii)>0
+            doppler_O2_ret(:,iii,:) = cat(3,doppler_O2_ret(:,iii,RBshift(iii)+1:end),zeros(Range.i_range,1,RBshift(iii)));
+        end
+    end
     %%
   
     % --- Backscatter Lineshape g ---

@@ -48,6 +48,8 @@ function [LidarData]=BackscatterRetrievalBoulder062021(LidarData,WeatherData)
     %Create Molecular Backscatter Coefficient
     LidarData.MolecularBackscatterCoefficient=9.94266e-7*(WeatherData.Pressure)./(WeatherData.Temperature);
 
+    %wavelength corrected for wv
+    LidarData.MolecularBackscatterCoefficient828 = LidarData.MolecularBackscatterCoefficient*770^4/828^4;
     
     %Aerosol Backscatter Coefficient
     LidarData.UnmaskedAerosolBackscatterCoefficient=LidarData.MolecularBackscatterCoefficient.*...
@@ -56,9 +58,14 @@ function [LidarData]=BackscatterRetrievalBoulder062021(LidarData,WeatherData)
         (LidarData.Cac*LidarData.EtaCombined-LidarData.Cam*LidarData.EtaMolecular*...
         (LidarData.OfflineCombinedTotalCounts)./(LidarData.OfflineMolecularTotalCounts));
 
+    LidarData.UnmaskedAerosolBackscatterCoefficient828 = LidarData.UnmaskedAerosolBackscatterCoefficient*770/828;
+
     %Backscatter Ratio
     LidarData.UnmaskedBackscatterRatio=(LidarData.UnmaskedAerosolBackscatterCoefficient./...
         LidarData.MolecularBackscatterCoefficient)+1;
+
+        LidarData.UnmaskedBackscatterRatio828=(LidarData.UnmaskedAerosolBackscatterCoefficient828./...
+        LidarData.MolecularBackscatterCoefficient828)+1;
 
     
 %% Masked Version
