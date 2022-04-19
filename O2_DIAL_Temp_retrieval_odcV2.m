@@ -70,9 +70,17 @@ SNR_threshold = 50;
 SD_threshold = 5;
 BGmult =1; % Multiplier for background for SNR calculation
 lowAlt = 400;
+lowAlt = 500;
+lowAlt = 0;
 %[SNRm , cloud_SDm_above, cloud_SDm,o2on_SNR] = mask_O2_counts(Counts.o2on,Counts.o2off,Range.rm,Time.ts,cloud_p_point,SNR_threshold,SD_threshold,Options.oversample,Options.t_avg,Counts,BGmult);
 [SNRm , cloud_SDm_above, cloud_SDm,o2on_SNR] = mask_O2_BSR(cloud_p_point,SNR_threshold,SD_threshold,Options.oversample,Options.t_avg,Counts,BGmult,Time,Range,HSRL.BSR,lowAlt);
+cloud_SDm_above(cloud_SDm_above==-1)=0;
 
+cloud_SDm_above = ~(logical(cloud_SDm_above));
+SNRm = ~(logical(SNRm));
+
+cloud_SDm_above = cloud_SDm_above|SNRm;
+cloud_SDm = logical(cloud_SDm);
 %%
 % ==== Afterpulse correction ====
 % pulseON = 4.146e+07*10*(Range.rm).^(-2.536*1);
@@ -242,12 +250,12 @@ k = ones(1,1)./(1*1);
 gg = cloud_SDm_above.*SNRm;
 gg(gg<=0)=nan;
 %Appy cloud mask before smoothing
-Alpha.alpha_total_cut(isnan(gg)) = NaN;          % Replace mask with NaNs
+Alpha.alpha_total_cut(cloud_SDm_above) = NaN;          % Replace mask with NaNs
 
-Alpha.alpha_total_rawmf = Alpha.alpha_total_rawf;
-Alpha.alpha_total_rawmg = Alpha.alpha_total_rawg;
-Alpha.alpha_total_rawmf(isnan(gg))=nan;
-Alpha.alpha_total_rawmg(isnan(gg))=nan;
+% Alpha.alpha_total_rawmf = Alpha.alpha_total_rawf;
+% Alpha.alpha_total_rawmg = Alpha.alpha_total_rawg;
+% Alpha.alpha_total_rawmf(isnan(gg))=nan;
+% Alpha.alpha_total_rawmg(isnan(gg))=nan;
 
 %%%%[Ez,Et,minSigz,minSigt] = findMinE(Alpha.alpha_total_rawmf,Alpha.alpha_total_rawmg,0);
 %%%%[Alpha.alpha_total_filt2] = applyFilter(minSigz,minSigt,Alpha.alpha_total_cut);
@@ -260,38 +268,22 @@ Alpha.alpha_totals = Alpha.alpha_total_filt;
 
 %%%Alpha.alpha_totals = Alpha.alpha_total_filt2;
 
-Alpha.alpha_total_filtf = nanconv(Alpha.alpha_total_rawf,k,'edge','nanout');
-Alpha.alpha_totalsf = Alpha.alpha_total_filtf;
-Alpha.alpha_total_filtg = nanconv(Alpha.alpha_total_rawg,k,'edge','nanout');
-Alpha.alpha_totalsg = Alpha.alpha_total_filtg;
+% Alpha.alpha_total_filtf = nanconv(Alpha.alpha_total_rawf,k,'edge','nanout');
+% Alpha.alpha_totalsf = Alpha.alpha_total_filtf;
+% Alpha.alpha_total_filtg = nanconv(Alpha.alpha_total_rawg,k,'edge','nanout');
+% Alpha.alpha_totalsg = Alpha.alpha_total_filtg;
 
 
 %%
 % apply SNR mask again
 Alpha.alpha_0m = Alpha.alpha_0;
-Alpha.alpha_0m(isnan(gg)) = NaN;                  % Replace mask with NaNs
+Alpha.alpha_0m(cloud_SDm_above) = NaN;                  % Replace mask with NaNs
 
 Alpha.alpha_total = real(Alpha.alpha_totals);
 Alpha.alpha_totalm = Alpha.alpha_total;
-Alpha.alpha_totalm(isnan(gg)) = NaN;          % Replace mask with NaNs
+Alpha.alpha_totalm(cloud_SDm_above) = NaN;          % Replace mask with NaNs
 
 
-%Smooth WV
-gg = cloud_SDm_above.*SNRm;
-gg(gg<=0)=nan;
-N_wvm = nanconv(N_wv,k,'edge','nanout');
-N_wvm(isnan(gg))=nan;
-
-N_wv0m = nanconv(N_wv0,k,'edge','nanout');
-N_wv0m(isnan(gg))=nan;
-
-AbsHumm = N_wvm.*Constant.mWV*1000; %[g/m3]
-AbsHum0m = N_wv0m.*Constant.mWV*1000; %[g/m3]
-
-AbsHumRawm = N_wv.*Constant.mWV*1000; %[g/m3]
-AbsHumRawm(isnan(gg))=nan;
-AbsHum0Rawm = N_wv0.*Constant.mWV*1000; %[g/m3]
-AbsHum0Rawm(isnan(gg))=nan;
 
 
 
@@ -303,6 +295,8 @@ Counts.delta=-Counts.delta;
 
 Counts.delta = [Counts.delta; zeros(length(Range.rm)-size(Counts.delta,1),length(Time.ts))];
 Counts.delta = Counts.delta/4;
+
+Counts.delta = real(Counts.delta);
 
 % % deltaModel = findDelta(Model.absorption(:,:),alpha_total_raw(:,:),Model.N_on(:,:),Model.N_off(:,:),Range.rm,Time.ts);
 % % deltaModel=-deltaModel;
@@ -551,13 +545,11 @@ ylim([0 5])
 %%
 
 %=== Cut temperature to surface value ====
-Temperature.T_final_test_cut = [Model.Ts(1,:); NaN((cut - 2),Time.i_time); Temperature.T_final_test(cut:end,:)];
-Temperature.T_final_test_cut = fillmissing(Temperature.T_final_test_cut,'linear');
+% Temperature.T_final_test_cut = [Model.Ts(1,:); NaN((cut - 2),Time.i_time); Temperature.T_final_test(cut:end,:)];
+% Temperature.T_final_test_cut = fillmissing(Temperature.T_final_test_cut,'linear');
 
-gg = cloud_SDm_above.*SNRm;
-gg(gg<=0)=nan;
 %Appy cloud mask before smoothing
-Temperature.T_final_test_cut(isnan(gg)) = NaN;          % Replace mask with NaNs
+Temperature.T_final_test_cut(cloud_SDm_above) = NaN;          % Replace mask with NaNs
 
 
 %Temperature.T_final_testf(isnan(gg)) = NaN;
@@ -574,15 +566,11 @@ k = ones(3,7)./(3*7);     % Kernel
 %=== apply mask
 
 %==== Smooth temperature
-Temperature.T_final_tests = nanconv(Temperature.T_final_test_cut,k,'edge','nanout');
+Temperature.T_final_tests = nanconv(Temperature.T_final_test,k,'edge','nanout');
 
-%Temperature.T_final_tests = Temperature.T_final_tests2;
-%%%%%Temperature.T_final_tests = Temperature.T_final_test_cut;
-
-%%%Temperature.T_final_tests = Temperature.T_final_test_cut;
 %=== apply mask
 Temperature.T_finalm = Temperature.T_final_tests ;
-Temperature.T_finalm((isnan(gg))) = NaN;
+Temperature.T_finalm(cloud_SDm_above) = NaN;
 %%
 %====== Deconvolution calculation ==========
 % % clear o2onDecon o2offDecon
@@ -597,13 +585,11 @@ Temperature.T_finalm((isnan(gg))) = NaN;
 % % 
 % % for ii=1:Time.i_time
 % %     [o2onDecon(:,ii)]=fdeconv(Counts.o2on(:,ii), impulse_counts2)/length(impulse_counts2);
-% %     [o2offDecon(:,ii)]=fdeconv(Counts.o2off(:,ii), impulse_counts2)/length(impulse_counts2);
-% %     
+% %     [o2offDecon(:,ii)]=fdeconv(Counts.o2off(:,ii), impulse_counts2)/length(impulse_counts2);   
 % % end
 % % 
 % % o2onDecon = interp2(Time.ts,Range.rm(1:end-length(impulse_counts2)+1),o2onDecon,Time.ts,Range.rm);
 % % o2offDecon = interp2(Time.ts,Range.rm(1:end-length(impulse_counts2)+1),o2offDecon,Time.ts,Range.rm);
-% % 
 % % 
 % %  ln_o2_decon = log((o2onDecon(ind_r_lo,:).*o2offDecon(ind_r_hi,:))./(o2onDecon(ind_r_hi,:).*o2offDecon(ind_r_lo,:))); % Natural log of counts
 % % alpha_0_raw_decon = ln_o2_decon./2./(Range.rangeBin*Options.oversample);                              %[1/m] 

@@ -188,7 +188,8 @@ for i = 1:loop
     
     %Fill data points above cloud and snr mask with lapse rate values
     tempT = Ts_fit(:,:,i) + rm.* Lapse(:,:,i);
-    Tg(SNRm(:,:)==0 | cloud_SDm_above(:,:) ~= 1) = tempT(SNRm(:,:)==0 | cloud_SDm_above(:,:) ~= 1);
+    %%Tg(SNRm(:,:)==0 | cloud_SDm_above(:,:) ~= 1) = tempT(SNRm(:,:)==0 | cloud_SDm_above(:,:) ~= 1);
+    Tg(cloud_SDm_above) = tempT(cloud_SDm_above);
     
 end
 
