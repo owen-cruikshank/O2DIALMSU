@@ -111,11 +111,11 @@ for i = 1:loop
             V = [rm(logicalExc(:,time)) ones(length(rm(logicalExc(:,time))),1)];
             %calculate polynomial coefficients     
             p = V\Tg(logicalExc(:,time),time);
-%             Lapse(:,time,i) = p(1);
-%             Ts_fit(:,time,i) = p(2);
+            Lapse(:,time,i) = p(1);
+            Ts_fit(:,time,i) = p(2);
 
-        Lapse(:,time,i) = mean_lapse_rate(:,:,1);%set lapserate to default
-        Ts_fit(:,time,i) = Ts(time);
+%         Lapse(:,time,i) = mean_lapse_rate(:,:,1);%set lapserate to default
+%         Ts_fit(:,time,i) = Ts(time);
             % Keep lapse rate within limits
             if Lapse(:,time,i) <lower_lapse_bound
                 Lapse(:,time,i) = lower_lapse_bound;
