@@ -35,7 +35,7 @@ function [sponts6] = RB_828_PCA(T,P,nu_Range)
 %load('RBPCA_1_15_21single.mat')
 
 %load('RB828PCA_4_13_22single.mat')
-load('RBPCA828_4_13_22single.mat','muY','M','muT','muP','sigmaT','sigmaP','nu')
+load(fullfile('CalibrationData','RBPCA828_4_13_22single.mat'),'muY','M','muT','muP','sigmaT','sigmaP','nu')
 %spontaneous s6
 %load('RBPCA_11_1_21single.mat')
 

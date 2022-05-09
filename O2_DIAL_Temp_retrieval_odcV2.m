@@ -192,7 +192,7 @@ N_wv0 = Alpha.alpha_0wv./(cross_section-cross_sectionOff);
 %%==============Set Model WV to DIAL======
 
 %%%%Purturbative WV
-load('TransmittanceData.mat')
+load(fullfile('CalibrationData','TransmittanceData.mat'))
 T_etalon_on = double(interp1(double(OnlineWavelength)*10^9,OnlineCombinedTransmittance,Spectrum.lambda_scan_3D_short));
 T_etalon_off = double(interp1(double(OfflineWavelength)*10^9,OfflineCombinedTransmittance,Spectrum.lambda_scan_3D_short_off));
 

@@ -21,9 +21,9 @@ function [absorption,cross_section] = absorption_O2_770_PCA(T,P,nu_Range,WV)
 %load variables needed
 
 if length(nu_Range)==1
-    load('PCA_1_11_21singleOnline.mat','M','muP','muT','muY','nu','sigmaP','sigmaT');
+    load(fullfile('CalibrationData','PCA_1_11_21singleOnline.mat'),'M','muP','muT','muY','nu','sigmaP','sigmaT');
 else
-    load('PCA_1_11_21single.mat','M','muP','muT','muY','nu','sigmaP','sigmaT');
+    load(fullfile('CalibrationData','PCA_1_11_21single.mat'),'M','muP','muT','muY','nu','sigmaP','sigmaT');
 end
 
 %order

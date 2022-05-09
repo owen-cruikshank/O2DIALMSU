@@ -29,7 +29,7 @@ mo2 = 5.313525282632483E-26;            % Mass O2 molecule [kg]
 T0 = 296;                               %[K]
 P0 = 1.0;                               %[atm]
 
-parameters = fopen('O2_line_parameters.out','r');   %open file containing HITRAN information
+parameters = fopen(fullfile('CalibrationData','O2_line_parameters.out'),'r');   %open file containing HITRAN information
 fmt = '%1d %1d %f %e %e %f %f %f %f %f';          %format of HITRAN file
 O2_parameters =fscanf(parameters,fmt,[10 inf]);     %place HITRAN parameters in vector a
 fclose(parameters);                                 %close file

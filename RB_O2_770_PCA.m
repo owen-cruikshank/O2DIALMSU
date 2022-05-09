@@ -21,7 +21,7 @@ function [sponts6] = RB_O2_770_PCA(T,P,nu_Range)
 %Coherent s7
 %load('RBPCA_1_15_21single.mat')
 %spontaneous s6
-load('RBPCA_11_2_21single.mat','M','muP','muT','muY','nu','sigmaP','sigmaT')
+load(fullfile('CalibrationData','RBPCA_11_2_21single.mat'),'M','muP','muT','muY','nu','sigmaP','sigmaT')
 
 %order
 No = 20;

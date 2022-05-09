@@ -12,7 +12,7 @@ function [LidarData]=BackscatterRetrieval070621(LidarData,WeatherData)
 %     LidarData.Cmm=polyval(CmmPolynomial.Constants,WeatherData.Temperature);
     %file=pwd;
     %cd("F:\Research\Calibration_Data")
-    load('CalibrationTables0702.mat');
+    load(fullfile('CalibrationData','CalibrationTables0702.mat'));
     %cd(file)
     P=Results.Pressure*0.009869233; 
     T=Results.Temperature;

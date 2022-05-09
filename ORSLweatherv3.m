@@ -37,7 +37,8 @@ time_date_hms = datetime(year(time_date),month(time_date),day(time_date),time_ho
 
 %Read data in from file using month and year
 file_date = 'Weather Station-data-as-seriestocolumns.csv';
-weatherFilePath = fullfile(path,'Weather station data',file_date);
+%weatherFilePath = fullfile(path,'Weather station data',file_date);
+weatherFilePath = fullfile(path,'MSU data','Weather station data',file_date);
 
 % Read data
 weatherFile = fileread(weatherFilePath);
