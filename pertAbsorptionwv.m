@@ -39,6 +39,10 @@
             doppler_O2_ret(:,iii,:) = cat(3,doppler_O2_ret(:,iii,RBshift(iii)+1:end),zeros(Range.i_range,1,RBshift(iii)));
         end
     end
+
+     norm_O2_ret = trapz(doppler_O2_ret,3).*Spectrum.nuBin*100;                   %[none] Lineshape integral
+    doppler_O2_ret = doppler_O2_ret./norm_O2_ret;                       %[m] Normalized doppler lineshape
+
     %%
   
     % --- Backscatter Lineshape g ---
