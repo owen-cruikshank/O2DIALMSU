@@ -100,6 +100,15 @@ for i = 1:numel(sonde_datetime) % Loop over number of sondes in time period
         P_sgp_surf(i) = sondeStruc(i).P(1);
         % ==Custom interpolation function==
         [T_sonde_int{i},P_sonde_int{i},WV_sonde_int{i},rm_sonde_int{i}] = interp_sonde2(sondeStruc(i).T,sondeStruc(i).P,sondeStruc(i).WV,rm_sgp{i},Range.rangeBin);  
+        
+        [rm_sgp{i},IA,IC] = unique(rm_sgp{i});
+        sondeStruc(i).T = sondeStruc(i).T(IA);
+        sondeStruc(i).P = sondeStruc(i).P(IA);
+        sondeStruc(i).WV = sondeStruc(i).WV(IA);
+        T_sonde_int{i} = interp1(rm_sgp{i},sondeStruc(i).T,Range.rm,'makima',nan);
+        P_sonde_int{i} = interp1(rm_sgp{i},sondeStruc(i).P,Range.rm,'makima',nan);
+        WV_sonde_int{i} = interp1(rm_sgp{i},sondeStruc(i).WV,Range.rm,'makima',nan);
+        
         if length(T_sonde_int{i})<Range.i_range % ==If sonde does not reach full lidar range
             disp('ran')
             Sonde.T_sonde(1:length(T_sonde_int{i}),i) = T_sonde_int{i};
@@ -108,13 +117,19 @@ for i = 1:numel(sonde_datetime) % Loop over number of sondes in time period
             Sonde.P_sonde(length(P_sonde_int{i})+1:length(Range.rm),i)=nan(length(Range.rm)-length(P_sonde_int{i}),1);
             Sonde.WV_sonde(1:length(T_sonde_int{i}),i) = WV_sonde_int{i};
             Sonde.WV_sonde(length(WV_sonde_int{i})+1:length(Range.rm),i)=nan(length(Range.rm)-length(WV_sonde_int{i}),1);
+            Sonde.Tsurf(:,i) = sondeStruc(i).T(1);
+            Sonde.Psurf(:,i) = sondeStruc(i).P(1);
+            Sonde.AbsHum(:,i) = Sonde.WV_sonde(:,i).*Constant.mWV*1000; %[g/m3]
         else
             Sonde.T_sonde(:,i) = T_sonde_int{i}(1:Range.i_range);
             Sonde.P_sonde(:,i) = P_sonde_int{i}(1:Range.i_range);
             Sonde.WV_sonde(:,i) = WV_sonde_int{i}(1:Range.i_range);
+            Sonde.Tsurf(:,i) = sondeStruc(i).T(1);
+            Sonde.Psurf(:,i) = sondeStruc(i).P(1);
+            Sonde.AbsHum(:,i) = Sonde.WV_sonde(:,i).*Constant.mWV*1000; %[g/m3]
         end
         %===interp sonde time
-        [rm_sgp{i},IA,~] = unique(rm_sgp{i});
+        %[rm_sgp{i},IA,~] = unique(rm_sgp{i});
         sonde_time(1:length(rm_sonde_int{i}),i) = interp1(rm_sgp{i},sondeStruc(i).time(IA),rm_sonde_int{i})';  
         if length(sonde_time) < Range.i_range
             sonde_time = [sonde_time; sonde_time(end).*ones(Range.i_range-length(sonde_time),1)];
@@ -140,6 +155,8 @@ if ~isempty(Sonde.sonde_ind)
         Model.WV = fillmissing(Model.WV,'linear',2);
     end
 end
+
+%%%%Model.WV = zeros(size(Model.WV));
 %%
 %==== After pulse correction ====
 % load('AfterPulse2.mat','PulseOn','PulseOff','PulseOnMol','PulseOffMol')
@@ -292,6 +309,7 @@ Model.transmission = exp(-cumtrapz(Range.rm,Model.absorption));
 for i=1:numel(sonde_datetime) 
         if isdatetime(sonde_datetime(i)) %Check if there are any sondes
             Sonde.absorption_sonde{i} = diag(absorption_O2_770_model(Sonde.T_sonde(:,i),Sonde.P_sonde(:,i),Spectrum.nu_online(Sonde.sonde_ind(:,i)),Model.WV(:,Sonde.sonde_ind(:,i)))); %[m-1] Funcrtion to calculate theoretical absorption
+             Sonde.absorption_sonde{i} = diag(absorption_O2_770_model(Sonde.T_sonde(:,i),Sonde.P_sonde(:,i),Spectrum.nu_online(Sonde.sonde_ind(:,i)),Sonde.WV_sonde(:,i))); %[m-1] Funcrtion to calculate theoretical absorption
             Sonde.trasmission_sonde{i} = exp(-cumtrapz(Range.rm,Sonde.absorption_sonde{i})); %O2 transmission
         else
             Sonde.absorption_sonde{i} = nan(Range.i_range,1);
