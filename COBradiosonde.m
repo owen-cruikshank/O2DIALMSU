@@ -60,8 +60,9 @@ function [sonde_datetime,sondeStruc] =  COBradiosonde(path,span_days)
             %Find month and day of sonde files
             file_month = str2double(fileDir(file_i).name(10:11));
             file_day = str2double(fileDir(file_i).name(13:14));
+            file_year1 = str2double(fileDir(file_i).name(5:8));
             %Check if sondes are within processing day
-            if file_month == month(span_days(day_i)) && file_day == day(span_days(day_i))
+            if file_month == month(span_days(day_i)) && file_day == day(span_days(day_i)) && file_year1 == year(span_days(day_i))
                 %Find hour minute and second of sonde file
                 file_hr = str2double(fileDir(file_i).name(16:17));
                 file_min = str2double(fileDir(file_i).name(19:20));
