@@ -18,17 +18,18 @@ c = 2.99792458E8;                       %[m/s] speed of light
 kB = 1.38065E-23;                       %[J/K] Boltzman's constant 
 h = 6.62607004E-34;                     %[Js] Planck's constant
 
-%mo2 = 5.313525282632483E-26;            % Mass O2 molecule [kg]
+mwv = 2.991577548987048e-26; % Mass wv molecule [kg]
 
-mwv = 2.991577548987048e-26;
+A = 6.02214e23;
+mwv=18.01528/A/1000;
+
 
 %reference T and P
 T0 = 296;                               %[K]
 P0 = 1.0;                               %[atm]
 
-%parameters = fopen('O2_line_parameters.out','r');   %open file containing HITRAN information
-parameters = fopen('WV_line_parameters.out','r');   %open file containing HITRAN information
-fmt = ['%1d %1d %f %e %e %f %f %f %f %f'];          %format of HITRAN file
+parameters = fopen(fullfile('CalibrationData','WV_line_parameters.out'),'r');   %open file containing HITRAN information
+fmt = '%1d %1d %f %e %e %f %f %f %f %f';          %format of HITRAN file
 WV_parameters =fscanf(parameters,fmt,[10 inf]);     %place HITRAN parameters in vector a
 fclose(parameters);                                 %close file
 WV_parameters = WV_parameters';                     %transpose matrix to correct format
@@ -38,12 +39,11 @@ WV_parameters = WV_parameters';                     %transpose matrix to correct
 lineshape = zeros(rL,tL);
 Voight_profile = zeros(rL,tL);
 cross_section = zeros(rL,tL);
+Line = cell(length(WV_parameters));
 
 nu_Range = nu_Range * 100;                          %change nu_Range from [1/cm] to [1/m]
 
-strength_threshold = 1*10^(-26);                    %[cm / molecule] line strength threshold
 strength_threshold = 0;                    %[cm / molecule] line strength threshold
-%strength_threshold = 1*10^(-30);
 
 t = -10:.2:10;                                      %Relative freqency to integrate over
 t = permute(t,[3 1 2]);                             %[none] shift t to put it in third dimestion
@@ -62,13 +62,9 @@ for i = 1:length(WV_parameters)                     %loop over all line paramete
     n_air = WV_parameters(i,9);                     %[unitless] linewidth temperature dependence
     E_lower = WV_parameters(i,8);                   %[1/cm] ground state energy
     E_lower = E_lower * 100;                        %[1/m] ground state energy
-    gamma_D = WV_parameters(i,7);                   %[1/cm]self (Doppler) broadened linewidth
-    gamma_D = gamma_D * 100;                        %[1/m]
+%     gamma_D = WV_parameters(i,7);                   %[1/cm]self (Doppler) broadened linewidth
+%     gamma_D = gamma_D * 100;                        %[1/m]
     delta_air = WV_parameters(i,10);                %[1/cm/atm] pressure shift induce by air, at p=1atm
-    %delta_air = 0;
-    %delta_air = -0.0093; %override
-    %delta_air = -0.013; %override
-    %delta_air = -0.02; %override
     delta_air = delta_air * 100;                    %[1/m/atm]
     
     if S0_O2 * 100 > strength_threshold             %Do not compute cross section for line if it id below the threshold
@@ -105,8 +101,6 @@ for i = 1:length(WV_parameters)                     %loop over all line paramete
         cross_section = sigma + cross_section;      %add on to previous cross_section
         
         %Save each line parameters
-       % N_o2 = ((P*101325)./(kB*T)-WV) * q_O2; %[molecule/m^3](t x r)O2 number density from atmopsheric number density and O2 mixing ratio
-        %Line{increment}.absorption = sigma .*N_o2;
         Line{increment}.lineshape = f;
         Line{increment}.cross_section = sigma;
         Line{increment}.S0=S0_O2;
@@ -116,12 +110,6 @@ for i = 1:length(WV_parameters)                     %loop over all line paramete
     end
 end
 
-% 
-% %N_o2 = ((P*101325)./(kB*T)) * q_O2; %[molecule/m^3](t x r)O2 number density from atmopsheric number density and O2 mixing ratio
-% N_o2 = ((P*101325)./(kB*T)-WV) * q_O2; %[molecule/m^3](t x r)O2 number density from atmopsheric number density and O2 mixing ratio
-% 
-% absorption = cross_section .* N_o2; %[1/m](t x r)absorption coefficeint of oxygen in the atmosphere at specificed wavenumber
-
-
 N_wv = absorption./cross_section; %[molecule/m3] wv number density
+
 end
