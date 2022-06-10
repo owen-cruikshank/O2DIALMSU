@@ -1,20 +1,40 @@
-%
-%
 % O2_DIAL_Temp_retrieval_odcV2.m
-% Analysis program for O2 DIAL instrument from
-
+% Analysis program for O2 DIAL instrument from 
 clear 
 
 %=Date Range
-date_start = datetime(2021,9,27,'TimeZone','UTC');%yyyy,mm,dd
-date_end = datetime(2021,9,28,'TimeZone','UTC');%yyyy,mm,dd
 
-date_start = datetime(2021,10,21,'TimeZone','UTC');%yyyy,mm,dd
-date_end = datetime(2021,10,27,'TimeZone','UTC');%yyyy,mm,dd
+date_start = datetime(2022,4,18,'TimeZone','UTC');%yyyy,mm,dd
+date_end = datetime(2022,4,21,'TimeZone','UTC');%yyyy,mm,dd
+
+date_start = datetime(2022,4,30,'TimeZone','UTC');%yyyy,mm,dd
+date_end = datetime(2022,5,6,'TimeZone','UTC');%yyyy,mm,dd
+
+date_end = datetime(2022,5,11,'TimeZone','UTC');%yyyy,mm,dd
 
 
-date_start = datetime(2022,2,7,'TimeZone','UTC');%yyyy,mm,dd
-date_end = datetime(2022,2,7,'TimeZone','UTC');%yyyy,mm,dd
+ date_start = datetime(2022,4,25,'TimeZone','UTC');%yyyy,mm,dd
+ %date_end = datetime(2022,5,19,'TimeZone','UTC');%yyyy,mm,dd
+
+  %date_start = datetime(2022,5,22,'TimeZone','UTC');%yyyy,mm,dd
+ date_end = datetime(2022,5,28,'TimeZone','UTC');%yyyy,mm,dd
+%date_end = datetime(2022,4,26,'TimeZone','UTC');
+% date_start = datetime(2022,5,15,'TimeZone','UTC');%yyyy,mm,dd
+% date_end = datetime(2022,5,16,'TimeZone','UTC');%yyyy,mm,dd
+
+date_start = datetime(2022,5,2,'TimeZone','UTC');%yyyy,mm,dd
+date_end = datetime(2022,5,7,'TimeZone','UTC');%yyyy,mm,dd
+
+date_start = datetime(2022,6,8,'TimeZone','UTC');%yyyy,mm,dd
+date_end = datetime(2022,6,10,'TimeZone','UTC');%yyyy,mm,dd
+
+% date_start = datetime(2022,4,30,'TimeZone','UTC');%yyyy,mm,dd
+
+% date_start = datetime(2022,5,27,'TimeZone','UTC');%yyyy,mm,dd
+%  date_end = datetime(2022,6,3,'TimeZone','UTC');%yyyy,mm,dd
+% 
+%  date_start = datetime(2022,5,27,'TimeZone','UTC');%yyyy,mm,dd
+%  date_end = datetime(2022,5,27,'TimeZone','UTC');%yyyy,mm,dd
 
 span_days = date_start:date_end;
 
@@ -22,11 +42,8 @@ span_days = date_start:date_end;
 Options.intTime = 5;  %[min] Integration time
 Options.intRange = 1; %[bins] Integration range
 
-
 Options.t_avg = 1;     %[bins] Time smoothing bins
 Options.oversample = 1; %[bins] Range smoothing bins
-
-
 
 %====================
 %==== Constants =====
@@ -50,65 +67,93 @@ Constant.No = 2.47937E25;            %[1/m^3] Loschmidt's number  (referenced to
 %======================
 
 %==Load data from MSU instument==
- %[Range,Time,Counts,Sonde,Model,Spectrum,HSRL,Data] = loadMSUdata(span_days,Options,Constant);
+[Range,Time,Counts,Sonde,Model,Spectrum,HSRL,Data] = loadMSUdata(span_days,Options,Constant);
 %   HSRL.BSR = ones(size(Counts.o2on));
 %   HSRL.Ba = zeros(size(HSRL.Ba));
 %  HSRL.BSR(isnan(Counts.o2on))=nan;
 
 % ==Load data from SGP ARM instument==
-% date_begin = datetime(2019,4,17); date_end   = datetime(2019,4,22);
-% span_days = date_begin:date_end;        % Days in set [datetime]
-% [Range,Time,Counts,Sonde,Model,Spectrum,BSR,Data] = loadSGPdata(span_days,Options,Constant);
-% 
-% ==Load data from Boulder instument==
+%date_begin = datetime(2019,4,17); date_end   = datetime(2019,4,22);
+%span_days = date_begin:date_end;        % Days in set [datetime]
+%[Range,Time,Counts,Sonde,Model,Spectrum,BSR,Data] = loadSGPdata(span_days,Options,Constant);
+
+%==Load data from Boulder instument==
 % date_begin = datetime(2020,8,29); 
 % date_end   = datetime(2020,9,8);
-%  date_begin = datetime(2021,6,20); 
-% % 
-% date_begin   = datetime(2021,6,20);
-%  date_end   = datetime(2021,7,19);
 
- date_begin   = datetime(2021,6,20);
- date_end   = datetime(2021,8,20);
- %date_end   = datetime(2021,7,19);
- %date_end = datetime(2021,6,26);
+% % % 
+% date_begin   = datetime(2021,6,20,'TimeZone','UTC');
+% date_end   = datetime(2021,8,15,'TimeZone','UTC');
+% 
+% % date_begin   = datetime(2022,3,1,'TimeZone','UTC');
+% % date_end   = datetime(2022,3,7,'TimeZone','UTC');
+% 
+% %  date_begin   = datetime(2021,12,8,'TimeZone','UTC');
+% %  date_end   = datetime(2021,12,11,'TimeZone','UTC');
+% 
+%  span_days = date_begin:date_end;        % Days in set [datetime]
+% 
+%  Options.MPDname = '05';
+% % %Options.MPDname = '01';
+%  [Range,Time,Counts,Sonde,Model,Spectrum,HSRL,Data] =loadBoulderdata3(span_days,Options,Constant);
 
-%   date_begin   = datetime(2021,7,1);
-%   date_end   = datetime(2021,7,10);
 
- %date_begin = datetime(2021,6,20); 
-%date_end   = datetime(2021,6,23);
- span_days = date_begin:date_end;        % Days in set [datetime]
-%[Range,Time,Counts,Sonde,Model,Spectrum,HSRL,Data] =loadBoulderdata(span_days,Options,Constant);
- %[Range,Time,Counts,Sonde,Model,Spectrum,HSRL,Data] =loadBoulderdata2(span_days,Options,Constant);
- [Range,Time,Counts,Sonde,Model,Spectrum,HSRL,Data] =loadBoulderdata3(span_days,Options,Constant);
 %%
+% % for jjj = 1:1
+% %     if jjj ==2
+% %         Model.T = single(fillmissing(Temperature.T_finalm,'linear'));
+% %         Model.P = fillmissing(Temperature.Patm_final,'linear');
+% %     end
 
-%testing
-% Counts.o2off = Counts.goff-Counts.foff_bg;
-% Counts.o2on = Counts.gon-Counts.fon_bg;
-% Counts.o2off_mol = Counts.goff_mol-Counts.foff_mol_bg;
-% Counts.o2on_mol = Counts.gon_mol-Counts.fon_mol_bg;
+% disp('Calculating HSRL')
+%     LidarData.Range = Range.rm;
+%     LidarData.Time = Time.ts;
+%     LidarData.OfflineCombinedTotalCounts = Counts.o2off;
+%     LidarData.OfflineMolecularTotalCounts = Counts.o2off_mol;
+%     WeatherData.Temperature = Model.T;
+%     WeatherData.Pressure = Model.P;
+%     [LidarData]=BackscatterRetrievalBoulder062021(LidarData,WeatherData);
+%     HSRL.BSR = LidarData.UnmaskedBackscatterRatio;
+%     HSRL.Ba = LidarData.UnmaskedAerosolBackscatterCoefficient;
+%     HSRL.Bm = LidarData.MolecularBackscatterCoefficient;
+%     HSRL.Ba828 = LidarData.UnmaskedAerosolBackscatterCoefficient828;
+%     HSRL.Bm828 = LidarData.MolecularBackscatterCoefficient828;
+%     HSRL.BSR828 =LidarData.UnmaskedBackscatterRatio828;
 
 %%
 %======================
 %= Cloud and SNR mask =
 %======================
 disp('Calculating masks')
-cloud_p_point = 161.66; %(hours) Time to plot mask data
+cloud_p_point = 113.9183; %(hours) Time to plot mask data
+cloud_p_point = 19.335; %(hours) Time to plot mask data
+cloud_p_point = 112.9183;
+cloud_p_point = 718.335;
+cloud_p_point = 718.535;
+cloud_p_point = 768.7183;
+cloud_p_point = 40;
 SNR_threshold = 50;
-%SNR_threshold = 30;
 
-%SNR_threshold = 4;
-SD_threshold = 5*10^20;
+SNR_threshold = 10;
+
+%SNR_threshold = 90;
 SD_threshold = 5;
+
+SD_threshold = 0.5;  
 BGmult =1; % Multiplier for background for SNR calculation
-lowAlt = 0;
+lowAlt = 400;
+lowAlt = 500;
+lowAlt = 330;
 %[SNRm , cloud_SDm_above, cloud_SDm,o2on_SNR] = mask_O2_counts(Counts.o2on,Counts.o2off,Range.rm,Time.ts,cloud_p_point,SNR_threshold,SD_threshold,Options.oversample,Options.t_avg,Counts,BGmult);
 [SNRm , cloud_SDm_above, cloud_SDm,o2on_SNR] = mask_O2_BSR(cloud_p_point,SNR_threshold,SD_threshold,Options.oversample,Options.t_avg,Counts,BGmult,Time,Range,HSRL.BSR,lowAlt);
+cloud_SDm_above(cloud_SDm_above==-1)=0;
 
+cloud_SDm_above = ~(logical(cloud_SDm_above));
+SNRm = ~(logical(SNRm));
 
-%%%%SNRm = aMask;
+cloud_SDm_above = cloud_SDm_above|SNRm;
+cloud_SDm = logical(cloud_SDm);
+clear  o2on_SNR SNRm
 %%
 % ==== Afterpulse correction ====
 % pulseON = 4.146e+07*10*(Range.rm).^(-2.536*1);
@@ -120,6 +165,15 @@ lowAlt = 0;
 % % pulseOFF = 3.682e+07*10*1*(Range.rm).^(-2.512*1);
 % Counts.o2on = Counts.o2on-pulseON;
 % Counts.o2off = Counts.o2off-pulseOFF;
+
+%%
+%%%for aaa = 1:2
+%     if aaa >1
+%         Tnew = Temperature.T_finalm;
+%         Pnew = Temperature.Patm_final;
+%         Tnew(isnan(Tnew)) = Model.T(isnan(Tnew));
+%         Model.T = Tnew;
+%     end
 
 %%
 %==========================
@@ -156,19 +210,32 @@ ln_o2 = log((Counts.o2on(ind_r_lo,:).*Counts.o2off(ind_r_hi,:))./(Counts.o2on(in
 Alpha.alpha_0_raw = ln_o2./2./(Range.rangeBin*Options.oversample);                              %[1/m] 
 Alpha.alpha_0 = interp2(Time.ts,Range.rm(ind_r_lo),Alpha.alpha_0_raw,Time.ts,Range.rm);
 
-fon = Counts.fon-Counts.fon_bg;
-foff = Counts.foff-Counts.foff_bg;
-gon = Counts.gon-Counts.fon_bg;
-goff = Counts.goff-Counts.foff_bg;
-ln_o2 = log((fon(ind_r_lo,:).*foff(ind_r_hi,:))./(fon(ind_r_hi,:).*foff(ind_r_lo,:))); % Natural log of counts  
-Alpha.alpha_0f_raw = ln_o2./2./(Range.rangeBin*Options.oversample);                              %[1/m] 
-Alpha.alpha_0f = interp2(Time.ts,Range.rm(ind_r_lo),Alpha.alpha_0f_raw,Time.ts,Range.rm);
-Alpha.alpha_0f = real(Alpha.alpha_0f);
+Alpha.alpha_0 = Alpha.alpha_0 - Model.absorption_off; %Subtract offline absorption
 
-ln_o2 = log((gon(ind_r_lo,:).*goff(ind_r_hi,:))./(gon(ind_r_hi,:).*goff(ind_r_lo,:))); % Natural log of counts  
-Alpha.alpha_0g_raw = ln_o2./2./(Range.rangeBin*Options.oversample);                              %[1/m] 
-Alpha.alpha_0g = interp2(Time.ts,Range.rm(ind_r_lo),Alpha.alpha_0g_raw,Time.ts,Range.rm);
-Alpha.alpha_0g = real(Alpha.alpha_0g);
+%Alpha.alpha_0e = (1./2./(Range.rangeBin*Options.oversample)) .* sqrt(1./Counts.NBins).* sqrt(1./Counts.o2on(ind_r_lo,:)+1./Counts.o2off(ind_r_lo,:)+1./Counts.o2on(ind_r_hi,:)+1./Counts.o2off(ind_r_hi,:));
+
+%zero order error alpha
+Alpha.alpha_0_err = (1./2./(Range.rangeBin*Options.oversample)) .* sqrt(1./Counts.NBins) .*  sqrt(...
+ (-sqrt(Counts.o2on(ind_r_lo,:)+Counts.bg_o2on)./Counts.o2on(ind_r_lo,:)).^2 ...
++(sqrt(Counts.o2on(ind_r_hi,:)+Counts.bg_o2on)./Counts.o2on(ind_r_hi,:)).^2 ...
++(sqrt(Counts.o2off(ind_r_lo,:)+Counts.bg_o2off)./Counts.o2off(ind_r_lo,:)).^2 ...
++(-sqrt(Counts.o2off(ind_r_hi,:)+Counts.bg_o2off)./Counts.o2off(ind_r_hi,:)).^2);
+
+Alpha.alpha_0_err(end+1,:,:)=Alpha.alpha_0_err(end,:,:);
+
+% fon = Counts.fon-Counts.fon_bg;
+% foff = Counts.foff-Counts.foff_bg;
+% gon = Counts.gon-Counts.fon_bg;
+% goff = Counts.goff-Counts.foff_bg;
+% ln_o2 = log((fon(ind_r_lo,:).*foff(ind_r_hi,:))./(fon(ind_r_hi,:).*foff(ind_r_lo,:))); % Natural log of counts  
+% Alpha.alpha_0f_raw = ln_o2./2./(Range.rangeBin*Options.oversample);                              %[1/m] 
+% Alpha.alpha_0f = interp2(Time.ts,Range.rm(ind_r_lo),Alpha.alpha_0f_raw,Time.ts,Range.rm);
+% Alpha.alpha_0f = real(Alpha.alpha_0f);
+% 
+% ln_o2 = log((gon(ind_r_lo,:).*goff(ind_r_hi,:))./(gon(ind_r_hi,:).*goff(ind_r_lo,:))); % Natural log of counts  
+% Alpha.alpha_0g_raw = ln_o2./2./(Range.rangeBin*Options.oversample);                              %[1/m] 
+% Alpha.alpha_0g = interp2(Time.ts,Range.rm(ind_r_lo),Alpha.alpha_0g_raw,Time.ts,Range.rm);
+% Alpha.alpha_0g = real(Alpha.alpha_0g);
 
 ln_o2 = log((Counts.wvon(ind_r_lo,:).*Counts.wvoff(ind_r_hi,:))./(Counts.wvon(ind_r_hi,:).*Counts.wvoff(ind_r_lo,:))); % Natural log of counts  
 Alpha.alpha_0wv_raw = ln_o2./2./(Range.rangeBin*Options.oversample); 
@@ -176,56 +243,127 @@ Alpha.alpha_0wv = interp2(Time.ts,Range.rm(ind_r_lo),Alpha.alpha_0wv_raw,Time.ts
 
 clear ln_o2 foff fon goff gon
 
-[N_wv0,cross_section,~,~] = cross_section_wv_828_model(Model.T,Model.P,Spectrum.nu_wvon,Alpha.alpha_0wv);
+[~,cross_section,~,~] = cross_section_wv_828_model(Model.T,Model.P,Spectrum.nu_wvon,Alpha.alpha_0wv);
 
-% === Smoothing zeroth order
-% % k = ones(4,4)./(4*4);     % Kernel
-% % alpha_0_pad = padarray(Alpha.alpha_0,[4/2,4/2],'replicate');
-% % Alpha.alpha_0_filt = filter2(k,alpha_0_pad,'valid');
-% % Alpha.alpha_0_filt = interp2(Time.ts-Time.t_step/2,Range.rm-Range.rangeBin/2,Alpha.alpha_0_filt(1:end-1,1:end-1),Time.ts,Range.rm);
+[~,cross_sectionOff,~,~] = cross_section_wv_828_model(Model.T,Model.P,Spectrum.nu_wvoff,Alpha.alpha_0wv);
 
-Alpha.alpha_0=real(Alpha.alpha_0);
-
-% === Molecular alpha calcultion =====
-% %ln_o2_mol = log((Counts.o2on_mol(ind_r_lo,:).*(Counts.o2off_mol(ind_r_hi,:).*BSR(ind_r_hi,:)))./(Counts.o2on_mol(ind_r_hi,:).*(Counts.o2off_mol(ind_r_lo,:).*BSR(ind_r_lo,:)))); % Natural log of counts
-% ln_o2_mol = log((Counts.o2on_mol(ind_r_lo,:).*(Counts.o2off_mol_corrected(ind_r_hi,:)))./(Counts.o2on_mol(ind_r_hi,:).*(Counts.o2off_mol_corrected(ind_r_lo,:)))); % Natural log of counts
-% alpha_0_raw_mol = ln_o2_mol./2./(Range.rangeBin*Options.oversample);                              %[1/m] 
-% alpha_0_mol = interp2(Time.ts,Range.rm(ind_r_lo),alpha_0_raw_mol,Time.ts,Range.rm);
-% 
-% alpha_0_mol = fillmissing(alpha_0_mol,'nearest');
-% k = ones(8,4)./(8*4);     % Kernel
-% alpha_0_pad_mol = padarray(alpha_0_mol,[8/2,4/2],'replicate');
-% alpha_0_filt_mol = filter2(k,alpha_0_pad_mol,'valid');
-% alpha_0_filt_mol = interp2(Time.ts-Time.t_step/2,Range.rm-Range.rangeBin/2,alpha_0_filt_mol(1:end-1,1:end-1),Time.ts,Range.rm);
-% %%%%%%%%%%%%%%%
-% alpha_0_mol=real(alpha_0_mol);
-
-%%%%%alpha_0 = (alpha_0+alpha_0_mol)/2;
-
+N_wv0 = Alpha.alpha_0wv./(cross_section-cross_sectionOff);
 %%
-% === Purtabative absorption ===
-%loading etalon transmission
-load('TransmittanceData.mat')
+% % % distSize = 100;
+% % % o2on_normaldist =  ones(Range.i_range,Time.i_time,distSize);
+% % % o2off_normaldist =  ones(Range.i_range,Time.i_time,distSize);
+% % % for ii = 1:length(Range.rm)bench
+
+% % %     for jj=1:length(Time.thr)
+% % %        % o2on_normaldist(ii,jj,:) = normrnd(Counts.o2on(ii,jj),sqrt(Counts.o2on(ii,jj)),1,1,distSize);
+% % %         %o2on_normaldist(ii,jj,:) = poissrnd(Counts.o2on(ii,jj),1,distSize);
+% % %         o2on_normaldist(ii,jj,:) = poissrnd((Counts.o2on(ii,jj)+Counts.bg_o2on(:,jj)).*Counts.NBins(:,jj),1,distSize)-Counts.bg_o2on(:,jj).*Counts.NBins(:,jj);
+% % %       %  o2off_normaldist(ii,jj,:) = normrnd(Counts.o2off(ii,jj),sqrt(Counts.o2off(ii,jj)),1,1,distSize);
+% % %         %o2off_normaldist(ii,jj,:) = poissrnd(Counts.o2off(ii,jj),1,distSize);
+% % %         o2off_normaldist(ii,jj,:) = poissrnd((Counts.o2off(ii,jj)+Counts.bg_o2off(:,jj)).*Counts.NBins(:,jj),1,distSize)-Counts.bg_o2off(:,jj).*Counts.NBins(:,jj);
+% % %     end
+% % % end
+% % % 
+% % % for kkk = 1:distSize
+% % %    ln_o2 = log((o2on_normaldist(ind_r_lo,:,kkk).*o2off_normaldist(ind_r_hi,:,kkk))./(o2on_normaldist(ind_r_hi,:,kkk).*o2off_normaldist(ind_r_lo,:,kkk))); % Natural log of counts
+% % %     
+% % %     Alpha.alpha_0_dist(:,:,kkk) = real(ln_o2)./2./(Range.rangeBin*Options.oversample);                              %[1/m] 
+% % % end
+% % % 
+% % % Alpha.alpha_0_err2 = std(Alpha.alpha_0_dist,0,3);
+% % % Alpha.alpha_0_errmean = mean(Alpha.alpha_0_dist,3);
+%%
+%%==============Set Model WV to DIAL======
+
+%%%%Purturbative WV
+load(fullfile('CalibrationData','TransmittanceData.mat'))
 T_etalon_on = double(interp1(double(OnlineWavelength)*10^9,OnlineCombinedTransmittance,Spectrum.lambda_scan_3D_short));
 T_etalon_off = double(interp1(double(OfflineWavelength)*10^9,OfflineCombinedTransmittance,Spectrum.lambda_scan_3D_short_off));
 
 altitude = 1.5;%altitude in km
-%[alpha_1, alpha_2] = pertAbsorption(alpha_0, T_etalon_on, T, P, rm,rkm,m_air, nu_online, nu_scan_3D_short,nuBin,BSR,ind_r_lo,ind_r_hi,WV,online_index,i_range,i_time,i_scan_3D_short,rangeBin,oversample,c,kb,altitude);
-[Alpha.alpha_total_raw , Spectrum] = pertAbsorption(Alpha.alpha_0, T_etalon_on, Model.T, Model.P, Range.rm,Time.ts,Range.rm/1000,Constant.m_air, Spectrum.nu_online, Spectrum.nu_scan_3D_short,Spectrum.nuBin,HSRL.BSR,ind_r_lo,ind_r_hi,Model.WV,Spectrum.online_index,Range.i_range,Time.i_time,Spectrum.i_scan_3D_short,Range.rangeBin,Options.oversample,Options.t_avg,Constant.c,Constant.kb,altitude,Spectrum);
+altitude = 1.5719;
 
-[Alpha.alpha_total_rawf, Spectrum] = pertAbsorption(Alpha.alpha_0f, T_etalon_on, Model.T, Model.P, Range.rm,Time.ts,Range.rm/1000,Constant.m_air, Spectrum.nu_online, Spectrum.nu_scan_3D_short,Spectrum.nuBin,HSRL.BSRf,ind_r_lo,ind_r_hi,Model.WV,Spectrum.online_index,Range.i_range,Time.i_time,Spectrum.i_scan_3D_short,Range.rangeBin,Options.oversample,Options.t_avg,Constant.c,Constant.kb,altitude,Spectrum);
-[Alpha.alpha_total_rawg, Spectrum] = pertAbsorption(Alpha.alpha_0g, T_etalon_on, Model.T, Model.P, Range.rm,Time.ts,Range.rm/1000,Constant.m_air, Spectrum.nu_online, Spectrum.nu_scan_3D_short,Spectrum.nuBin,HSRL.BSRg,ind_r_lo,ind_r_hi,Model.WV,Spectrum.online_index,Range.i_range,Time.i_time,Spectrum.i_scan_3D_short,Range.rangeBin,Options.oversample,Options.t_avg,Constant.c,Constant.kb,altitude,Spectrum);
+[Alpha.alpha_1wv, Alpha.alpha_2wv,Spectrum] = pertAbsorptionwv(Alpha.alpha_0wv, T_etalon_on, Model, Range, Time, Spectrum, HSRL, ind_r_lo,ind_r_hi, Options, Constant, altitude);
+
+N_wv = (Alpha.alpha_0wv+Alpha.alpha_1wv+ Alpha.alpha_2wv)./(cross_section-cross_sectionOff);
+
+%Smooth WV
+k = ones(4,8)./(4*8);     % Kernel
+%k = ones(3,7)./(3*7);     % Kernel
 
 
-[Alpha.alpha_1wv, Alpha.alpha_2wv,Spectrum] = pertAbsorptionwv(Alpha.alpha_0wv, T_etalon_on, Model.T, Model.P, Range.rm,Time.ts,Range.rkm,Constant.m_air, Spectrum.nu_wvon, Spectrum.nu_scanwv_3D_short,Spectrum.nuBin,HSRL.BSR,ind_r_lo,ind_r_hi,Model.WV,Spectrum.online_indexwv,Range.i_range,Time.i_time,Spectrum.i_scan_3D_short,Range.rangeBin,Options.oversample,Options.t_avg,Constant.c,Constant.kb,altitude,Spectrum);
+
+N_wvm = nanconv(N_wv,k,'edge','nanout');
+N_wvm(cloud_SDm_above)=nan;
+
+N_wv0m = nanconv(N_wv0,k,'edge','nanout');
+N_wv0m(cloud_SDm_above)=nan;
+
+AbsHumm = N_wvm.*Constant.mWV*1000; %[g/m3]
+AbsHum0m = N_wv0m.*Constant.mWV*1000; %[g/m3]
+
+AbsHumRawm = N_wv.*Constant.mWV*1000; %[g/m3]
+AbsHumRawm(cloud_SDm_above)=nan;
+AbsHum0Rawm = N_wv0.*Constant.mWV*1000; %[g/m3]
+AbsHum0Rawm(cloud_SDm_above)=nan;
+%%%%%%SET MODEL TO WV RETRIEVAL
+%%%%%%%%%%%Model.WV = fillmissing(N_wvm,'linear');
+
+
+%%
 % === Total alpha ===
-% Alpha.alpha_total_raw = Alpha.alpha_0 + Alpha.alpha_1 + Alpha.alpha_2;
-% Alpha.alpha_total_rawf = Alpha.alpha_0f + Alpha.alpha_1f + Alpha.alpha_2f;
-% Alpha.alpha_total_rawg = Alpha.alpha_0g + Alpha.alpha_1g + Alpha.alpha_2g;
 
 Alpha.alpha_total_rawwv = Alpha.alpha_0wv + Alpha.alpha_1wv + Alpha.alpha_2wv;
 
 N_wv = Alpha.alpha_total_rawwv./cross_section; %[molecule/m3] wv number density
+
+
+
+% === Smoothing zeroth order
+
+Alpha.alpha_0=real(Alpha.alpha_0);
+
+
+
+% === Molecular alpha calcultion =====
+
+
+%%
+% === Purtabative absorption ===
+%loading etalon transmission
+
+%%[Alpha.alpha_total_raw,Alpha.alpha_1,Alpha.alpha_2,Spectrum] = pertAbsorption(Alpha.alpha_0, T_etalon_on, Model, Range, Time, Spectrum, HSRL, ind_r_lo,ind_r_hi, Options);
+
+[Alpha.alpha_total_raw,Alpha.alpha_1,Alpha.alpha_2,Spectrum] = pertAbsorption(Alpha.alpha_0, T_etalon_on, Model, Range, Time, Spectrum, HSRL, ind_r_lo,ind_r_hi, Options,Alpha.alpha_0_err);
+
+%%%[Alpha.alpha_total_rawf,Alpha.alpha_1f,Alpha.alpha_2f,~] = pertAbsorption(Alpha.alpha_0f, T_etalon_on, Model, Range, Time,Spectrum, HSRL, ind_r_lo,ind_r_hi, Options);
+%%%[Alpha.alpha_total_rawg,Alpha.alpha_1g,Alpha.alpha_2g,~] = pertAbsorption(Alpha.alpha_0g, T_etalon_on, Model, Range, Time,Spectrum, HSRL, ind_r_lo,ind_r_hi, Options);
+
+%%
+distSize = 75;
+for ii = 1:length(Range.rm)
+    for jj=1:length(Time.thr)
+        alpha_0_normaldist(ii,jj,:) = normrnd(Alpha.alpha_0(ii,jj),Alpha.alpha_0_err(ii,jj),1,1,distSize);
+        Tdist(ii,jj,:) = normrnd(Model.T(ii,jj),3,1,1,distSize);
+        HSRLdist(ii,jj,:) = normrnd(HSRL.BSR(ii,jj),HSRL.BSR(ii,jj)*.03,1,1,distSize);
+    end
+end
+
+T = Model.T;
+BSR = HSRL.BSR;
+for kkk = 1:distSize
+    Model.T=Tdist(:,:,kkk);
+    HSRL.BSR = HSRLdist(:,:,kkk);
+   alpha_total_rawdist(:,:,kkk) = pertAbsorption(alpha_0_normaldist(:,:,kkk), T_etalon_on, Model, Range, Time, Spectrum, HSRL, ind_r_lo,ind_r_hi, Options,Alpha.alpha_0_err);
+end
+
+Alpha.alpha_total_err = std(alpha_total_rawdist,0,3);
+
+ Model.T=T;
+ HSRL.BSR=BSR;
+clear alpha_0_normaldist Tdist HSRLdist alpha_total_rawdist
+%%
+
 
 
 %== Force total alpha to its modeled surface value ==
@@ -236,61 +374,71 @@ Alpha.alpha_total_cut = fillmissing(Alpha.alpha_total_cut,'linear');
 
 %%
 %===== Soothing alpha =====
-k = ones(10,4)./(10*4);     % Kernel
-k = ones(4,6)./(4*6);     % Kernel
-%k = ones(1,1)./(1*1);
+ k = ones(4,6)./(4*6);     % Kernel
+ k = ones(2,4)./(2*4);
+k = ones(1,1)./(1);
 
-gg = cloud_SDm_above.*SNRm;
-gg(gg<=0)=nan;
+k = ones(3,7)./(3*7);
+k = ones(5,9)./(5*9);
+
+
 %Appy cloud mask before smoothing
-%Alpha.alpha_total_cut = Alpha.alpha_total_cut .* cloud_SDm_above .* SNRm; %.* cloud_SDm_above;
-Alpha.alpha_total_cut(isnan(gg)) = NaN;          % Replace mask with NaNs
+Alpha.alpha_total_cut(cloud_SDm_above) = NaN;          % Replace mask with NaNs
+Alpha.alpha_total_cut(cloud_SDm_above) = NaN; 
+% Alpha.alpha_total_rawmf = Alpha.alpha_total_rawf;
+% Alpha.alpha_total_rawmg = Alpha.alpha_total_rawg;
+% Alpha.alpha_total_rawmf(isnan(gg))=nan;
+% Alpha.alpha_total_rawmg(isnan(gg))=nan;
 
 
 %Convolve with kernel
-%Alpha.alpha_total_filt = filter2(k,Alpha.alpha_total_cut,'same');
 Alpha.alpha_total_filt = nanconv(Alpha.alpha_total_cut,k,'edge','nanout');
 Alpha.alpha_totals = Alpha.alpha_total_filt;
 
-Alpha.alpha_total_filtf = nanconv(Alpha.alpha_total_rawf,k,'edge','nanout');
-%Alpha.alpha_totalsf = Alpha.alpha_total_filtf.* cloud_SDm_above .* SNRm;
-Alpha.alpha_totalsf = Alpha.alpha_total_filtf;
-Alpha.alpha_total_filtg = nanconv(Alpha.alpha_total_rawg,k,'edge','nanout');
-%Alpha.alpha_totalsg = Alpha.alpha_total_filtg.* cloud_SDm_above .* SNRm;
-Alpha.alpha_totalsg = Alpha.alpha_total_filtg;
+Alpha.alpha_0m = Alpha.alpha_0;
+Alpha.alpha_0m(cloud_SDm_above)=nan;
+ Alpha.alpha_0s= nanconv(Alpha.alpha_0m,k,'edge','nanout');
 
-%Alpha.alpha_totals = Alpha.alpha_total_cut;
+
+k1 = (size(k,2)-1)./2;
+k2 = (size(k,1)-1)./2;
+k1 = (size(k,1)-1)./2;
+k2 = (size(k,2)-1)./2;
+for iii = 1:size(Alpha.alpha_total_err,1)
+    for jjj = 1:size(Alpha.alpha_total_err,2)
+        if iii <= k1 || jjj <= k2
+        Alpha.alpha_total_errs(iii,jjj) = Alpha.alpha_total_err(iii,jjj);
+        elseif iii >= (size(Alpha.alpha_total_err,1)-k1) || jjj >= (size(Alpha.alpha_total_err,2)-k2)
+            Alpha.alpha_total_errs(iii,jjj) = Alpha.alpha_total_err(iii,jjj);
+        else
+            Alpha.alpha_total_errs(iii,jjj) = sqrt(sumsqr(Alpha.alpha_total_err(iii-k1:iii+k1,jjj-k2:jjj+k2)))./numel(k);
+            %Temperature.TempStds(iii,jjj) = sum(sum(Temperature.TempStd(iii-k1:iii+k1,jjj-k2:jjj+k2)))./numel(k);
+        end
+    end
+end
+
+
+% Alpha.alpha_total_filt = nanconv(Alpha.alpha_0,k,'edge','nanout');
+% Alpha.alpha_totals = Alpha.alpha_total_filt;
+
+%%%Alpha.alpha_totals = Alpha.alpha_total_filt2;
+
+% Alpha.alpha_total_filtf = nanconv(Alpha.alpha_total_rawf,k,'edge','nanout');
+% Alpha.alpha_totalsf = Alpha.alpha_total_filtf;
+% Alpha.alpha_total_filtg = nanconv(Alpha.alpha_total_rawg,k,'edge','nanout');
+% Alpha.alpha_totalsg = Alpha.alpha_total_filtg;
+
+
 %%
 % apply SNR mask again
 Alpha.alpha_0m = Alpha.alpha_0;
-%Alpha.alpha_0m(Alpha.alpha_0m == 0) = NaN;                  % Replace mask with NaNs
-Alpha.alpha_0m(isnan(gg)) = NaN;                  % Replace mask with NaNs
+Alpha.alpha_0m(cloud_SDm_above) = NaN;                  % Replace mask with NaNs
 
 Alpha.alpha_total = real(Alpha.alpha_totals);
-%Alpha.alpha_totalm = Alpha.alpha_total .* cloud_SDm_above .* SNRm; %.* cloud_SDm_above;
-%Alpha.alpha_totalm(Alpha.alpha_totalm <= 0) = NaN;          % Replace mask with NaNs
 Alpha.alpha_totalm = Alpha.alpha_total;
-Alpha.alpha_totalm(isnan(gg)) = NaN;          % Replace mask with NaNs
+Alpha.alpha_totalm(cloud_SDm_above) = NaN;          % Replace mask with NaNs
 
 
-
-gg = cloud_SDm_above.*SNRm;
-gg(gg<=0)=nan;
-N_wvm = nanconv(N_wv,k,'edge','nanout');
-%N_wvm = N_wv.*cloud_SDm_above.*SNRm;
-N_wvm(isnan(gg))=nan;
-
-N_wv0m = nanconv(N_wv0,k,'edge','nanout');
-%N_wv0m = N_wv0.*cloud_SDm_above.*SNRm;
-N_wv0m(isnan(gg))=nan;
-
-AbsHumm = N_wvm.*Constant.mWV*1000; %[g/m3]
-AbsHum0m = N_wv0m.*Constant.mWV*1000; %[g/m3]
-
-AbsHumRawm = N_wv.*Constant.mWV*1000; %[g/m3]
-AbsHumRawm(isnan(gg))=nan;
-AbsHum0Rawm = N_wv0.*Constant.mWV*1000; %[g/m3]
-AbsHum0Rawm(isnan(gg))=nan;
 
 
 
@@ -302,6 +450,8 @@ Counts.delta=-Counts.delta;
 
 Counts.delta = [Counts.delta; zeros(length(Range.rm)-size(Counts.delta,1),length(Time.ts))];
 Counts.delta = Counts.delta/4;
+
+Counts.delta = real(Counts.delta);
 
 % % deltaModel = findDelta(Model.absorption(:,:),alpha_total_raw(:,:),Model.N_on(:,:),Model.N_off(:,:),Range.rm,Time.ts);
 % % deltaModel=-deltaModel;
@@ -331,31 +481,304 @@ disp('Temp retrieval function')
 %  Model.Ts = Model.T(1,:);
 % Model.P = Model.Ps .* (Model.Ts./Model.T).^(-5.2199);                       %[atm] (1 x r) Pressure model as a function of r  
 
+
+
 tic
-[Temperature.T_final_test,Temperature.L_fit_sm_test,Temperature.Ts_fit,Temperature.Patm_final,Temperature.mean_lapse_rate,Temperature.exclusion,Temperature.Titer] =  temperatureRetrieval(Model.T,Time.ts,Range.rm,Model.P,Model.WV,Spectrum.nu_online,Alpha.alpha_totals,SNRm,cloud_SDm_above);
+startLapse = -.0065;
+startLapse = Model.lapseRate;
+[Temperature.T_final_test,Temperature.L_fit_sm_test,Temperature.Ts_fit,Temperature.Patm_final,Temperature.mean_lapse_rate,Temperature.exclusion,Temperature.Titer] =  temperatureRetrieval(Model.T,Time.ts,Range.rm,Model.P,Model.WV,Spectrum.nu_online,Alpha.alpha_totals,0,cloud_SDm_above,Model.Ts,Model.Ps,startLapse);
+%[Temperature.T_final_test,Temperature.L_fit_sm_test,Temperature.Ts_fit,Temperature.Patm_final,Temperature.mean_lapse_rate,Temperature.exclusion,Temperature.Titer] =  temperatureRetrieval(Model.T,Time.ts,Range.rm,Model.P,Model.WV,Spectrum.nu_online,Alpha.alpha_0,SNRm,cloud_SDm_above,Model.Ts,Model.Ps);
+%[Temperature.T_final_test,Temperature.L_fit_sm_test,Temperature.Ts_fit,Temperature.Patm_final,Temperature.mean_lapse_rate,Temperature.exclusion,Temperature.Titer] =  temperatureRetrieval(Model.T,Time.ts,Range.rm,Model.P,N_wv,Spectrum.nu_online,Alpha.alpha_totals,SNRm,cloud_SDm_above,Model.Ts,Model.Ps);
+%%
+distSize = 75;
+for ii = 1:length(Range.rm)
+    for jj=1:length(Time.thr)
+        alpha_normaldist(ii,jj,:) = normrnd(Alpha.alpha_totalm(ii,jj),Alpha.alpha_0_err(ii,jj),1,1,distSize);
+        %alpha_normaldist(ii,jj,:) = normrnd(Alpha.alpha_totalm(ii,jj),Alpha.alpha_total_err(ii,jj),1,1,distSize);
+        alpha_normaldist(ii,jj,:) = normrnd(Alpha.alpha_totalm(ii,jj),Alpha.alpha_total_errs(ii,jj),1,1,distSize);
+    end
+end
 
-[Temperature.T_final_testf,Temperature.L_fit_sm_test,Temperature.Ts_fit,Temperature.Patm_final,Temperature.mean_lapse_rate,Temperature.exclusion,Temperature.Titer] =  temperatureRetrieval(Model.T,Time.ts,Range.rm,Model.P,Model.WV,Spectrum.nu_online,Alpha.alpha_totalsf,SNRm,cloud_SDm_above);
-[Temperature.T_final_testg,Temperature.L_fit_sm_test,Temperature.Ts_fit,Temperature.Patm_final,Temperature.mean_lapse_rate,Temperature.exclusion,Temperature.Titer] =  temperatureRetrieval(Model.T,Time.ts,Range.rm,Model.P,Model.WV,Spectrum.nu_online,Alpha.alpha_totalsg,SNRm,cloud_SDm_above);
-toc
+for kkk = 1:distSize
+   Temperature.T_finaldist(:,:,kkk) =  temperatureRetrieval(Model.T,Time.ts,Range.rm,Model.P,Model.WV,Spectrum.nu_online,alpha_normaldist(:,:,kkk),0,cloud_SDm_above,Model.Ts,Model.Ps,startLapse);
+end
 
+Temperature.TempStd = std(Temperature.T_finaldist,0,3);
+
+%%
+Temperature.T_final_test0 =  temperatureRetrieval(Model.T,Time.ts,Range.rm,Model.P,Model.WV,Spectrum.nu_online,Alpha.alpha_0s,0,cloud_SDm_above,Model.Ts,Model.Ps,startLapse);
+%%
+if ~isempty(Sonde.sonde_ind)
+
+sonde_index = 10;
+
+TPerfect = 296+Range.rm*-6.5/1000;
+PPerfect = 1 * (296./TPerfect).^(-5.2199);
+WVPerfect = zeros(size(TPerfect));
+absorptionPerfect = absorption_O2_770_model(TPerfect,PPerfect,Spectrum.nu_online(1),WVPerfect);
+Temperature.T_final_test2=zeros(Range.i_range,size(Sonde.sonde_ind,2));
+
+for iii = 1:size(Sonde.sonde_ind,2)
+   % for iii = 1:1
+    sonde_index = iii;
+    %sonde_index = 1;
+p_point = Sonde.sonde_ind(:,sonde_index);
+
+
+
+k = ones(4,1)./(4);
+k = ones(1,1)./(1);
+abssorptionSonde(:,iii) = [nanconv(Sonde.absorption_sonde{sonde_index}(1:end-1),k,'edge','nanout') ;0];
+
+%abssorptionSonde(:,iii) = filter2(k,Sonde.absorption_sonde{sonde_index},'same');
+%abssorptionSonde = Sonde.absorption_sonde{sonde_index};
+%abssorptionSonde = absorptionPerfect;
+
+sondeModelT = Sonde.Tsurf(sonde_index)+Range.rm*-6.5/1000;
+sondeModelT = Sonde.T_sonde(1,sonde_index)+Range.rm*-6.5/1000;
+sondeModelP = Sonde.Psurf(sonde_index) .* (Sonde.Tsurf(sonde_index)./sondeModelT).^(-5.2199);
+sondeModelP = Sonde.Psurf(sonde_index) .* (Sonde.Tsurf(sonde_index)./sondeModelT).^(-5.2558);
+
+%[Tfinal,~,~,Pfinal,~,~,~] =  temperatureRetrieval(Model.T(:,p_point(1)),Time.ts(:,p_point(1)),Range.rm,Model.P(:,p_point(1)),Sonde.WV_sonde(:,sonde_index),Spectrum.nu_online(:,p_point(1)),abssorptionSonde,SNRm(:,p_point(1)),cloud_SDm_above(:,p_point(1)),Model.Ts(:,p_point(1)),Model.Ps(:,p_point(1)));
+%%[Tfinal,~,~,Pfinal,~,~,~] =  temperatureRetrieval(diag(Model.T(:,p_point)),Time.ts(:,p_point(1)),Range.rm,diag(Model.P(:,p_point)),Sonde.WV_sonde(:,sonde_index),Spectrum.nu_online(:,p_point(1)),abssorptionSonde,diag(SNRm(:,p_point)),diag(cloud_SDm_above(:,p_point)),Sonde.Tsurf(sonde_index),Sonde.Psurf(sonde_index));
+[Tfinal,Lapse,Ts_fit,Pfinal,~,~,Titer(:,iii,:)] =  temperatureRetrieval(diag(Model.T(:,p_point)),Time.ts(:,p_point(1)),Range.rm,diag(Model.P(:,p_point)),Sonde.WV_sonde(:,sonde_index),Spectrum.nu_online(:,p_point(1)),abssorptionSonde(:,iii),0,diag(cloud_SDm_above(:,p_point)),Sonde.Tsurf(sonde_index),Sonde.Psurf(sonde_index),startLapse);
+%[Tfinal,Lapse,Ts_fit,Pfinal,~,~,Titer(:,iii,:)] =  temperatureRetrieval(diag(Model.T(:,p_point)),Time.ts(:,p_point(1)),Range.rm,diag(Model.P(:,p_point)),Sonde.WV_sonde(:,sonde_index),Spectrum.nu_online(:,p_point(1)),abssorptionSonde(:,iii),0,diag(cloud_SDm_above(:,p_point)),Model.Ts(Sonde.sonde_ind(1,sonde_index)),(Model.Ps(Sonde.sonde_ind(1,sonde_index))));
+%%%[Tfinal,Lapse,Ts_fit,Pfinal,~,~,Titer(:,iii,:)] =  temperatureRetrieval(sondeModelT,Time.ts(:,p_point(1)),Range.rm,sondeModelP,Sonde.WV_sonde(:,sonde_index),Spectrum.nu_online(:,p_point(1)),abssorptionSonde,diag(SNRm(:,p_point)),diag(cloud_SDm_above(:,p_point)),Sonde.Tsurf(sonde_index),Sonde.Psurf(sonde_index));
+%%[Tfinal,Lapse,Ts_fit,Pfinal,~,~,~] =  temperatureRetrieval(sondeModelT,Time.ts(:,p_point(1)),Range.rm,sondeModelP,zeros(size(Sonde.WV_sonde(:,sonde_index))),Spectrum.nu_online(:,p_point(1)),abssorptionSonde,diag(SNRm(:,p_point)),diag(cloud_SDm_above(:,p_point)),Sonde.T_sonde(1,sonde_index),Sonde.P_sonde(1,sonde_index));
+%%[Tfinal,Lapse,Ts_fit,Pfinal,~,~,~] =  temperatureRetrieval(sondeModelT,Time.ts(:,p_point(1)),Range.rm,sondeModelP,diag(N_wvm(:,Sonde.sonde_ind(:,sonde_index))),Spectrum.nu_online(:,p_point(1)),abssorptionSonde,diag(SNRm(:,p_point)),diag(cloud_SDm_above(:,p_point)),Sonde.T_sonde(1,sonde_index),Sonde.P_sonde(1,sonde_index));
+%[Tfinal,~,~,Pfinal,~,~,~] =  temperatureRetrieval(sondeModelT,Time.ts(:,p_point(1)),Range.rm,sondeModelP,WVPerfect,Spectrum.nu_online(:,p_point(1)),abssorptionSonde,diag(SNRm(:,p_point)),diag(cloud_SDm_above(:,p_point)),Sonde.Tsurf(sonde_index),Sonde.Psurf(sonde_index));
+%[Tfinal,~,~,Pfinal,~,~,~] =  temperatureRetrieval(Model.T(:,p_point(1)),Time.ts(:,p_point(1)),Range.rm,Model.P(:,p_point(1)),WVPerfect,Spectrum.nu_online(1),absorptionPerfect,SNRm(:,p_point(1)),cloud_SDm_above(:,p_point(1)),296,1+.001);
+
+Tfinal(diag(cloud_SDm_above(:,p_point))) = NaN;
+Pfinal(diag(cloud_SDm_above(:,p_point))) = NaN;
+Pfinal2(:,iii) = Pfinal;
+Temperature.T_final_test2(:,iii)=Tfinal;
+
+
+%%%[Temperature.T_final_testf,Temperature.L_fit_sm_test,Temperature.Ts_fit,Temperature.Patm_final,Temperature.mean_lapse_rate,Temperature.exclusion,Temperature.Titer] =  temperatureRetrieval(Model.T,Time.ts,Range.rm,Model.P,Model.WV,Spectrum.nu_online,Alpha.alpha_totalsf,SNRm,cloud_SDm_above);
+%%%[Temperature.T_final_testg,Temperature.L_fit_sm_test,Temperature.Ts_fit,Temperature.Patm_final,Temperature.mean_lapse_rate,Temperature.exclusion,Temperature.Titer] =  temperatureRetrieval(Model.T,Time.ts,Range.rm,Model.P,Model.WV,Spectrum.nu_online,Alpha.alpha_totalsg,SNRm,cloud_SDm_above);
+
+
+end
+
+tempComparison = ones(Range.i_range,size(Sonde.sonde_ind,2));
+for jj = 1:size(Sonde.sonde_ind,2)
+    tempComparison(:,jj) = Temperature.T_final_test2(:,jj)-Sonde.T_sonde(:,jj);
+end
+meanTemp = mean(tempComparison,2,'omitnan');
+stdTemp = std(tempComparison,0,2,'omitnan');
+
+divider = 12;
+figure(49)
+tempProb = zeros(Range.i_range,121);
+for ii = 1:size(Sonde.sonde_ind,2)
+    for i = 1:Range.i_range
+        for j = -60:60
+            tempDiff = Temperature.T_final_test2(i,ii)-Sonde.T_sonde(i,ii);
+            tempProb(i,j+61) = tempProb(i,j+61) + double((tempDiff<(j+1)/divider)&&(tempDiff>=j/divider));
+        end
+    end
+end
+tempProb(tempProb==0)=nan;
+imAlpha=ones(size(tempProb));
+imAlpha(isnan(tempProb))=0;%Set AlphaData to not plot NaNs
+imagesc((-60:60)/divider,Range.rkm,tempProb,'AlphaData',imAlpha)
+hold on
+plot(meanTemp,Range.rkm,'b','linewidth',2)
+plot(meanTemp+stdTemp,Range.rkm,'--k')
+plot(meanTemp-stdTemp,Range.rkm,'--k')
+hold off
+colormap(flipud(hot))%colormap hot
+set(gca,'Color','#D3D3D3')
+a = colorbar;
+a.Label.String = 'Occurrences';
+hold on
+xline(0)
+hold off
+ylim([0 4])
+xlim([-3 3])
+set(gca, 'YDir','normal')
+xlabel('\DeltaT MPD-Sonde (^oC)')
+ylabel('Range (km)')
+grid on
+title('temperature')
+
+figure(50)
+int = 1;
+%hist11 = zeros(size(Sonde.sonde_ind,2)*size(Sonde.sonde_ind,1));
+for ii = 1:size(Sonde.sonde_ind,2)
+    for jj = 1:size(Sonde.sonde_ind,1)
+        hist11(int)=Temperature.T_final_test2(jj,ii)-Sonde.T_sonde(jj,ii);
+        int=int+1;
+    end
+end
+    meanHist = mean(hist11,'omitnan');
+    stdHist = std(hist11,'omitnan');
+    histogram(hist11,'BinWidth',.01)
+    title(sprintf('Histogram T_{DIAL}-T_{sonde}\n Mean %0.5f, std %0.5f',meanHist,stdHist))
+
+    figure(53)
+    plot(Temperature.T_final_test2-Sonde.T_sonde,Range.rm)
+    hold on
+    plot(meanTemp,Range.rm,'linewidth',3)
+    title(sprintf('temperature\n mean %0.3d std %0.3d',meanHist,stdHist))
+    xlabel('T_{retrieval}-T_{sonde} (K)')
+   hold off
+    grid on
+
+    figure(54)
+    plot(Pfinal2-Sonde.P_sonde,Range.rm)
+    title('pressure')
+    xlabel('P_{retrieval}-P_{sonde} (atm)')
+    grid on
+
+figure(5544)
+subplot(2,1,1)
+for ii = 1:size(Sonde.sonde_ind,2)
+    plot(Time.thr(Sonde.sonde_ind(1,ii)),Model.Ts(Sonde.sonde_ind(1,ii))- Sonde.Tsurf(ii),'.')
+    hold on
+end
+ylabel('surface weather - sonde (K)')
+hold off
+subplot(2,1,2)
+for ii = 1:size(Sonde.sonde_ind,2)
+    plot(Time.thr(Sonde.sonde_ind(1,ii)),Model.Ps(Sonde.sonde_ind(1,ii))- Sonde.Psurf(ii),'.')
+    hold on
+end
+ylabel('surface weather - sonde (atm)')
+xlabel('Time (hr)')
+hold off
+
+
+
+sonde_index=1;
+% figure(51)
+% plot(Temperature.T_final_test2(:,sonde_index),Range.rkm)
+% hold on
+% plot(permute(Titer(:,sonde_index,:),[1 3 2]),Range.rkm)
+% plot(Sonde.T_sonde(:,sonde_index),Range.rkm,'--')
+% plot(Sonde.Tsurf(1,sonde_index),0,'*')
+% plot(Model.Ts(1,Sonde.sonde_ind(1,sonde_index)),0,'+')
+% title('Temparature')
+% hold off
+% ylim([0 5])
+% 
+% figure(511)
+% plot(Pfinal2(:,sonde_index),Range.rkm)
+% hold on
+% plot(Sonde.P_sonde(:,sonde_index),Range.rkm,'--')
+% plot(Sonde.Psurf(1,sonde_index),0,'*')
+% plot(Model.Ps(1,Sonde.sonde_ind(1,sonde_index)),0,'+')
+% plot(Model.P(:,Sonde.sonde_ind(1,sonde_index)),Range.rkm,'+')
+% hold off
+% title('Pressure')
+% ylim([0 5])
+
+% figure(5111)
+% plot(Sonde.absorption_sonde{sonde_index},Range.rkm)
+% hold on
+% plot(abssorptionSonde(:,sonde_index),Range.rkm)
+% hold off
+% legend('unsmoothed','smoothed')
+% title('absorption')
+% ylim([0 5])
+
+% figure(52)
+% plot(Temperature.T_final_test2(:,sonde_index)-Sonde.T_sonde(:,sonde_index),Range.rkm)
+% xlim([-10 10])
+% ylim([0 5])
+% title('temperature')
+% xline(1)
+% xline(-1)
+% 
+% figure(522)
+% plot(Pfinal2(:,sonde_index)-Sonde.P_sonde(:,sonde_index),Range.rkm)
+% title('Pressure')
+% %xlim([-10 10])
+% ylim([0 5])
+% %xline(1)
+% %xline(-1)
+
+
+
+% figure
+% plot(Pfinal,Range.rkm)
+% hold on
+% plot(Sonde.P_sonde(:,sonde_index),Range.rkm)
+% hold off
+% 
+% figure
+% plot(TPerfect,Range.rm)
+% hold on
+% plot(Tfinal,Range.rm)
+% hold off
+% 
+% figure
+% plot(TPerfect-Tfinal,Range.rm)
+% hold on
+% 
+% hold off
+
+end
 %%
 
 %=== Cut temperature to surface value ====
-Temperature.T_final_test_cut = [Model.Ts(1,:); NaN((cut - 2),Time.i_time); Temperature.T_final_test(cut:end,:)];
-Temperature.T_final_test_cut = fillmissing(Temperature.T_final_test_cut,'linear');
+% Temperature.T_final_test_cut = [Model.Ts(1,:); NaN((cut - 2),Time.i_time); Temperature.T_final_test(cut:end,:)];
+% Temperature.T_final_test_cut = fillmissing(Temperature.T_final_test_cut,'linear');
+
+%Appy cloud mask before smoothing
+Temperature.T_final_test_cut(cloud_SDm_above) = NaN;          % Replace mask with NaNs
+
+
+%Temperature.T_final_testf(isnan(gg)) = NaN;
+%Temperature.T_final_testg(isnan(gg)) = NaN;
+%[Ez,Et,minSigz,minSigt] = findMinE(Temperature.T_final_testf,Temperature.T_final_testg,0);
+%[Temperature.T_final_tests2] = applyFilter(minSigz,minSigt,Temperature.T_final_test_cut);
+
 
 k = ones(4,6)./(4*6);     % Kernel
+k = ones(4,8)./(4*8);     % Kernel
+
+k = ones(3,7)./(3*7);     % Kernel
+%k = ones(1,1)./(1);     % Kernel
 %=== apply mask
-Temperature.T_final_test_cut = Temperature.T_final_test_cut .* SNRm .* cloud_SDm_above ;
-Temperature.T_final_test_cut(Temperature.T_final_test_cut == 0) = NaN;          % Replace mask with NaNs
 
 %==== Smooth temperature
-Temperature.T_final_tests = filter2(k,Temperature.T_final_test_cut,'same');
+Temperature.T_final_tests = nanconv(Temperature.T_final_test,k,'edge','nanout');
 
-%%%Temperature.T_final_tests = Temperature.T_final_test_cut;
+%Temperature.TempStds = Temperature.TempStd./21;
+k1 = (size(k,2)-1)./2;
+k2 = (size(k,1)-1)./2;
+k1 = (size(k,1)-1)./2;
+k2 = (size(k,2)-1)./2;
+for iii = 1:size(Temperature.TempStd,1)
+    for jjj = 1:size(Temperature.TempStd,2)
+
+        if iii <= k1 || jjj <=k2
+        Temperature.TempStds(iii,jjj) = Temperature.TempStd(iii,jjj);
+        elseif iii >= (size(Temperature.TempStd,1)-k1) || jjj >= (size(Temperature.TempStd,2)-k2)
+            Temperature.TempStds(iii,jjj) = Temperature.TempStd(iii,jjj);
+        else
+            
+            Temperature.TempStds(iii,jjj) = sqrt(sumsqr(Temperature.TempStd(iii-k1:iii+k1,jjj-k2:jjj+k2)))./numel(k);
+            %Temperature.TempStds(iii,jjj) = sum(sum(Temperature.TempStd(iii-k1:iii+k1,jjj-k2:jjj+k2)))./numel(k);
+        end
+        
+    end
+end
+
+
 %=== apply mask
-Temperature.T_finalm = Temperature.T_final_tests .* SNRm .* cloud_SDm_above ;
-Temperature.T_finalm(Temperature.T_finalm <= 0) = NaN;
+Temperature.T_finalm = Temperature.T_final_tests ;
+Temperature.T_finalm(cloud_SDm_above) = NaN;
+
+Temperature.T_final_tests0 = Temperature.T_final_test0;
+Temperature.T_final_tests0(cloud_SDm_above) = nan;
+Temperature.T_final_tests0 = nanconv(Temperature.T_final_tests0,k,'edge','nanout');
+
+% %=== apply mask
+% Temperature.T_finalm = Temperature.T_final_tests ;
+% Temperature.T_finalm(cloud_SDm_above) = NaN;
 %%
 %====== Deconvolution calculation ==========
 % % clear o2onDecon o2offDecon
@@ -370,13 +793,11 @@ Temperature.T_finalm(Temperature.T_finalm <= 0) = NaN;
 % % 
 % % for ii=1:Time.i_time
 % %     [o2onDecon(:,ii)]=fdeconv(Counts.o2on(:,ii), impulse_counts2)/length(impulse_counts2);
-% %     [o2offDecon(:,ii)]=fdeconv(Counts.o2off(:,ii), impulse_counts2)/length(impulse_counts2);
-% %     
+% %     [o2offDecon(:,ii)]=fdeconv(Counts.o2off(:,ii), impulse_counts2)/length(impulse_counts2);   
 % % end
 % % 
 % % o2onDecon = interp2(Time.ts,Range.rm(1:end-length(impulse_counts2)+1),o2onDecon,Time.ts,Range.rm);
 % % o2offDecon = interp2(Time.ts,Range.rm(1:end-length(impulse_counts2)+1),o2offDecon,Time.ts,Range.rm);
-% % 
 % % 
 % %  ln_o2_decon = log((o2onDecon(ind_r_lo,:).*o2offDecon(ind_r_hi,:))./(o2onDecon(ind_r_hi,:).*o2offDecon(ind_r_lo,:))); % Natural log of counts
 % % alpha_0_raw_decon = ln_o2_decon./2./(Range.rangeBin*Options.oversample);                              %[1/m] 
@@ -410,7 +831,7 @@ for ii=1:size(Sonde.sonde_ind,2)
 Sonde.O_on_O_off(:,ii) = Counts.o2on(:,Sonde.sonde_ind(1,ii))./Counts.o2off(:,Sonde.sonde_ind(1,ii)) ./ Sonde.trasmission_sonde{ii}.^2;
 end
 
-Model.O_on_O_off = Counts.o2on./Counts.o2off ./ Model.transmission.^2;
+Model.O_on_O_off = Counts.o2on./Counts.o2off ./ exp(-cumtrapz(Range.rm,Model.absorption)).^2;
 
 %  tic
 % %p_point = 481;
@@ -481,13 +902,14 @@ Model.O_on_O_off = Counts.o2on./Counts.o2off ./ Model.transmission.^2;
 % 
 % toc
 
+%%%%%%%%%%%%%%%%%%%end
 %%
 %===============
 %=== Figures ===
 %===============
 
 %=Tick spacing and formating
-tickHours =72;
+tickHours =2;
 tickMin = 0;
 [y,m,d]=ymd(span_days(1));
 date2=datetime(y,m,d,tickHours,tickMin,0);
@@ -495,17 +917,16 @@ date1=datetime(y,m,d,0,0,0);
 Format.tickSpacing = datenum(date2)-datenum(date1);
 Format.tickAngle = 30;
 Format.dateTickFormat ='mm/dd HH:MM';
-Format.dateTickFormat ='mm/dd';
+%Format.dateTickFormat ='mm/dd';
 
 %= Plot time for profiles
-plot_time = datetime(2022,2,7,5,0,0,'TimeZone','UTC');%yyyy,mm,dd,hh,mm
+plot_time = datetime(2022,6,10,3,0,0,'TimeZone','UTC');%yyyy,mm,dd,hh,mm
 [~,p_point] = min(abs(plot_time-Time.date_ts)); % Find closest value to 338min for comparison to other program
 p_point(1:length(Range.rm),1)=p_point;
 
 %= Plot time for profiles with sondes
-sonde_index = 2;
+sonde_index = 1;
 p_point = Sonde.sonde_ind(:,sonde_index);
-%Sonde.sonde_ind = [];
 %Sonde.WV_sonde = nan(size(Counts.o2on));
 
-plot_O2(p_point,sonde_index,span_days,Sonde,Model,Counts,Range,Time,Options,Temperature,Format,Alpha,cloud_SDm,HSRL,Data,SNRm,cloud_SDm_above,N_wv,N_wv0,N_wvm,N_wv0m,AbsHumm,AbsHum0m)
+plot_O2(p_point,sonde_index,span_days,Sonde,Model,Counts,Range,Time,Options,Temperature,Format,Alpha,cloud_SDm,HSRL,Data,cloud_SDm,cloud_SDm_above,N_wv,N_wv0,N_wvm,N_wv0m,AbsHumm,AbsHum0m)
