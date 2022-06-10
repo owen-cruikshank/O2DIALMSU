@@ -1,0 +1,1 @@
+test = load('C:\FlintOSA\Results\baseline0_mag.dat')
