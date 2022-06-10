@@ -58,7 +58,15 @@ tic
 % thin profiles into set f.
 % input is rounded, background added, and multiplied by interation to be
 % close to raw counts.
+% disp('mex')
+% tic
+% Counts.fon = TEST_SUB_mybinornd_mex( round((Counts.o2on+Counts.bg_o2on).*Counts.NBins), 0.5);
+% toc
+%disp('function')
+%tic
 Counts.fon = TEST_SUB_mybinornd( round((Counts.o2on+Counts.bg_o2on).*Counts.NBins), 0.5);
+%toc
+
 Counts.foff  = TEST_SUB_mybinornd( round((Counts.o2off+Counts.bg_o2off).*Counts.NBins), 0.5);
 Counts.fon_mol = TEST_SUB_mybinornd( round((Counts.o2on_mol+Counts.bg_o2on_mol).*Counts.NBins), 0.5);
 Counts.foff_mol = TEST_SUB_mybinornd( round((Counts.o2off_mol+Counts.bg_o2off_mol).*Counts.NBins), 0.5);
@@ -67,37 +75,35 @@ Counts.fwvoff = TEST_SUB_mybinornd( round((Counts.wvoff+Counts.bg_wvoff).*Counts
 
 
 % subtract set f from counts to make set g
-Counts.gon = round((Counts.o2on+Counts.bg_o2on).*Counts.NBins)-Counts.fon;
-Counts.goff = round((Counts.o2off+Counts.bg_o2off).*Counts.NBins)-Counts.foff;
-Counts.gon_mol = round((Counts.o2on_mol+Counts.bg_o2on_mol).*Counts.NBins)-Counts.fon_mol;
-Counts.goff_mol = round((Counts.o2off_mol+Counts.bg_o2off_mol).*Counts.NBins)-Counts.foff_mol;
-Counts.gwvon = round((Counts.wvon+Counts.bg_wvon).*Counts.NBins)-Counts.fwvon;
-Counts.gwvoff = round((Counts.wvoff+Counts.bg_wvoff).*Counts.NBins)-Counts.fwvoff;
+gon = round((Counts.o2on+Counts.bg_o2on).*Counts.NBins)-Counts.fon;
+goff = round((Counts.o2off+Counts.bg_o2off).*Counts.NBins)-Counts.foff;
+gon_mol = round((Counts.o2on_mol+Counts.bg_o2on_mol).*Counts.NBins)-Counts.fon_mol;
+goff_mol = round((Counts.o2off_mol+Counts.bg_o2off_mol).*Counts.NBins)-Counts.foff_mol;
+gwvon = round((Counts.wvon+Counts.bg_wvon).*Counts.NBins)-Counts.fwvon;
+gwvoff = round((Counts.wvoff+Counts.bg_wvoff).*Counts.NBins)-Counts.fwvoff;
 toc
 
 %=====Find background of thinned profiles=====
-Counts.fon_bg = (Counts.bg_o2on.*Counts.NBins)/2;% Take mean of last data points
-Counts.fon_mol_bg = (Counts.bg_o2on_mol.*Counts.NBins)/2;% Take mean of last data points
-Counts.foff_bg = (Counts.bg_o2off.*Counts.NBins)/2;% Take mean of last data points
-Counts.foff_mol_bg = (Counts.bg_o2off_mol.*Counts.NBins)/2;% Take mean of last data points
+fon_bg = (Counts.bg_o2on.*Counts.NBins)/2;% Take mean of last data points
+fon_mol_bg = (Counts.bg_o2on_mol.*Counts.NBins)/2;% Take mean of last data points
+foff_bg = (Counts.bg_o2off.*Counts.NBins)/2;% Take mean of last data points
+foff_mol_bg = (Counts.bg_o2off_mol.*Counts.NBins)/2;% Take mean of last data points
 
-Counts.fwvon_bg = (Counts.bg_wvon.*Counts.NBins)/2;% Take mean of last data points
-Counts.fwvoff_bg = (Counts.bg_wvoff.*Counts.NBins)/2;% Take mean of last data points
+fwvon_bg = (Counts.bg_wvon.*Counts.NBins)/2;% Take mean of last data points
+fwvoff_bg = (Counts.bg_wvoff.*Counts.NBins)/2;% Take mean of last data points
 
+disp('creating filter')
 %=====Find optimal filters====
-[~,~,rangeWidthon,timeWidthon] = findMinE(Counts.fon,Counts.gon,Counts.fon_bg);
-clear Counts.fon Counts.gon Counts.fon_bg
-[~,~,rangeWidthoff,timeWidthoff] = findMinE(Counts.foff,Counts.goff,Counts.foff_bg);
-clear Counts.foff Counts.goff Counts.foff_bg
-[~,~,rangeWidthon_mol,timeWidthon_mol] = findMinE(Counts.fon_mol,Counts.gon_mol,Counts.fon_mol_bg);
-clear Counts.fon_mol Counts.gon_mol Counts.fon_mol_bg
-[~,~,rangeWidthoff_mol,timeWidthoff_mol] = findMinE(Counts.foff_mol,Counts.goff_mol,Counts.foff_mol_bg);
-clear Counts.foff_mol Counts.goff_mol Counts.foff_mol_bg
+[~,~,rangeWidthon,timeWidthon] = findMinE(Counts.fon,gon,fon_bg);
 
-[~,~,rangeWidthwvon,timeWidthwvon] = findMinE(Counts.fwvon,Counts.gwvon,Counts.fwvon_bg);
-clear Counts.fwvon Counts.gwvon Counts.fwvon_bg
-[~,~,rangeWidthwvoff,timeWidthwvoff] = findMinE(Counts.fwvoff,Counts.gwvoff,Counts.fwvoff_bg);
-clear Counts.fwvoff Counts.gwvoff Counts.fwvoff_bg
+[~,~,rangeWidthoff,timeWidthoff] = findMinE(Counts.foff,goff,foff_bg);
+
+[~,~,rangeWidthon_mol,timeWidthon_mol] = findMinE(Counts.fon_mol,gon_mol,fon_mol_bg);
+
+[~,~,rangeWidthoff_mol,timeWidthoff_mol] = findMinE(Counts.foff_mol,goff_mol,foff_mol_bg);
+
+[~,~,rangeWidthwvon,timeWidthwvon] = findMinE(Counts.fwvon,gwvon,fwvon_bg);
+[~,~,rangeWidthwvoff,timeWidthwvoff] = findMinE(Counts.fwvoff,gwvoff,fwvoff_bg);
 
 
 % assign outputs to structure
@@ -136,60 +142,6 @@ Counts.Poissonthin.rangeWidthwvoff = rangeWidthwvoff;
 [Counts.wvon] = applyFilter(rangeWidthwvon,timeWidthwvon,Counts.wvon);
 [Counts.wvoff] = applyFilter(rangeWidthwvoff,timeWidthwvoff,Counts.wvoff);
 
-
-% %==== Appy optimal filters to Count data====
-% %==Filter in range==
-% for iii = 1:size(Counts.o2on,2) %loop over time
-%         nz = round(4*rangeWidthon(iii)); %number of grid points 
-%         z = (-nz:nz)';%filter grid
-%         kern = exp(-z.^2/rangeWidthon(iii).^2); %smoothing kernel
-%         kern = kern/sum(sum(kern)); %normalized smoothing kernel
-%         Counts.o2on(:,iii) = nanconv(Counts.o2on(:,iii),kern,'edge','nanout'); %apply kernel to count data
-%         
-%         nz = round(4*rangeWidthoff(iii)); %number of grid points 
-%         z = (-nz:nz)';%filter grid
-%         kern = exp(-z.^2/rangeWidthoff(iii).^2);
-%         kern = kern/sum(sum(kern));
-%         Counts.o2off(:,iii) = nanconv(Counts.o2off(:,iii),kern,'edge','nanout');
-%         
-%         nz = round(4*rangeWidthon_mol(iii)); %number of grid points 
-%         z = (-nz:nz)';%filter grid
-%         kern = exp(-z.^2/rangeWidthon_mol(iii).^2);
-%         kern = kern/sum(sum(kern));
-%         Counts.o2on_mol(:,iii) = nanconv(Counts.o2on_mol(:,iii),kern,'edge','nanout');
-%         
-%         nz = round(4*rangeWidthoff_mol(iii)); %number of grid points 
-%         z = (-nz:nz)';%filter grid
-%         kern = exp(-z.^2/rangeWidthoff_mol(iii).^2);
-%         kern = kern/sum(sum(kern));
-%         Counts.o2off_mol(:,iii) = nanconv(Counts.o2off_mol(:,iii),kern,'edge','nanout');
-% end
-% %==Filter in time==
-% for iii = 1:size(Counts.o2on,1) %loop over range
-%         nz = round(4*timeWidthon(iii)); %number of grid points 
-%         z = (-nz:nz);%filter grid
-%         kern = exp(-z.^2/timeWidthon(iii).^2);
-%         kern = kern/sum(sum(kern));
-%         Counts.o2on(:,iii) = nanconv(Counts.o2on(:,iii),kern,'edge','nanout');
-%         
-%         nz = round(4*timeWidthoff(iii)); %number of grid points 
-%         z = (-nz:nz);%filter grid
-%         kern = exp(-z.^2/timeWidthoff(iii).^2);
-%         kern = kern/sum(sum(kern));
-%         Counts.o2off(:,iii) = nanconv(Counts.o2off(:,iii),kern,'edge','nanout');
-%         
-%         nz = round(4*timeWidthon_mol(iii)); %number of grid points 
-%         z = (-nz:nz);%filter grid
-%         kern = exp(-z.^2/timeWidthon_mol(iii).^2);
-%         kern = kern/sum(sum(kern));
-%         Counts.o2on_mol(:,iii) = nanconv(Counts.o2on_mol(:,iii),kern,'edge','nanout');
-%         
-%         nz = round(4*timeWidthoff_mol(iii)); %number of grid points 
-%         z = (-nz:nz);%filter grid
-%         kern = exp(-z.^2/timeWidthoff_mol(iii).^2);
-%         kern = kern/sum(sum(kern));
-%         Counts.o2off_mol(:,iii) = nanconv(Counts.o2off_mol(:,iii),kern,'edge','nanout');
-% end
 end
 
 function [counts] = applyFilter(rangeWidth,timeWidth,counts)
@@ -212,12 +164,13 @@ function [counts] = applyFilter(rangeWidth,timeWidth,counts)
 end
 
 function [Ez,Et,minSigz,minSigt] = findMinE(f,g,bg)
-    disp('creating filter')
+    
     %====find best filter in range====
     filt_size = logspace(-1,1.5,40); %create filter size in terms of grid points
     Ez = ones(1,length(f(1,:)),length(filt_size));
+    fprintf('Range ')
     for jj = 1:length(filt_size) %loop over different filters
-        fprintf('Range %f',jj)
+        fprintf('%g ',jj)
         nz = round(4*filt_size(jj)); %number of grid points 
         z = (-nz:nz)'; %filter grid
         kern = exp(-z.^2/filt_size(jj).^2); %gaussian fitler kernel in range
@@ -234,6 +187,7 @@ function [Ez,Et,minSigz,minSigt] = findMinE(f,g,bg)
         fFilt(fFilt==0)=.001; %avoid inf in log
         Ez(:,:,jj) = sum(fFilt+bg-g.*log(fFilt+bg),1,'omitnan'); %loss function to optimize
     end
+    fprintf('\n')
     [~,minEind]=min(Ez,[],3); %find minimum of loss function
     minSigz = ones(1,size(f,2));
     for ii = 1:size(f,2)
@@ -241,10 +195,11 @@ function [Ez,Et,minSigz,minSigt] = findMinE(f,g,bg)
     end
 
     %====find best filter in time====
-    filt_size = logspace(-1.5,5,100);
+    filt_size = logspace(-1.5,3,100);
     Et = ones(length(f(:,1)),1,length(filt_size));
+    fprintf('time ')
     for jj = 1:length(filt_size)
-        fprintf('time %f',jj)
+        fprintf('%g ',jj)
         nz = round(4*filt_size(jj)); %number of grid points 
         z = (-nz:nz);%filter grid
         %kern = gaussmf(z,[filt_size(jj),0]);%fitler kernel in range
@@ -265,6 +220,7 @@ function [Ez,Et,minSigz,minSigt] = findMinE(f,g,bg)
         fFilt(fFilt==0)=.001;%avoid inf in log
         Et(:,:,jj) = sum(fFilt+bg-g.*log(fFilt+bg),2,'omitnan');
     end
+    fprintf('\n')
     [~,minEind]=min(Et,[],3);
     minSigt = ones(size(f,1),1);
     for ii = 1:size(f,1)
@@ -272,22 +228,32 @@ function [Ez,Et,minSigz,minSigt] = findMinE(f,g,bg)
     end       
 end
 
-function [ res ] = TEST_SUB_mybinornd( N, p )
-    %Custom fast binomial 
-    [row_cnt, col_cnt] = size(N);
-    res = zeros(row_cnt, col_cnt);
-    for ii=1:row_cnt
-       for jj=1:col_cnt
-           if isnan(N(ii,jj))
-               res(ii,jj)=NaN;
-           else
-               res(ii, jj) = sum(rand(1,N(ii,jj))<p);
-               %res(ii, jj,:) = rand(1,N(ii,jj));
+% function [ res ] = TEST_SUB_mybinornd( N, p )
+%     %Custom fast binomial 
+%     [row_cnt, col_cnt] = size(N);
+%     res = zeros(row_cnt, col_cnt);
+% %     for ii=1:row_cnt
+% %        for jj=1:col_cnt
+% %            if isnan(N(ii,jj))
+% %                res(ii,jj)=NaN;
+% %            else
+% %                res(ii, jj) = sum(rand(1,N(ii,jj))<p);
+% %            end
+% %        end
+% %     end
+% 
+% for jj=1:col_cnt
+%     %for ii=1:row_cnt
+%        
+%            if isnan(N(1,jj))
+%                res(:,jj)=NaN;
+%            else
+%                aaa = max(N(:,jj));
+%                res(:, jj) = sum(rand(row_cnt,aaa)<p,2);
+%            end
+%       % end
+% end
+%end
 
-               %res(ii, jj) = sum(randi([0 1],N(ii,jj),1));
-           end
-       end
-    end
-    %res1 = sum(res<p,3);
-end
+
 
