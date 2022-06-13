@@ -26,7 +26,7 @@ date_start = datetime(2022,5,2,'TimeZone','UTC');%yyyy,mm,dd
 date_end = datetime(2022,5,7,'TimeZone','UTC');%yyyy,mm,dd
 
 date_start = datetime(2022,6,8,'TimeZone','UTC');%yyyy,mm,dd
-date_end = datetime(2022,6,10,'TimeZone','UTC');%yyyy,mm,dd
+date_end = datetime(2022,6,8,'TimeZone','UTC');%yyyy,mm,dd
 
 % date_start = datetime(2022,4,30,'TimeZone','UTC');%yyyy,mm,dd
 
