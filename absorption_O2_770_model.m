@@ -38,7 +38,6 @@ O2_parameters = O2_parameters';                     %transpose matrix to correct
 [rL, tL] = size(T);                                 %length of range vector x length of time vector
 
 lineshape = zeros(rL,tL);
-%Voight_profile = zeros(rL,tL);
 cross_section = zeros(rL,tL);
 
 nu_Range = nu_Range * 100;                          %change nu_Range from [1/cm] to [1/m]
@@ -57,6 +56,7 @@ for ii = 1:length(O2_parameters)
 end
 Line = cell(1,linesThreshold);
 
+
 increment = 1;
 for i = 1:length(O2_parameters)                     %loop over all line parameters
 
@@ -69,22 +69,18 @@ for i = 1:length(O2_parameters)                     %loop over all line paramete
     n_air = O2_parameters(i,9);                     %[unitless] linewidth temperature dependence
     E_lower = O2_parameters(i,8);                   %[1/cm] ground state energy
     E_lower = E_lower * 100;                        %[1/m] ground state energy
-%     gamma_D = O2_parameters(i,7);                   %[1/cm]self (Doppler) broadened linewidth
-%     gamma_D = gamma_D * 100;                        %[1/m]
     delta_air = O2_parameters(i,10);                %[1/cm/atm] pressure shift induce by air, at p=1atm
     delta_air = delta_air * 100;                    %[1/m/atm]
     
     if S0_O2 * 100 > strength_threshold             %Do not compute cross section for line if it id below the threshold
 
-        nuShifted = nu_O2 + delta_air .* P;         %[1/m] (r x t) Shift line center based on atmopheric pressure
-        %nuShifted = nu_O2 ;%+ delta_air .* P;         %[1/m] (r x t) Shift line center based on atmopheric pressure
         
+        nuShifted = nu_O2 + delta_air .* P;         %[1/m] (r x t) Shift line center based on atmopheric pressure
+      
         %temperature shifted line strength
-        %a_o2 = S0_O2.*(T0./T);
-        %c_o2 = exp(h.*c./kB.*((1./T0)-(1./T)).*E_lower);
-        %ST_O2 = a_o2.*c_o2;                                 %[m/molecule](t x r) O2 line strength adjusted for temperature shift from T0
-
-        ST_O2 = S0_O2.*(T0./T).*exp(h.*c./kB.*((1./T0)-(1./T)).*E_lower);                                 %[m/molecule](t x r) O2 line strength adjusted for temperature shift from T0
+        %ST_O2 = S0_O2.*(T0./T).*exp(h.*c./kB.*((1./T0)-(1./T)).*E_lower);                                 %[m/molecule](t x r) O2 line strength adjusted for temperature shift from T0
+        ST_O2 = S0_O2.*(T0./T).*exp(h.*c./kB.*((1./T0)-(1./T)).*E_lower).*((1-exp(-h*c*nu_O2./kB./T))./(1-exp(-h*c*nu_O2./kB./T0)));  
+        
         gamma_L_T = gamma_L * (P/P0).*((T0./T).^n_air);     %[1/m](t x r) Lorentz linewidth adjusted for temperature and pressure shift
         gamma_D_T = (nuShifted/c).*sqrt(2*kB*T*log(2)/mo2); %[1/m](t x r) Dopper linewidth due to temperature
 
@@ -101,12 +97,8 @@ for i = 1:length(O2_parameters)                     %loop over all line paramete
 
         Voight = (y/pi).*integralV;                                     %[none](t x r) Voight lineshape
 
-        %sigma =  Voight .* K ;                                          %[m^2/molecule](t x r) Voight absorption cross section
-
-
         lineshape = f + lineshape;                  %add on to previous lineshape
-        %Voight_profile = Voight + Voight_profile;   %add on to previous profile
-        cross_section = Voight .* K + cross_section;      %add on to previous cross_section
+       cross_section = Voight .* K + cross_section;      %add on to previous cross_section
         
         %Save each line parameters
         %N_o2 = ((P*101325)./(kB*T)-WV) * q_O2; %[molecule/m^3](t x r)O2 number density from atmopsheric number density and O2 mixing ratio
@@ -120,7 +112,6 @@ for i = 1:length(O2_parameters)                     %loop over all line paramete
     end
 end
 
-%N_o2 = ((P*101325)./(kB*T)-WV) * q_O2; %[molecule/m^3](t x r)O2 number density from atmopsheric number density and O2 mixing ratio
 absorption = cross_section .* ((P*101325)./(kB*T)-WV) * q_O2; %[1/m](t x r)absorption coefficeint of oxygen in the atmosphere at specificed wavenumber
 
 end
