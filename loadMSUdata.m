@@ -366,6 +366,36 @@ Counts.bg_wvon = nan(size(Counts.bg_o2on));
 Counts.bg_wvoff = nan(size(Counts.bg_o2on));
 
 %%
+% for iii = 1:Time.i_time
+% Counts.deconvo2on(:,iii) =deconv(Counts.o2on(:,iii),[0.5 0.5]);
+% Counts.deconvo2off(:,iii) =deconv(Counts.o2off(:,iii),[0.5 0.5]);
+% Counts.deconvo2on_mol(:,iii) =deconv(Counts.o2on_mol(:,iii),[0.5 0.5]);
+% Counts.deconvo2off_mol(:,iii) =deconv(Counts.o2off_mol(:,iii),[0.5 0.5]);
+% end
+% ending = Counts.deconvo2on(end-1:end,:);
+% endingoff = Counts.deconvo2off(end-1:end,:);
+% 
+% ending_mol = Counts.deconvo2on_mol(end-1:end,:);
+% endingoff_mol = Counts.deconvo2off_mol(end-1:end,:);
+% for iii = 1:2:Range.i_range-2
+%     Counts.deconvo2on(iii:iii+1,:) = Counts.deconvo2on(iii:iii+1,:)+ending;
+%     Counts.deconvo2off(iii:iii+1,:) = Counts.deconvo2off(iii:iii+1,:)+endingoff;
+%     Counts.deconvo2on_mol(iii:iii+1,:) = Counts.deconvo2on_mol(iii:iii+1,:)+ending_mol;
+%     Counts.deconvo2off_mol(iii:iii+1,:) = Counts.deconvo2off_mol(iii:iii+1,:)+endingoff_mol;
+% end
+% 
+% Counts.deconvo2on(end+1:end+2,:) = Counts.deconvo2on(end-1:end,:);
+% Counts.deconvo2off(end+1:end+2,:) = Counts.deconvo2off(end-1:end,:);
+% Counts.deconvo2on_mol(end+1:end+2,:) = Counts.deconvo2on_mol(end-1:end,:);
+% Counts.deconvo2off_mol(end+1:end+2,:) = Counts.deconvo2off_mol(end-1:end,:);
+
+% Counts.o2on = Counts.deconvo2on(1:end-1,:);
+% Counts.o2off =Counts.deconvo2off(1:end-1,:);
+% Counts.o2on_mol = Counts.deconvo2on_mol(1:end-1,:);
+% Counts.o2off_mol = Counts.deconvo2off_mol(1:end-1,:);
+
+
+%%
 %====== Calucate any appy optimal filtering based on Poisson thinning ====
 Counts = poissonThin(Counts);
 
