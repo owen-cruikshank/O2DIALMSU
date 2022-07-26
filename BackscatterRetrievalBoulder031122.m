@@ -32,7 +32,8 @@ function [LidarData]=BackscatterRetrievalBoulder031122(LidarData,WeatherData)
     wdP = WeatherData.Pressure;
     wdT = WeatherData.Temperature;
 
-    load('CalibrationScan20220311_5.mat','Results')
+    %load('CalibrationScan20220311_5.mat','Results')
+    load(fullfile('CalibrationData','CalibrationScan20220311_5.mat'),'Results')
     P=Results.Pressure./101.325; 
     T=Results.Temperature';
     Eta_m=Results.eta_m;

@@ -1,4 +1,4 @@
-function [LidarData]=BackscatterRetrieval03112022(LidarData,WeatherData)
+function [LidarData]=BackscatterRetrieval05202022(LidarData,WeatherData)
 %inputs-
 %Lidar Data with Corrected Counts
 %Weather Data with Temperature and Pressure
@@ -13,7 +13,8 @@ function [LidarData]=BackscatterRetrieval03112022(LidarData,WeatherData)
     %file=pwd;
     %cd("F:\Research\Calibration_Data")
    % load(fullfile('CalibrationData','CalibrationTables0702.mat'));
-    load(fullfile('CalibrationData','CalibrationScan03112022.mat'));
+    %load(fullfile('CalibrationData','CalibrationScan03112022.mat'));
+    load(fullfile('CalibrationData','CalibrationScan20220520.mat'));
     %cd(file)
     P=Results.Pressure*0.009869233; 
     T=Results.Temperature;
@@ -28,12 +29,19 @@ function [LidarData]=BackscatterRetrieval03112022(LidarData,WeatherData)
     LidarData.Cmm=zeros(length(LidarData.Range),length(LidarData.Time));
     LidarData.Cmc=zeros(length(LidarData.Range),length(LidarData.Time));
 
+    CmmD = LidarData.Cmm;
+    CmcD = LidarData.Cmc;
+    Pressure = WeatherData.Pressure;
+    Temperature = WeatherData.Temperature;
     for i=1:length(LidarData.Time)
-       for j=1:length(LidarData.Range)
-        LidarData.Cmm(j,i)=interp2(P,T,Cmm,WeatherData.Pressure(j,i),WeatherData.Temperature(j,i));
-        LidarData.Cmc(j,i)=interp2(P,T,Cmc,WeatherData.Pressure(j,i),WeatherData.Temperature(j,i));
+       parfor j=1:length(LidarData.Range)
+        CmmD(j,i)=interp2(P,T,Cmm,Pressure(j,i),Temperature(j,i));
+        CmcD(j,i)=interp2(P,T,Cmc,Pressure(j,i),Temperature(j,i));
        end
     end
+
+    LidarData.Cmm =CmmD; 
+    LidarData.Cmc =CmcD ;
     
     %Calibration Constants
     LidarData.Cac=Cac; %Aerosol in Combined
