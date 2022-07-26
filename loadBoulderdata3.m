@@ -396,6 +396,8 @@ Spectrum.lambda_offline = 770.1085 *ones(size(Time.ts));
 
 % Spectrum.lambda_wvon = 828.1959 *ones(size(Time.ts));
 % Spectrum.lambda_wvoff = 828.2951 *ones(size(Time.ts));
+% Spectrum.lambda_wvon = 828.187 *ones(size(Time.ts));
+% Spectrum.lambda_wvoff = 828.2951 *ones(size(Time.ts));
 Spectrum.lambda_wvon = fillmissing(filloutliers(Data.Laser.WVOnline.WavelengthActual,'linear','movmedian',5),'linear');
 Spectrum.lambda_wvoff = fillmissing(filloutliers(Data.Laser.WVOffline.WavelengthActual,'linear','movmedian',5),'linear');
 
@@ -476,7 +478,7 @@ Counts.wvoff = filter2(k,Counts.wvoff_noise,'same');
 
 %====== Calucate any appy optimal filtering based on Poisson thinning ====
 tic
-Counts = poissonThin(Counts);
+%%%Counts = poissonThin(Counts);
 toc
 %%
 
@@ -522,13 +524,18 @@ disp('Calculating HSRL')
     LidarData.OfflineMolecularTotalCounts = Counts.o2off_mol;
     WeatherData.Temperature = Model.T;
     WeatherData.Pressure = Model.P;
-    [LidarData]=BackscatterRetrievalBoulder062021(LidarData,WeatherData);
+    if span_days(1) <  datetime(2021,12,1,1,0,0,'TimeZone','UTC')
+        [LidarData]=BackscatterRetrievalBoulder062021(LidarData,WeatherData);
+    else
+        [LidarData]=BackscatterRetrievalBoulder031122(LidarData,WeatherData);
+    end
     HSRL.BSR = LidarData.UnmaskedBackscatterRatio;
     HSRL.Ba = LidarData.UnmaskedAerosolBackscatterCoefficient;
     HSRL.Bm = LidarData.MolecularBackscatterCoefficient;
     %Ba828 = LidarData.UnmaskedAerosolBackscatterCoefficient828;
     %Bm828 = LidarData.MolecularBackscatterCoefficient828;
     HSRL.BSR828 =LidarData.UnmaskedBackscatterRatio828;
+
 
 % 
 %     LidarData.OfflineCombinedTotalCounts = Counts.foff-Counts.foff_bg;
