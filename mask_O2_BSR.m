@@ -45,7 +45,8 @@ SNRm = o2off_SNRm .* o2on_SNRm;         %Final combination SNR matrix mask with 
 
 
 %standard deviation
-stdNeiborhood = true(7,5);                                % NxN window arround each point
+stdNeiborhood = true(7,5);   
+stdNeiborhood = true(3,1); % NxN window arround each point
 
 % o2on_SD = stdfilt(o2on_range_corrected,stdNeiborhood);  % Use a square standard deviation filter on the range corrected return to find a standard deviation
 % cloud_SDm_on = ones(size(Counts.o2on));                        % Initialize mask matrix
@@ -61,7 +62,9 @@ stdNeiborhood = true(7,5);                                % NxN window arround e
 %USE BSR as cloud mask
 BSR_SD = stdfilt(BSR,stdNeiborhood);  % Use a square standard deviation filter on the range corrected return to find a standard deviation
 cloud_SDm_BSR = ones(size(BSR));                        % Initialize mask matrix
-cloud_SDm_BSR(BSR_SD > SD_threshold & Range.rm > 500 | isnan(Counts.o2off)) = 0;                       % Set points with a standard deviation greater than the threshold to 0 inicating a cloudy area
+%cloud_SDm_BSR(BSR_SD > SD_threshold & Range.rm > 500 | isnan(Counts.o2off)) = 0;                       % Set points with a standard deviation greater than the threshold to 0 inicating a cloudy area
+
+cloud_SDm_BSR((BSR_SD > SD_threshold) & (Range.rm > lowAlt) | isnan(Counts.o2off)) = 0;  
 
 cloud_SDm = cloud_SDm_BSR;
 
@@ -158,6 +161,14 @@ xline(thr(p_point),'r');
 hold off
 set(gca, 'YDir','normal')
 title('SNRm')
+
+figure(61)
+imagesc(thr,Range.rm,cloud_SDm)
+hold on
+xline(thr(p_point),'r');
+hold off
+set(gca, 'YDir','normal')
+title('cloudSDM')
 
 end
 end
