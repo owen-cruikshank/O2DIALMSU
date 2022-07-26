@@ -5,16 +5,16 @@ function [Range,Time,Counts,Sonde,Model,Spectrum,HSRL,Data,Options] = loadMSUdat
 disp('Reading in files')
 maindirectory =pwd;
 cd ../
-Options.path = [pwd '\Data\MSU data\RSync\NetCDFOutput\']; %Path for instument netCDF data
-Options.weatherPath = [pwd '\Data\']; %path for weather station data
-Options.sondepath = [pwd '\Data\MSU data\Radiosondes\']; %path for radiosonde data
-
-Options.path = fullfile(pwd,'Data','MSU data','RSync','NetCDFOutput');
+Options.path = fullfile(pwd,'Data','MSU data','RSync','NetCDFOutput'); %Path for instument data
+Options.weatherPath = fullfile(pwd, 'Data'); %path for weather station data
+Options.sondepath = fullfile(pwd ,'Data','MSU data','Radiosondes'); %path for radiosonde data
 
 cd( maindirectory) %back to main directory
 
 Options.MPDname = 'MSU';
 Options.BinTotal = 560;
+%Options.BinTotal = 400;
+Options.BinTotal = 490;
 %Load raw data from NetCDF files
 [Data, Options] = loadMSUNETcdf(span_days,Options);
 
@@ -35,11 +35,13 @@ Time.thr = Time.ts/60/60; %(hr)
 % =====================
 % Create range vector from length of data bins
 Range.nsPerBin = 250; %[ns] bin length in nanosections
-Range.NBins = floor(560/Options.intRange); %number of range bins in vector
+Range.NBins = floor(Options.BinTotal/Options.intRange); %number of range bins in vector
 Range.rangeBin = (Constant.c * Range.nsPerBin(1)*10^-9)/2; %(m)range bin length
 
 Range.rm_raw_o2 = -150:Range.rangeBin:Range.NBins(1)*Range.rangeBin-150-Range.rangeBin;    %[m] Create range vector
-%Range.rm_raw_o2 = 0:Range.rangeBin:Range.NBins(1)*Range.rangeBin+0-Range.rangeBin;    %[m] Create range vector
+%%%%%%%%%%%%%%%%%%%%%%%
+Range.rm_raw_o2 = 0:Range.rangeBin:Range.NBins(1)*Range.rangeBin+0-Range.rangeBin;    %[m] Create range vector
+%%%%%%%%%%%%%%%%%%%%%%%%
 Range.rm_raw_o2 = Range.rm_raw_o2(:);                           %[m] Convert range vector to column vector
 Range.r_max = 6000;                                       %[m] Max range 
 Range.rm = Range.rm_raw_o2(Range.rm_raw_o2<=Range.r_max & Range.rm_raw_o2>0);     %[m] Shorten range vector to max range
@@ -189,6 +191,23 @@ Counts.bg_o2off_mol = mean(Data.MCS.Channel8.Data(end-20:end,:));% Take mean of 
 Counts.o2off_bgsub_mol = Data.MCS.Channel8.Data - Counts.bg_o2off_mol;       % Background subtracted
 Counts.o2off_bgsub_mol(Counts.o2off_bgsub_mol < 0) = 0;         % Minimum of zero
 
+
+% Counts.bg_o2off = mean(Data.MCS.Channel10.Data(400-40:400,:));% Take mean of last data points
+% Counts.o2off_bgsub = Data.MCS.Channel10.Data - Counts.bg_o2off;       % Background subtracted
+% Counts.o2off_bgsub(Counts.o2off_bgsub < 0) = 0;         % Minimum of zero
+% 
+% Counts.bg_o2on = mean(Data.MCS.Channel2.Data(400-40:400,:));% Take mean of last data points
+% Counts.o2on_bgsub = Data.MCS.Channel2.Data - Counts.bg_o2on;       % Background subtracted
+% Counts.o2on_bgsub(Counts.o2on_bgsub < 0) = 0;         % Minimum of zero
+% 
+% Counts.bg_o2on_mol = mean(Data.MCS.Channel0.Data(400-40:400,:));% Take mean of last data points
+% Counts.o2on_bgsub_mol = Data.MCS.Channel0.Data - Counts.bg_o2on_mol;       % Background subtracted
+% Counts.o2on_bgsub_mol(Counts.o2on_bgsub_mol < 0) = 0;         % Minimum of zero
+% 
+% Counts.bg_o2off_mol = mean(Data.MCS.Channel8.Data(400-40:400,:));% Take mean of last data points
+% Counts.o2off_bgsub_mol = Data.MCS.Channel8.Data - Counts.bg_o2off_mol;       % Background subtracted
+% Counts.o2off_bgsub_mol(Counts.o2off_bgsub_mol < 0) = 0;         % Minimum of zero
+
 %%
 
 % ========integrate to new range
@@ -215,21 +234,22 @@ Counts.o2on_noise_mol = interp2(Time.ts,Range.rm_raw_o2,Counts.o2on_bgsub_mol,Ti
 Counts.o2off_noise = interp2(Time.ts,Range.rm_raw_o2,Counts.o2off_bgsub,Time.ts,Range.rm);
 Counts.o2off_noise_mol = interp2(Time.ts,Range.rm_raw_o2,Counts.o2off_bgsub_mol,Time.ts,Range.rm);
 
+%integrate Bins to new range
 Counts.NBins = Data.MCS.Channel0.NBins*2;
 %Counts.NBins = Data.MCS.Channel0.NBins;
 
 
 %%
 %Dead time correction
-deadTime = 22e-9; %SPCM-AQRH-13 dead time
-Counts.o2onCR = Counts.o2on_noise.*Counts.NBins.*250e-9.*14000;%Count rate, Counts*NuberTimeSummedbins*Length of bin(250ns)*profiles per histogram
-Counts.o2on_noise = Counts.o2on_noise ./(1-(deadTime.*Counts.o2onCR));
-Counts.o2offCR = Counts.o2off_noise.*Counts.NBins.*250e-9.*14000;%Count rate, Counts*NuberTimeSummedbins*Length of bin(250ns)*profiles per histogram
-Counts.o2off_noise = Counts.o2off_noise ./(1-(deadTime.*Counts.o2offCR));
-Counts.o2on_molCR = Counts.o2on_noise_mol.*Counts.NBins.*250e-9.*14000;%Count rate, Counts*NuberTimeSummedbins*Length of bin(250ns)*profiles per histogram
-Counts.o2on_noise_mol = Counts.o2on_noise_mol ./(1-(deadTime.*Counts.o2on_molCR));
-Counts.o2off_molCR = Counts.o2off_noise_mol.*Counts.NBins.*250e-9.*14000;%Count rate, Counts*NuberTimeSummedbins*Length of bin(250ns)*profiles per histogram
-Counts.o2off_noise_mol = Counts.o2off_noise_mol ./(1-(deadTime.*Counts.o2off_molCR));
+% % % deadTime = 22e-9; %SPCM-AQRH-13 dead time
+% % % Counts.o2onCR = Counts.o2on_noise.*Counts.NBins.*250e-9.*14000;%Count rate, Counts*NuberTimeSummedbins*Length of bin(250ns)*profiles per histogram
+% % % Counts.o2on_noise = Counts.o2on_noise ./(1-(deadTime.*Counts.o2onCR));
+% % % Counts.o2offCR = Counts.o2off_noise.*Counts.NBins.*250e-9.*14000;%Count rate, Counts*NuberTimeSummedbins*Length of bin(250ns)*profiles per histogram
+% % % Counts.o2off_noise = Counts.o2off_noise ./(1-(deadTime.*Counts.o2offCR));
+% % % Counts.o2on_molCR = Counts.o2on_noise_mol.*Counts.NBins.*250e-9.*14000;%Count rate, Counts*NuberTimeSummedbins*Length of bin(250ns)*profiles per histogram
+% % % Counts.o2on_noise_mol = Counts.o2on_noise_mol ./(1-(deadTime.*Counts.o2on_molCR));
+% % % Counts.o2off_molCR = Counts.o2off_noise_mol.*Counts.NBins.*250e-9.*14000;%Count rate, Counts*NuberTimeSummedbins*Length of bin(250ns)*profiles per histogram
+% % % Counts.o2off_noise_mol = Counts.o2off_noise_mol ./(1-(deadTime.*Counts.o2off_molCR));
 %%
 %===== Afterpulse Correction =====
 % load('AfterPulse.mat','pulseON','pulseOFF','pulseON_mol','pulseOFF_mol')
@@ -301,7 +321,10 @@ Spectrum.del_lambda = Spectrum.lambda_scan_3D_short-Spectrum.lambda_online;
 
 %%
 %===== Calculate Model absorption from Model T and P =======
-Model.absorption = absorption_O2_770_model(Model.T,Model.P,Spectrum.nu_online,Model.WV); %[m-1] Funcrtion to calculate theoretical absorption
+%%%%Model.absorption = absorption_O2_770_model(Model.T,Model.P,Spectrum.nu_online,Model.WV); %[m-1] Funcrtion to calculate theoretical absorption
+
+Model.absorption = absorption_O2_770_model(Model.T,Model.P,Spectrum.nu_online,Model.WV);
+
 Model.absorption_off = absorption_O2_770_model(Model.T,Model.P,Spectrum.nu_offline,Model.WV); %[m-1] Funcrtion to calculate theoretical absorption
 Model.transmission = exp(-cumtrapz(Range.rm,Model.absorption));
 

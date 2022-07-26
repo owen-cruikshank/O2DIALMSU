@@ -38,6 +38,7 @@ end
     % To read in data starting after a 00:00:00 the starting time must be
     % changed
     Options.TimeGrid      = (0.1:Options.intTime:60*(24*length(spanDays)-1/60/60))./60;
+    Options.TimeGrid      = (0.001:Options.intTime:60*(24*length(spanDays)-1/60/60))./60;
 
     %% Loading filepaths
     Paths.Code = pwd;
