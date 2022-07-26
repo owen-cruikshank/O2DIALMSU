@@ -59,6 +59,7 @@ tic
 % input is rounded, background added, and multiplied by interation to be
 % close to raw counts.
 Counts.fon = TEST_SUB_mybinornd( round((Counts.o2on+Counts.bg_o2on).*Counts.NBins), 0.5);
+
 Counts.foff  = TEST_SUB_mybinornd( round((Counts.o2off+Counts.bg_o2off).*Counts.NBins), 0.5);
 Counts.fon_mol = TEST_SUB_mybinornd( round((Counts.o2on_mol+Counts.bg_o2on_mol).*Counts.NBins), 0.5);
 Counts.foff_mol = TEST_SUB_mybinornd( round((Counts.o2off_mol+Counts.bg_o2off_mol).*Counts.NBins), 0.5);
@@ -220,18 +221,6 @@ function [Ez,Et,minSigz,minSigt] = findMinE(f,g,bg)
     end       
 end
 
-function [ res ] = TEST_SUB_mybinornd( N, p )
-    %Custom fast binomial 
-    [row_cnt, col_cnt] = size(N);
-    res = zeros(row_cnt, col_cnt);
-    for ii=1:row_cnt
-       for jj=1:col_cnt
-           if isnan(N(ii,jj))
-               res(ii,jj)=NaN;
-           else
-               res(ii, jj) = sum(rand(1,N(ii,jj))<p);
-           end
-       end
-    end
-end
+
+
 

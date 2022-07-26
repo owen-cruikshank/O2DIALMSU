@@ -50,7 +50,12 @@ for m=1:1:size(ToLoad,1) % Looping over filetypes
                 % Appending data to the other availible data
                 %Data{m,1}{p,1} = [Data{m}{p,1};A];
 
-                Data{m,1}{p,1} = [Data{m}{p,1}; A];
+               % Data{m,1}{p,1} = [Data{m}{p,1}; A];
+
+                sx = size(Data{m}{p,1});
+                sy = size(A);
+                a = max(sx(2),sy(2));
+                Data{m,1}{p,1} = [[Data{m}{p,1} zeros(abs([0 a]-sx))];[A zeros(abs([0 a]-sy))]];
             end
         end
     end

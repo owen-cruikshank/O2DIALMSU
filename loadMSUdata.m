@@ -397,7 +397,24 @@ Counts.bg_wvoff = nan(size(Counts.bg_o2on));
 
 %%
 %====== Calucate any appy optimal filtering based on Poisson thinning ====
-Counts = poissonThin(Counts);
+%Counts = poissonThin(Counts);
+
+Counts.Poissonthin.timeWidthon = nan(size(Counts.o2on,1));
+Counts.Poissonthin.timeWidthoff = nan(size(Counts.o2on,1));
+Counts.Poissonthin.timeWidthon_mol = nan(size(Counts.o2on,1));
+Counts.Poissonthin.timeWidthoff_mol = nan(size(Counts.o2on,1));
+Counts.Poissonthin.rangeWidthon = nan(size(Counts.o2on,2));
+Counts.Poissonthin.rangeWidthoff = nan(size(Counts.o2on,2));
+Counts.Poissonthin.rangeWidthon_mol = nan(size(Counts.o2on,2));
+Counts.Poissonthin.rangeWidthoff_mol = nan(size(Counts.o2on,2));
+
+Counts.Poissonthin.timeWidthwvon = nan(size(Counts.o2on,1));
+Counts.Poissonthin.timeWidthwvoff = nan(size(Counts.o2on,1));
+Counts.Poissonthin.rangeWidthwvon = nan(size(Counts.o2on,2));
+Counts.Poissonthin.rangeWidthwvoff = nan(size(Counts.o2on,2));
+
+ Counts.foff=nan(size(Counts.o2on));
+ Counts.foff_mol=nan(size(Counts.o2on));
 
 %%
 % Deconvolution estimate

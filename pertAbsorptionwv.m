@@ -25,20 +25,20 @@
     %%
     %Calculate RB spectrum by PCA
     %[doppler_O2_ret] = RB_O2_770_PCA(T,P,nu_scan_3D_short);  
-    [doppler_O2_ret] = RB_828_PCA(Model.T,Model.P,Spectrum.nu_scan_3D_short);
-
-    %shift to correct online wavelength
-    RBshift = 151-Spectrum.online_indexwv;
-    RBshift = 145-Spectrum.online_indexwv;
-    RBshift = zeros(size(Spectrum.online_indexwv));
-    RBshift = 152-Spectrum.online_indexwv;
-    for iii=1:length(Spectrum.online_indexwv)
-        if RBshift(iii)<=0
-            doppler_O2_ret(:,iii,:) = cat(3,zeros(Range.i_range,1,-RBshift(iii)),doppler_O2_ret(:,iii,1:end+RBshift(iii)));
-        elseif RBshift(iii)>0
-            doppler_O2_ret(:,iii,:) = cat(3,doppler_O2_ret(:,iii,RBshift(iii)+1:end),zeros(Range.i_range,1,RBshift(iii)));
-        end
-    end
+% % %     [doppler_O2_ret] = RB_828_PCA(Model.T,Model.P,Spectrum.nu_scanwv_3D_short);
+% % % 
+% % %     %shift to correct online wavelength
+% % %     RBshift = 151-Spectrum.online_indexwv;
+% % %     RBshift = 145-Spectrum.online_indexwv;
+% % %     RBshift = zeros(size(Spectrum.online_indexwv));
+% % %     RBshift = 152-Spectrum.online_indexwv;
+% % %     for iii=1:length(Spectrum.online_indexwv)
+% % %         if RBshift(iii)<=0
+% % %             doppler_O2_ret(:,iii,:) = cat(3,zeros(Range.i_range,1,-RBshift(iii)),doppler_O2_ret(:,iii,1:end+RBshift(iii)));
+% % %         elseif RBshift(iii)>0
+% % %             doppler_O2_ret(:,iii,:) = cat(3,doppler_O2_ret(:,iii,RBshift(iii)+1:end),zeros(Range.i_range,1,RBshift(iii)));
+% % %         end
+% % %     end
 
      norm_O2_ret = trapz(doppler_O2_ret,3).*Spectrum.nuBin*100;                   %[none] Lineshape integral
     doppler_O2_ret = doppler_O2_ret./norm_O2_ret;                       %[m] Normalized doppler lineshape

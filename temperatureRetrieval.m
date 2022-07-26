@@ -1,4 +1,5 @@
-function [T_final,Lapse,Ts_fit,P_final,mean_lapse_rate,exclusion,Titer] =  temperatureRetrieval(T,ts,rm,P,WV,nu_scan,alpha_O2,SNRm,cloud_SDm_above,Ts,Ps,startLapse)
+function [T_final,Lapse,Ts_fit,P_final,mean_lapse_rate,exclusion,Titer] =  temperatureRetrieval(T,ts,rm,~,WV,nu_scan,alpha_O2,~,cloud_SDm_above,Ts,Ps,startLapse)
+%function [T_final,Lapse,Ts_fit,P_final,mean_lapse_rate,exclusion,Titer] =  temperatureRetrieval(T,ts,rm,P,WV,nu_scan,alpha_O2,SNRm,cloud_SDm_above,Ts,Ps,startLapse)
 %File: temperatureRetrieval.m
 %Date: 03/16/2020
 %Author: Owen Cruikshank
@@ -40,7 +41,10 @@ h = 6.62607004E-34;                     %[Js] Planck's constant
 
 T0 = 296;                   %[K] reference temperature
 
-loop = 30;%number of times to do iterative temperature retrieval loop
+loop = 17;%number of times to do iterative temperature retrieval loop
+
+loop = 25;
+
 
 gamma = g0 * M_air / R;     %[K/m]gravity molar mass of air and gas constant
 
@@ -56,8 +60,7 @@ exclusion = zeros(length(rm),length(ts),loop);
 Titer = zeros(length(rm),length(ts),loop);
 logicalExc = true(length(rm),length(ts));
 
-starting_lapse_rate = -0.0065;%[K/m] typical lapse rate
-
+%starting_lapse_rate = -0.0065;%[K/m] typical lapse rate
 %starting_lapse_rate = -0.004;
 starting_lapse_rate = startLapse;
 
@@ -181,6 +184,20 @@ for i = 1:loop
     deltaT(deltaT < -2) = -2;
 
     Titer(:,:,i) = Tg;
+% 
+%     if sum(sum(deltaT))/nnz(~isnan(deltaT)) < 0.01
+%         break;
+%     end
+%delta = deltaT(:,:,i);
+%%%sum(sum(abs(delta(~cloud_SDm_above))>0.05))
+
+%sum(sum(abs(deltaT(:,:,i))>0.1))
+% %     if sum(sum(abs(deltaT(:,:,i))>1)) <= 0
+% %         i=loop;
+% %         %break;
+% %         disp('broke')
+% %         
+% %     end
     % Update temperature profile guress
     T_ret(:,:,i) = Tg + deltaT(:,:,i);            
     Tg = fillmissing(T_ret(:,:,i),'nearest',1);
