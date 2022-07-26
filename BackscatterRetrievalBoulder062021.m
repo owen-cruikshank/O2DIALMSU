@@ -13,7 +13,7 @@ function [LidarData]=BackscatterRetrievalBoulder062021(LidarData,WeatherData)
     %file=pwd;
     %cd("F:\Research\Calibration_Data")
     %%%%%load('CalibrationTablesBoulder062021.mat');
-    load('CalibrationTablesBoulderSponS6062021.mat','BoulderHSRLcoefficentsSponS6_062021');
+    load(fullfile('CalibrationData','CalibrationTablesBoulderSponS6062021.mat'),'BoulderHSRLcoefficentsSponS6_062021');
     BoulderHSRLcoefficents062021 = BoulderHSRLcoefficentsSponS6_062021;
     %cd(file)
     P=BoulderHSRLcoefficents062021.P; 
@@ -58,6 +58,9 @@ function [LidarData]=BackscatterRetrievalBoulder062021(LidarData,WeatherData)
 %% Unmasked Version
     %Create Molecular Backscatter Coefficient
     LidarData.MolecularBackscatterCoefficient=9.94266e-7*(WeatherData.Pressure)./(WeatherData.Temperature);
+
+
+   LidarData.MolecularBackscatterCoefficient= 5.45*10^-32*(550/770)^4 /(1.3806*10^-23) * 101325 *(WeatherData.Pressure)./(WeatherData.Temperature);
 
     %wavelength corrected for wv
     LidarData.MolecularBackscatterCoefficient828 = LidarData.MolecularBackscatterCoefficient*770^4/828^4;
