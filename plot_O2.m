@@ -1843,7 +1843,7 @@ xlabel('errest')
 
 
 figure(8883469)
-factor = 1e6;
+%factor = 1e6;
 factor = 1;
 tempComparison = nan(Range.i_range,size(Sonde.sonde_ind,2));
 for jj = 1:size(Sonde.sonde_ind,2)
@@ -1989,7 +1989,7 @@ else
     stdTemp = nan;
 end
 
-subplot(1,2,1)
+subplot(1,2,2)
 tempProb = zeros(Range.i_range,121);
 for ii = 1:size(Sonde.sonde_ind,2)
     for i = 1:Range.i_range
@@ -2021,7 +2021,7 @@ set(gca, 'YDir','normal')
 xlabel('\DeltaT MPD-Model (^oC)')
 ylabel('Range (km)')
 grid on
-subplot(1,2,2)
+subplot(1,2,1)
 
 tempComparison = ones(Range.i_range,size(Sonde.sonde_ind,2));
 for jj = 1:size(Sonde.sonde_ind,2)
@@ -2158,7 +2158,7 @@ hold off
 ylim([0 4])
 xlim([-20 20])
 set(gca, 'YDir','normal')
-xlabel('\DeltaT Temperature.T_finalm-fit (^oC)')
+xlabel('\DeltaT MPD-fit (^oC)')
 ylabel('Range (km)')
 grid on
 
@@ -2334,80 +2334,80 @@ grid on
 % grid on
 
 %===poisson thin filter in time
-% % figure(2828)
-% % title('time')
-% % subplot(1,6,1)
-% % semilogx(Counts.Poissonthin.timeWidthon*Time.t_step,Range.rkm,'.')
-% % xlim([1 10^4])
-% % grid on
-% % title('on')
-% % ylabel('Range')
-% % subplot(1,6,2)
-% % semilogx(Counts.Poissonthin.timeWidthoff*Time.t_step,Range.rkm,'.')
-% % xlim([1 10^4])
-% % grid on
-% % title('off')
-% % subplot(1,6,3)
-% % semilogx(Counts.Poissonthin.timeWidthon_mol*Time.t_step,Range.rkm,'.')
-% % xlim([1 10^4])
-% % grid on
-% % title('on mol')
-% % subplot(1,6,4)
-% % semilogx(Counts.Poissonthin.timeWidthoff_mol*Time.t_step,Range.rkm,'.')
-% % xlim([1 10^4])
-% % grid on
-% % title('of mol')
-% % subplot(1,6,5)
-% % semilogx(Counts.Poissonthin.timeWidthwvon*Time.t_step,Range.rkm,'.')
-% % xlim([1 10^4])
-% % grid on
-% % title('on wv')
-% % subplot(1,6,6)
-% % semilogx(Counts.Poissonthin.timeWidthwvoff*Time.t_step,Range.rkm,'.')
-% % xlim([1 10^4])
-% % grid on
-% % title('off wv')
+figure(2828)
+title('time')
+subplot(1,6,1)
+semilogx(Counts.Poissonthin.timeWidthon*Time.t_step,Range.rkm,'.')
+xlim([1 10^4])
+grid on
+title('on')
+ylabel('Range')
+subplot(1,6,2)
+semilogx(Counts.Poissonthin.timeWidthoff*Time.t_step,Range.rkm,'.')
+xlim([1 10^4])
+grid on
+title('off')
+subplot(1,6,3)
+semilogx(Counts.Poissonthin.timeWidthon_mol*Time.t_step,Range.rkm,'.')
+xlim([1 10^4])
+grid on
+title('on mol')
+subplot(1,6,4)
+semilogx(Counts.Poissonthin.timeWidthoff_mol*Time.t_step,Range.rkm,'.')
+xlim([1 10^4])
+grid on
+title('of mol')
+subplot(1,6,5)
+semilogx(Counts.Poissonthin.timeWidthwvon*Time.t_step,Range.rkm,'.')
+xlim([1 10^4])
+grid on
+title('on wv')
+subplot(1,6,6)
+semilogx(Counts.Poissonthin.timeWidthwvoff*Time.t_step,Range.rkm,'.')
+xlim([1 10^4])
+grid on
+title('off wv')
 
 %==poisson thinning filter in range
-% % figure(2829)
-% % title('time')
-% % subplot(6,1,1)
-% % semilogy(Time.thr,Counts.Poissonthin.rangeWidthon*Range.rangeBin,'.')
-% % ylim([1 300])
-% % xlim([Time.thr(1) Time.thr(end)])
-% % grid on
-% % title('on')
-% % subplot(6,1,2)
-% % semilogy(Time.thr,Counts.Poissonthin.rangeWidthoff*Range.rangeBin,'.')
-% % ylim([1 300])
-% % xlim([Time.thr(1) Time.thr(end)])
-% % grid on
-% % title('off')
-% % subplot(6,1,3)
-% % semilogy(Time.thr,Counts.Poissonthin.rangeWidthon_mol*Range.rangeBin,'.')
-% % ylim([1 300])
-% % xlim([Time.thr(1) Time.thr(end)])
-% % grid on
-% % title('on_mol')
-% % subplot(6,1,4)
-% % semilogy(Time.thr,Counts.Poissonthin.rangeWidthoff_mol*Range.rangeBin,'.')
-% % ylim([1 300])
-% % xlim([Time.thr(1) Time.thr(end)])
-% % grid on
-% % title('of_mol')
-% % subplot(6,1,5)
-% % semilogy(Time.thr,Counts.Poissonthin.rangeWidthwvon*Range.rangeBin,'.')
-% % ylim([1 300])
-% % xlim([Time.thr(1) Time.thr(end)])
-% % grid on
-% % title('on wv')
-% % subplot(6,1,6)
-% % semilogy(Time.thr,Counts.Poissonthin.rangeWidthwvoff*Range.rangeBin,'.')
-% % ylim([1 300])
-% % xlim([Time.thr(1) Time.thr(end)])
-% % grid on
-% % title('off wv')
-% % xlabel('Time UTC')
+figure(2829)
+title('time')
+subplot(6,1,1)
+semilogy(Time.thr,Counts.Poissonthin.rangeWidthon*Range.rangeBin,'.')
+ylim([1 300])
+xlim([Time.thr(1) Time.thr(end)])
+grid on
+title('on')
+subplot(6,1,2)
+semilogy(Time.thr,Counts.Poissonthin.rangeWidthoff*Range.rangeBin,'.')
+ylim([1 300])
+xlim([Time.thr(1) Time.thr(end)])
+grid on
+title('off')
+subplot(6,1,3)
+semilogy(Time.thr,Counts.Poissonthin.rangeWidthon_mol*Range.rangeBin,'.')
+ylim([1 300])
+xlim([Time.thr(1) Time.thr(end)])
+grid on
+title('on_mol')
+subplot(6,1,4)
+semilogy(Time.thr,Counts.Poissonthin.rangeWidthoff_mol*Range.rangeBin,'.')
+ylim([1 300])
+xlim([Time.thr(1) Time.thr(end)])
+grid on
+title('of_mol')
+subplot(6,1,5)
+semilogy(Time.thr,Counts.Poissonthin.rangeWidthwvon*Range.rangeBin,'.')
+ylim([1 300])
+xlim([Time.thr(1) Time.thr(end)])
+grid on
+title('on wv')
+subplot(6,1,6)
+semilogy(Time.thr,Counts.Poissonthin.rangeWidthwvoff*Range.rangeBin,'.')
+ylim([1 300])
+xlim([Time.thr(1) Time.thr(end)])
+grid on
+title('off wv')
+xlabel('Time UTC')
 
 %==sonde and dial difference
 figure(8797861)

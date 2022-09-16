@@ -33,6 +33,7 @@ function [ res ] = TEST_SUB_mybinornd( N, p )
 %            %end
 %        %end
 %     end
+    end
 end
 
 

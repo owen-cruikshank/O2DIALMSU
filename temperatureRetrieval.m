@@ -139,6 +139,9 @@ for i = 1:loop
             Ts_fit(:,time,i) = Ts(time);
          end
     end
+
+   % Lapse(:,:,i) = startLapse;
+%    Ts_fit(:,:,i) = Ts;
     
     %calclate total mean
     %%%%%% mean_lapse_rate(:,:,1) = mean(Lapse(1,:,i),2);    
@@ -149,6 +152,8 @@ for i = 1:loop
     Pg = Ps.*(Ts_fit(1,:,i)./(Ts_fit(1,:,i)+Lapse(:,:,i).*rm)).^(gamma./Lapse(:,:,i));
    % Pg = Ps.*(Ts_fit(1,1,i)./Tg).^(gamma./Lapse(:,:,i));
    %Pg = Ps.*(Ts./(Ts+starting_lapse_rate.*rm)).^(gamma./starting_lapse_rate);
+
+
 
     %calculate air number density
     n_L = Pg .* 101325 / kB ./ Tg;          %[1/m^3] Loschmidt's number; with pressure converted to Pa
@@ -167,6 +172,17 @@ for i = 1:loop
     C1b = Line{2}.S0 * T0 * (Pg*101325) * exp(epb/kB/T0) ./ kB;%[K^2/(m^2)]pressure converted to Pa
     C2b = Tg .^ (-2) .* exp(-epb/kB./Tg);%[K^-2]
     C3b = (-2) ./ Tg + epb./(kB.*Tg.^2);%[K^-1]
+
+
+%         epa = Line{1}.E_lower*h*c; %J
+%     C1a = Line{1}.S0 * T0 * (Ps*101325) * exp(epa/kB/T0) ./ kB./Ts.^(-gamma./Lapse(:,:,i));%[K^2/(m^2)]pressure converted to Pa
+%     C2a = Tg .^ (-2-gamma./Lapse(:,:,i)) .* exp(-epa/kB./Tg);%[K^-2]
+%     C3a = (-2-gamma./Lapse(:,:,i)) ./ Tg + epa./(kB.*Tg.^2);%[K^-1]
+%     epb = Line{2}.E_lower*h*c;
+%     C1b = Line{2}.S0 * T0 * (Ps*101325) * exp(epb/kB/T0) ./ kB./Ts.^(-gamma./Lapse(:,:,i));%[K^2/(m^2)]pressure converted to Pa
+%     C2b = Tg .^ (-2-gamma./Lapse(:,:,i)) .* exp(-epb/kB./Tg);%[K^-2]
+%     C3b = (-2-gamma./Lapse(:,:,i)) ./ Tg + epb./(kB.*Tg.^2);%[K^-1]
+
 %     epc = Line{3}.E_lower*h*c;
 %     C1c = Line{3}.S0 * T0 * (Pg*101325) * exp(epc/kB/T0) ./ kB;%[K^2/(m^2)]pressure converted to Pa
 %     C2c = Tg .^ ( -2) .* exp(-epc/kB./Tg);%[K^-2]
@@ -221,7 +237,7 @@ fprintf('\n')
 T_final = Tg;
 %P_final = Ps.*(Ts_fit(1,1,end)./(Ts_fit(1,1,end)+Lapse(:,:,end).*rm)).^(gamma./Lapse(:,:,end));
 P_final = Pg;
-%P_final = Ps.*(Ts_fit(1,1,end)./T_final).^(gamma./Lapse(:,:,end));
+%P_final = Ps.*(Ts./T_final).^(gamma./Lapse(:,:,end));
 
 exclusion = exclusion(:,:,end);
 end

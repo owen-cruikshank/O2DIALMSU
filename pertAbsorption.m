@@ -79,9 +79,9 @@ end
 
     clear g1_m g1_a
     %derivative of lineshape dg/dr
-    dg1_dr = (g1(ind_r_hi,:,:) - g1(ind_r_lo,:,:)) ./(Range.rangeBin*Options.oversample); %[none] Derivative over oversamped range
-    %dg1_dr = interp1(Range.rm(ind_r_lo),dg1_dr,Range.rm,'nearest',nan);         %[none] Make dg/dr the same size as g
-   dg1_dr(ind_r_hi(end),:,:) = dg1_dr(ind_r_hi(end-1),:,:);
+%     dg1_dr = (g1(ind_r_hi,:,:) - g1(ind_r_lo,:,:)) ./(Range.rangeBin*Options.oversample); %[none] Derivative over oversamped range
+%     %dg1_dr = interp1(Range.rm(ind_r_lo),dg1_dr,Range.rm,'nearest',nan);         %[none] Make dg/dr the same size as g
+%    dg1_dr(ind_r_hi(end),:,:) = dg1_dr(ind_r_hi(end-1),:,:);
 
 %     for iii = 1:length(Spectrum.lambda_scan_3D_short)
 %         dg1_dr1(:,:,iii) = interp2(Time.ts,Range.rm(ind_r_lo)+Range.rangeBin./2,dg1_dr(:,:,iii),Time.ts,Range.rm);

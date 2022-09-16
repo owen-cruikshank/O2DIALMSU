@@ -33,7 +33,7 @@ T0 = 296;                               %[K]
 P0 = 1.0;                               %[atm]
 
 parameters = fopen(fullfile('CalibrationData','O2_line_parameters.out'),'r');   %open file containing HITRAN information
-fmt = ['%1d %1d %f %e %e %f %f %f %f %f'];          %format of HITRAN file
+fmt = '%1d %1d %f %e %e %f %f %f %f %f';          %format of HITRAN file
 O2_parameters =fscanf(parameters,fmt,[10 inf]);     %place HITRAN parameters in vector a
 fclose(parameters);                                 %close file
 O2_parameters = O2_parameters';                     %transpose matrix to correct format
@@ -48,8 +48,8 @@ integralV = zeros(rL,tL,length(nu_Range));%preallocate
 
 nu_Range = nu_Range * 100;                          %change nu_Range from [1/cm] to [1/m]
 
-strength_threshold = 1*10^(-27);                    %[cm / molecule] line strength threshold
-strength_threshold = 0;                    %[cm / molecule] line strength threshold
+% strength_threshold = 1*10^(-27);                    %[cm / molecule] line strength threshold
+% strength_threshold = 0;                    %[cm / molecule] line strength threshold
 
 t = -10:.2:10;                                      %Relative freqency to integrate over
 t_4D = permute(t,[4 3 1 2]);                        %shift t to put it in third dimestion
@@ -68,8 +68,8 @@ for i = 1:size(O2_parameters,1)                     %loop over all line paramete
     n_air = O2_parameters(i,9);                     %[unitless] linewidth temperature dependence
     E_lower = O2_parameters(i,8);                   %[1/cm] ground state energy
     E_lower = E_lower * 100;                        %[1/m] ground state energy
-    gamma_D = O2_parameters(i,7);                   %[1/cm]self (Doppler) broadened linewidth
-    gamma_D = gamma_D * 100;                        %[1/m]
+%     gamma_D = O2_parameters(i,7);                   %[1/cm]self (Doppler) broadened linewidth
+%     gamma_D = gamma_D * 100;                        %[1/m]
     delta_air = O2_parameters(i,10);                %[1/cm/atm] pressure shift induce by air, at p=1atm
     %delta_air = -0.0093; %override
     %delta_air = -0.013; %override

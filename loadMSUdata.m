@@ -14,7 +14,7 @@ cd( maindirectory) %back to main directory
 Options.MPDname = 'MSU';
 Options.BinTotal = 560;
 %Options.BinTotal = 400;
-%Options.BinTotal = 490;
+Options.BinTotal = 490;
 %Load raw data from NetCDF files
 [Data, Options] = loadMSUNETcdf(span_days,Options);
 
@@ -74,7 +74,7 @@ disp('Calculating model')
 Model.Ts = weather_Temperature_interp + 273.15 ;          %surface temperature from weather station [K]
 Model.Ps = weather_absPressure_interp / 1013.25;         %absolute surface pressure from weather station [atm]
 lapseRate = -6.5;                                   %[K/km] Guess adiabatic lapse rate  typically -6.5 up to 10km
-lapseRate = -10;    
+%lapseRate = -10;    
 lapseRate = lapseRate / 1000;                       %[K/m] 
 
 Model.T = Model.Ts + lapseRate .* Range.rm;                           %[K] (1 x r) Temperature model as a function of r 
@@ -93,6 +93,13 @@ Model.WV = zeros(size(Model.T));
 %===========================
 disp('Loading Sonde data')
 [sonde_datetime,sondeStruc] =  COBradiosonde(Options.sondepath,span_days);
+
+rm_sgp = cell(1,numel(sonde_datetime));
+T_sonde_int= cell(1,numel(sonde_datetime));
+P_sonde_int= cell(1,numel(sonde_datetime));
+WV_sonde_int= cell(1,numel(sonde_datetime));
+rm_sonde_int= cell(1,numel(sonde_datetime));
+
 for i = 1:numel(sonde_datetime) % Loop over number of sondes in time period
     if isdatetime(sonde_datetime(i)) %== Check if sonde exists
         % ===Subtract first range value (site elevation) from whole vector
@@ -101,8 +108,8 @@ for i = 1:numel(sonde_datetime) % Loop over number of sondes in time period
         %===convert to same units====
         sondeStruc(i).P = sondeStruc(i).P./1013.25;%atm
         % ==Collect radiosonde surface measurements==
-        T_sgp_surf(i) = sondeStruc(i).T(1);
-        P_sgp_surf(i) = sondeStruc(i).P(1);
+%         T_sgp_surf(i) = sondeStruc(i).T(1);
+%         P_sgp_surf(i) = sondeStruc(i).P(1);
         % ==Custom interpolation function==
         [T_sonde_int{i},P_sonde_int{i},WV_sonde_int{i},rm_sonde_int{i}] = interp_sonde2(sondeStruc(i).T,sondeStruc(i).P,sondeStruc(i).WV,rm_sgp{i},Range.rangeBin);  
         
@@ -447,24 +454,24 @@ Counts.bg_wvoff = nan(size(Counts.bg_o2on));
 
 %%
 %====== Calucate any appy optimal filtering based on Poisson thinning ====
-%Counts = poissonThin(Counts);
+Counts = poissonThin(Counts);
 
-Counts.Poissonthin.timeWidthon = nan(size(Counts.o2on,1));
-Counts.Poissonthin.timeWidthoff = nan(size(Counts.o2on,1));
-Counts.Poissonthin.timeWidthon_mol = nan(size(Counts.o2on,1));
-Counts.Poissonthin.timeWidthoff_mol = nan(size(Counts.o2on,1));
-Counts.Poissonthin.rangeWidthon = nan(size(Counts.o2on,2));
-Counts.Poissonthin.rangeWidthoff = nan(size(Counts.o2on,2));
-Counts.Poissonthin.rangeWidthon_mol = nan(size(Counts.o2on,2));
-Counts.Poissonthin.rangeWidthoff_mol = nan(size(Counts.o2on,2));
-
-Counts.Poissonthin.timeWidthwvon = nan(size(Counts.o2on,1));
-Counts.Poissonthin.timeWidthwvoff = nan(size(Counts.o2on,1));
-Counts.Poissonthin.rangeWidthwvon = nan(size(Counts.o2on,2));
-Counts.Poissonthin.rangeWidthwvoff = nan(size(Counts.o2on,2));
-
- Counts.foff=nan(size(Counts.o2on));
- Counts.foff_mol=nan(size(Counts.o2on));
+% Counts.Poissonthin.timeWidthon = nan(size(Counts.o2on,1));
+% Counts.Poissonthin.timeWidthoff = nan(size(Counts.o2on,1));
+% Counts.Poissonthin.timeWidthon_mol = nan(size(Counts.o2on,1));
+% Counts.Poissonthin.timeWidthoff_mol = nan(size(Counts.o2on,1));
+% Counts.Poissonthin.rangeWidthon = nan(size(Counts.o2on,2));
+% Counts.Poissonthin.rangeWidthoff = nan(size(Counts.o2on,2));
+% Counts.Poissonthin.rangeWidthon_mol = nan(size(Counts.o2on,2));
+% Counts.Poissonthin.rangeWidthoff_mol = nan(size(Counts.o2on,2));
+% 
+% Counts.Poissonthin.timeWidthwvon = nan(size(Counts.o2on,1));
+% Counts.Poissonthin.timeWidthwvoff = nan(size(Counts.o2on,1));
+% Counts.Poissonthin.rangeWidthwvon = nan(size(Counts.o2on,2));
+% Counts.Poissonthin.rangeWidthwvoff = nan(size(Counts.o2on,2));
+% 
+%  Counts.foff=nan(size(Counts.o2on));
+%  Counts.foff_mol=nan(size(Counts.o2on));
 
 %%
 % Deconvolution estimate
@@ -654,4 +661,4 @@ end
 %===== Calculate Model Counts =====
 %   HSRL.BSR = ones(size(Counts.o2on));
 %   HSRL.Ba = zeros(size(HSRL.Ba));
-[Model] = modelCounts(Counts,Model,HSRL,Time,Range,Spectrum);
+%%%[Model] = modelCounts(Counts,Model,HSRL,Time,Range,Spectrum);

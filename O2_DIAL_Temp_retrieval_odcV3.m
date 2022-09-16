@@ -13,12 +13,13 @@ date_start = datetime(2022,4,21,'TimeZone','UTC');%yyyy,mm,dd
 %    date_start = datetime(2022,7,11,'TimeZone','UTC');%yyyy,mm,dd
 %    date_end = datetime(2022,7,13,'TimeZone','UTC');%yyyy,mm,dd
 
-%   date_start = datetime(2022,7,26,'TimeZone','UTC');%yyyy,mm,dd
-%   date_end = datetime(2022,8,1,'TimeZone','UTC');%yyyy,mm,dd
+  date_start = datetime(2022,7,26,'TimeZone','UTC');%yyyy,mm,dd
+    date_start = datetime(2022,9,10,'TimeZone','UTC');%yyyy,mm,dd
+  date_end = datetime(2022,9,12,'TimeZone','UTC');%yyyy,mm,dd
 
 % 
 %   date_start = datetime(2022,8,23,'TimeZone','UTC');%yyyy,mm,dd
-%   date_end = datetime(2022,8,30,'TimeZone','UTC');%yyyy,mm,dd
+%   date_end = datetime(2022,9,7,'TimeZone','UTC');%yyyy,mm,dd
 % 
 %     date_start = datetime(2022,6,22,'TimeZone','UTC');%yyyy,mm,dd
 %   date_end = datetime(2022,6,22,'TimeZone','UTC');%yyyy,mm,dd
@@ -129,8 +130,9 @@ Counts.wvon(cloud_SDm_above) = nan;
 Counts.wvoff(cloud_SDm_above) = nan;
 %%
 %for jjjj = 1:1
-jjjj=1;
-for jjjj = 1:15
+%jjjj=1;
+%for jjjj = 1:50
+for jjjj = 1:30
     if jjjj ==2
 %         Model.T = real(fillmissing(Temperature.T_finalm,'linear'));
 %         Model.P = real(fillmissing(Temperature.Patm_final,'linear'));
@@ -319,19 +321,20 @@ Alpha.alpha_0 = fillmissing(Alpha.alpha_0,'nearest');
     end
     alpha_0(end,:,:) = log((Counts.o2on(end-1,:).*Counts.o2off(end,:))./(Counts.o2on(end,:).*Counts.o2off(end-1,:)))./2./Range.rangeBin;
 
-    %4th order error
-    alpha_0 = zeros(size(Counts.o2on));
-    alpha_0(1,:,:) = log((Counts.o2on(1,:).*Counts.o2off(2,:))./(Counts.o2on(2,:).*Counts.o2off(1,:)))./2./Range.rangeBin;
-    alpha_0(2,:,:) = log((Counts.o2on(2,:).*Counts.o2off(3,:))./(Counts.o2on(3,:).*Counts.o2off(2,:)))./2./Range.rangeBin;
-    for iii = 3:length(Range.rm)-2
-        %dg1(iii,:,:) = (g1(iii+1,:,:)-g1(iii-1,:,:))/2/Range.rangeBin;
-        %alpha_0(iii,:)=log((Counts.o2on(iii-1,:).*Counts.o2off(iii+1,:))./(Counts.o2on(iii+1,:).*Counts.o2off(iii-1,:)))./2./Range.rangeBin./2;
-        don(iii,:) = log(Counts.o2on(iii-2,:))-8.*log(Counts.o2on(iii-1,:))+8.*log(Counts.o2on(iii+1,:))-log(Counts.o2on(iii+2,:));
-        doff(iii,:) = log(Counts.o2off(iii-2,:))-8.*log(Counts.o2off(iii-1,:))+8.*log(Counts.o2off(iii+1,:))-log(Counts.o2off(iii+2,:));
-        alpha_0(iii,:) = (doff(iii,:)-don(iii,:))./12./Range.rangeBin./2;
-    end
-    alpha_0(end,:,:) = log((Counts.o2on(end-1,:).*Counts.o2off(end,:))./(Counts.o2on(end,:).*Counts.o2off(end-1,:)))./2./Range.rangeBin;
-    alpha_0(end-1,:,:) = log((Counts.o2on(end-2,:).*Counts.o2off(end-1,:))./(Counts.o2on(end-1,:).*Counts.o2off(end-2,:)))./2./Range.rangeBin;
+%     %4th order error
+%     alpha_0 = zeros(size(Counts.o2on));
+%     alpha_0(1,:,:) = log((Counts.o2on(1,:).*Counts.o2off(2,:))./(Counts.o2on(2,:).*Counts.o2off(1,:)))./2./Range.rangeBin;
+%     alpha_0(2,:,:) = log((Counts.o2on(2,:).*Counts.o2off(3,:))./(Counts.o2on(3,:).*Counts.o2off(2,:)))./2./Range.rangeBin;
+%     for iii = 3:length(Range.rm)-2
+%         %dg1(iii,:,:) = (g1(iii+1,:,:)-g1(iii-1,:,:))/2/Range.rangeBin;
+%         %alpha_0(iii,:)=log((Counts.o2on(iii-1,:).*Counts.o2off(iii+1,:))./(Counts.o2on(iii+1,:).*Counts.o2off(iii-1,:)))./2./Range.rangeBin./2;
+%         don(iii,:) = log(Counts.o2on(iii-2,:))-8.*log(Counts.o2on(iii-1,:))+8.*log(Counts.o2on(iii+1,:))-log(Counts.o2on(iii+2,:));
+%         doff(iii,:) = log(Counts.o2off(iii-2,:))-8.*log(Counts.o2off(iii-1,:))+8.*log(Counts.o2off(iii+1,:))-log(Counts.o2off(iii+2,:));
+%         alpha_0(iii,:) = (doff(iii,:)-don(iii,:))./12./Range.rangeBin./2;
+%     end
+%     clear don doff
+%     alpha_0(end,:,:) = log((Counts.o2on(end-1,:).*Counts.o2off(end,:))./(Counts.o2on(end,:).*Counts.o2off(end-1,:)))./2./Range.rangeBin;
+%     alpha_0(end-1,:,:) = log((Counts.o2on(end-2,:).*Counts.o2off(end-1,:))./(Counts.o2on(end-1,:).*Counts.o2off(end-2,:)))./2./Range.rangeBin;
 Alpha.alpha_0 = alpha_0;
 Alpha.alpha_0 = fillmissing(Alpha.alpha_0,'nearest');
 
@@ -436,9 +439,9 @@ altitude = 1.5719;
 N_wv = (Alpha.alpha_0wv+Alpha.alpha_1wv+ Alpha.alpha_2wv)./(cross_section-cross_sectionOff);
 
 %Smooth WV
-k = ones(4,8)./(4*8);     % Kernel
-%k = ones(3,7)./(3*7);     % Kernel
-k = ones(2,2)./(2*2);     % Kernel
+% k = ones(4,8)./(4*8);     % Kernel
+% %k = ones(3,7)./(3*7);     % Kernel
+% k = ones(2,2)./(2*2);     % Kernel
 k = ones(3,3)./(3*3);     % Kernel
 
 
@@ -537,7 +540,7 @@ Alpha.alpha_total_cut = fillmissing(Alpha.alpha_total_cut,'linear');
 %===== Soothing alpha =====
 %  k = ones(4,6)./(4*6);     % Kernel
 %  k = ones(2,4)./(2*4);
-k = ones(1,1)./(1);
+%k = ones(1,1)./(1);
 k = ones(2,2)./(2*2);
 %k = ones(3,3)./(3*3);
 %k = ones(5,9)./(5*9);
@@ -800,8 +803,9 @@ end
     figure(53)
     plot(Temperature.T_final_test2-Sonde.T_sonde,Range.rm)
     hold on
-    plot(meanTemp,Range.rm,'linewidth',3)
+    %plot(meanTemp,Range.rm,'linewidth',3)
     title(sprintf('temperature\n mean %0.3d std %0.3d',meanHist(1),stdHist(1)))
+    title(sprintf('temperature'))
     xlabel('T_{retrieval}-T_{sonde} (K)')
    hold off
     grid on
@@ -920,8 +924,8 @@ Temperature.T_final_test_cut(cloud_SDm_above) = NaN;          % Replace mask wit
 % k = ones(4,8)./(4*8);     % Kernel
 % 
 % k = ones(4,2)./(4*2);     % Kernel
- k = ones(3,9)./(3*9);     % Kernel
-k = ones(4,9)./(4*9);     % Kernel
+ %k = ones(3,9)./(3*9);     % Kernel
+%k = ones(4,9)./(4*9);     % Kernel
  k = ones(3,3)./(3*3);     % Kernel
 
 % k = ones(1,1)./(1*1);     % Kernel
@@ -948,6 +952,7 @@ Temperature.TempStd = std(Temperature.T_final_testf(:,:,:),0,3);
 %Temperature.TempStds = Temperature.TempStd./21;
 k1 = round((size(k,1)-1)./2);
 k2 = round((size(k,2)-1)./2);
+tempStdss = nans(size(Temperature.tempStd));
 for iii = 1:size(Temperature.TempStd,1)
     for jjj = 1:size(Temperature.TempStd,2)
 
@@ -970,6 +975,9 @@ end
 tempStds = sqrt((1/(2*(B-1))) *sum((Temperature.T_final_testfs-Temperature.T_final_testgs).^2,3) );
 
 
+tempStd = sqrt((1./(2.*(permute(1:B,[1 3 2])-1))) .*cumsum((Temperature.T_final_testf-Temperature.T_final_testg).^2,3) );
+
+tempStdDiff = diff(tempStd,1,3);
 
 %%
 %=== apply mask
@@ -1231,17 +1239,18 @@ plot_time = datetime(2022,8,23,12,0,0,'TimeZone','UTC');%yyyy,mm,dd,hh,mm
 p_point(1:length(Range.rm),1)=p_point;
 
 %= Plot time for profiles with sondes
-sonde_index =15;
-sonde_index = 2;
+%sonde_index =15;
+sonde_index = 1;
 p_point = Sonde.sonde_ind(:,sonde_index);
 %Sonde.WV_sonde = nan(size(Counts.o2on));
 
-mask = logical(Temperature.TempStds>10) | cloud_SDm_above;
-mask = logical(Temperature.TempStds>4) | cloud_SDm_above;
-mask = logical(Temperature.TempStds>50) | cloud_SDm_above;
+%mask = logical(Temperature.TempStds>10) | cloud_SDm_above;
+%mask = logical(Temperature.TempStds>4) | cloud_SDm_above;
+%mask = logical(Temperature.TempStds>50) | cloud_SDm_above;
 mask = logical(Temperature.TempStds>2) | cloud_SDm_above;
 Temperature.T_finalm(mask) = nan;
 Alpha.Alpha_totalm(mask)=nan;
+HSRL.BSR(mask)=nan;
 
 %plot_O2(p_point,sonde_index,span_days,Sonde,Model,Counts,Range,Time,Options,Temperature,Format,Alpha,cloud_SDm,HSRL,Data,cloud_SDm,cloud_SDm_above,N_wv,N_wv0,N_wvm,N_wv0m,AbsHumm,AbsHum0m)
 plot_O2(p_point,sonde_index,span_days,Sonde,Model,Counts,Range,Time,Options,Temperature,Format,Alpha,cloud_SDm,HSRL,Data,cloud_SDm,mask,N_wv,N_wv0,N_wvm,N_wv0m,AbsHumm,AbsHum0m)

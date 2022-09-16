@@ -1,4 +1,4 @@
-function Counts = poissonThin2(Counts,cloud_SDm_above)
+function Counts = poissonThin2(Counts,~)
 %File: poissonThin.m
 %Date: 02/4/2022
 %Author: Owen Cruikshank
@@ -176,91 +176,4 @@ Counts.gwvoff = gwvoff-Counts.fwvoff_bg;
 % [Counts.wvoff] = applyFilter(rangeWidthwvoff,timeWidthwvoff,Counts.wvoff);
 
 end
-
-function [counts] = applyFilter(rangeWidth,timeWidth,counts)
-    %==Filter in range==
-    for iii = 1:size(counts,2) %loop over time
-        nz = round(4*rangeWidth(iii)); %number of grid points 
-        z = (-nz:nz)';%filter grid
-        kern = exp(-z.^2/rangeWidth(iii).^2); %smoothing kernel
-        kern = kern/sum(sum(kern)); %normalized smoothing kernel
-        counts(:,iii) = nanconv(counts(:,iii),kern,'edge','nanout'); %apply kernel to count data
-    end
-    %==Filter in time==
-    for iii = 1:size(counts,1) %loop over range
-        nz = round(4*timeWidth(iii)); %number of grid points 
-        z = (-nz:nz);%filter grid
-        kern = exp(-z.^2/timeWidth(iii).^2);
-        kern = kern/sum(sum(kern));
-        counts(:,iii) = nanconv(counts(:,iii),kern,'edge','nanout');
-    end
-end
-
-function [Ez,Et,minSigz,minSigt] = findMinE(f,g,bg)
-    
-    %====find best filter in range====
-    filt_size = logspace(-1,1.5,40); %create filter size in terms of grid points
-    Ez = ones(1,length(f(1,:)),length(filt_size));
-    fprintf('Range ')
-    for jj = 1:length(filt_size) %loop over different filters
-        fprintf('%g ',jj)
-        nz = round(4*filt_size(jj)); %number of grid points 
-        z = (-nz:nz)'; %filter grid
-        kern = exp(-z.^2/filt_size(jj).^2); %gaussian fitler kernel in range
-        if length(kern) > 1 %set gaussian filter for edge cases
-            if sum(kern) == 0
-                [~,it0] = min(abs(z));
-                kern(it0) = 1.0;
-            end
-        else 
-            kern = ones(1);
-        end
-        kern = kern/sum(sum(kern)); %normalize kernel
-        fFilt = nanconv(f-bg,kern,'edge','nanout'); %apply filter
-        fFilt(fFilt==0)=.001; %avoid inf in log
-        Ez(:,:,jj) = sum(fFilt+bg-g.*log(fFilt+bg),1,'omitnan'); %loss function to optimize
-    end
-    fprintf('\n')
-    [~,minEind]=min(Ez,[],3); %find minimum of loss function
-    minSigz = ones(1,size(f,2));
-    for ii = 1:size(f,2)
-        minSigz(ii) = filt_size(minEind(ii)); %set filter width to minimum of loss function
-    end
-
-    %====find best filter in time====
-    filt_size = logspace(-1.5,3,100);
-    Et = ones(length(f(:,1)),1,length(filt_size));
-    fprintf('time ')
-    for jj = 1:length(filt_size)
-        fprintf('%g ',jj)
-        nz = round(4*filt_size(jj)); %number of grid points 
-        z = (-nz:nz);%filter grid
-        %kern = gaussmf(z,[filt_size(jj),0]);%fitler kernel in range
-        kern = exp(-z.^2/filt_size(jj).^2);
-        if length(kern) > 1
-            if sum(kern) == 0
-                [~,it0] = min(abs(z));
-                kern(it0) = 1.0;
-            end
-        else 
-            kern = ones(1);
-        end
-        kern = kern/sum(sum(kern));
-        %norm = ones(size(f));
-        %norm = conv2(norm,kern,'same');
-        %%%%fFilt = conv2(f(:,:)-bg,kern,'same')./norm;
-        fFilt = nanconv(f-bg,kern,'edge','nanout');
-        fFilt(fFilt==0)=.001;%avoid inf in log
-        Et(:,:,jj) = sum(fFilt+bg-g.*log(fFilt+bg),2,'omitnan');
-    end
-    fprintf('\n')
-    [~,minEind]=min(Et,[],3);
-    minSigt = ones(size(f,1),1);
-    for ii = 1:size(f,1)
-        minSigt(ii) = filt_size(minEind(ii));
-    end       
-end
-
-
-
 
