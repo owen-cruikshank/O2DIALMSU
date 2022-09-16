@@ -14,7 +14,7 @@ cd( maindirectory) %back to main directory
 Options.MPDname = 'MSU';
 Options.BinTotal = 560;
 %Options.BinTotal = 400;
-Options.BinTotal = 490;
+%Options.BinTotal = 490;
 %Load raw data from NetCDF files
 [Data, Options] = loadMSUNETcdf(span_days,Options);
 
@@ -39,8 +39,10 @@ Range.NBins = floor(Options.BinTotal/Options.intRange); %number of range bins in
 Range.rangeBin = (Constant.c * Range.nsPerBin(1)*10^-9)/2; %(m)range bin length
 
 Range.rm_raw_o2 = -150:Range.rangeBin:Range.NBins(1)*Range.rangeBin-150-Range.rangeBin;    %[m] Create range vector
+Range.rm_raw_o2 = -150-30:Range.rangeBin:Range.NBins(1)*Range.rangeBin-150-30-Range.rangeBin;    %[m] Create range vector
+Range.rm_raw_o2 = -150-30/2+Range.rangeBin:Range.rangeBin:Range.NBins(1)*Range.rangeBin-150-30/2-Range.rangeBin+Range.rangeBin;    %[m] Create range vector
 %%%%%%%%%%%%%%%%%%%%%%%
-Range.rm_raw_o2 = 0:Range.rangeBin:Range.NBins(1)*Range.rangeBin+0-Range.rangeBin;    %[m] Create range vector
+Range.rm_raw_o2 = -75-30/2:Range.rangeBin:Range.NBins(1)*Range.rangeBin+-75-30/2-Range.rangeBin;    %[m] Create range vector
 %%%%%%%%%%%%%%%%%%%%%%%%
 Range.rm_raw_o2 = Range.rm_raw_o2(:);                           %[m] Convert range vector to column vector
 Range.r_max = 6000;                                       %[m] Max range 
@@ -72,6 +74,7 @@ disp('Calculating model')
 Model.Ts = weather_Temperature_interp + 273.15 ;          %surface temperature from weather station [K]
 Model.Ps = weather_absPressure_interp / 1013.25;         %absolute surface pressure from weather station [atm]
 lapseRate = -6.5;                                   %[K/km] Guess adiabatic lapse rate  typically -6.5 up to 10km
+lapseRate = -10;    
 lapseRate = lapseRate / 1000;                       %[K/m] 
 
 Model.T = Model.Ts + lapseRate .* Range.rm;                           %[K] (1 x r) Temperature model as a function of r 
@@ -103,7 +106,7 @@ for i = 1:numel(sonde_datetime) % Loop over number of sondes in time period
         % ==Custom interpolation function==
         [T_sonde_int{i},P_sonde_int{i},WV_sonde_int{i},rm_sonde_int{i}] = interp_sonde2(sondeStruc(i).T,sondeStruc(i).P,sondeStruc(i).WV,rm_sgp{i},Range.rangeBin);  
         
-        [rm_sgp{i},IA,IC] = unique(rm_sgp{i});
+        [rm_sgp{i},IA,~] = unique(rm_sgp{i});
         sondeStruc(i).T = sondeStruc(i).T(IA);
         sondeStruc(i).P = sondeStruc(i).P(IA);
         sondeStruc(i).WV = sondeStruc(i).WV(IA);
@@ -131,15 +134,25 @@ for i = 1:numel(sonde_datetime) % Loop over number of sondes in time period
             Sonde.AbsHum(:,i) = Sonde.WV_sonde(:,i).*Constant.mWV*1000; %[g/m3]
         end
         %===interp sonde time
-        %[rm_sgp{i},IA,~] = unique(rm_sgp{i});
-        sonde_time(1:length(rm_sonde_int{i}),i) = interp1(rm_sgp{i},sondeStruc(i).time(IA),rm_sonde_int{i})';  
+%         %[rm_sgp{i},IA,~] = unique(rm_sgp{i});
+%         sonde_time(1:length(rm_sonde_int{i}),i) = interp1(rm_sgp{i},sondeStruc(i).time(IA),rm_sonde_int{i})';  
+%         if length(sonde_time) < Range.i_range
+%             sonde_time = [sonde_time; sonde_time(end).*ones(Range.i_range-length(sonde_time),1)];
+%         end
+%          %Find index of sonde in time vector
+%          for j = 1:Range.i_range
+%             [~, Sonde.sonde_ind(j,i)]=min(abs(sonde_datetime(i)+seconds(sonde_time(j,i))-Time.date_ts));
+%          end
+
+        sonde_time(1:length(rm_sonde_int{i})) = interp1(rm_sgp{i},sondeStruc(i).time(IA),rm_sonde_int{i})';  
         if length(sonde_time) < Range.i_range
-            sonde_time = [sonde_time; sonde_time(end).*ones(Range.i_range-length(sonde_time),1)];
+            sonde_time = [sonde_time; sonde_time(end).*ones(Range.i_range-length(sonde_time))];
         end
          %Find index of sonde in time vector
          for j = 1:Range.i_range
-            [~, Sonde.sonde_ind(j,i)]=min(abs(sonde_datetime(i)+seconds(sonde_time(j,i))-Time.date_ts));
+            [~, Sonde.sonde_ind(j,i)]=min(abs(sonde_datetime(i)+seconds(sonde_time(j))-Time.date_ts));
          end
+
     else
         Sonde.sonde_ind = [];
     end 
@@ -212,6 +225,11 @@ Counts.o2off_bgsub_mol(Counts.o2off_bgsub_mol < 0) = 0;         % Minimum of zer
 
 % ========integrate to new range
 inc = 1;
+ii = 1:2:length(Range.rm_raw_o2);
+o2on_intp2 = zeros(length(ii),length(Counts.o2on_bgsub(1,:)));
+o2off_intp2 = zeros(length(ii),length(Counts.o2on_bgsub(1,:)));
+o2on_intp2_mol = zeros(length(ii),length(Counts.o2on_bgsub(1,:)));
+o2off_intp2_mol = zeros(length(ii),length(Counts.o2on_bgsub(1,:)));
 for ii = 1:2:length(Range.rm_raw_o2)
     o2on_intp2(inc,:) = (Counts.o2on_bgsub(ii,:)+Counts.o2on_bgsub(ii+1,:))/2;
     o2off_intp2(inc,:) = (Counts.o2off_bgsub(ii,:)+Counts.o2off_bgsub(ii+1,:))/2;
@@ -224,7 +242,7 @@ Counts.o2off_bgsub = o2off_intp2;
 Counts.o2on_bgsub_mol = o2on_intp2_mol;
 Counts.o2off_bgsub_mol = o2off_intp2_mol;
 
-Range.rm_raw_o2 = Range.rm_raw_o2(1:2:end);
+Range.rm_raw_o2 = Range.rm_raw_o2(1:2:end)+Range.rangeBin./2;
 
 %%
 
@@ -262,6 +280,9 @@ Counts.NBins = Data.MCS.Channel0.NBins*2;
 % Counts.o2off_noise(Counts.o2off_noise<0)=0;
 % Counts.o2on_noise_mol(Counts.o2on_noise_mol<0)=0;
 % Counts.o2off_noise_mol(Counts.o2off_noise_mol<0)=0;
+
+
+
 
 %%
 %=====Create Spectrum vectors=====

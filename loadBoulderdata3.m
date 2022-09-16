@@ -110,6 +110,7 @@ Range.rangeBin = (Constant.c * Range.nsPerBin(1)*10^-9)/2; %range bin length
 Range.rm_raw_o2 = 0:Range.rangeBin:Range.NBins(1)*Range.rangeBin+0-Range.rangeBin;    %[m] Create range vector
 Range.rm_raw_o2 = -150:Range.rangeBin:Range.NBins(1)*Range.rangeBin-150-Range.rangeBin;    %[m] Create range vector
 Range.rm_raw_o2 = -75:Range.rangeBin:Range.NBins(1)*Range.rangeBin-75-Range.rangeBin;    %[m] Create range vector
+Range.rm_raw_o2 = -75-30/2:Range.rangeBin:Range.NBins(1)*Range.rangeBin-75-30/2-Range.rangeBin;    %[m] Create range vector
 %%%Range.rm_raw_o2 = -75-75:Range.rangeBin:Range.NBins(1)*Range.rangeBin-75-75-Range.rangeBin;    %[m] Create range vector
 Range.rm_raw_o2 = Range.rm_raw_o2(:);                           %[m] Convert range vector to column vector
 Range.r_max = 6000;                                       %[m] Max range 
@@ -224,7 +225,7 @@ for i = 1:numel(sonde_datetime) % Loop over number of sondes in time period
         [T_sonde_int{i},P_sonde_int{i},WV_sonde_int{i},rm_sonde_int{i}] = interp_sonde2(sondeStruc(i).T,sondeStruc(i).P,sondeStruc(i).WV,rm_sgp{i},Range.rangeBin);  
         
 
-        [rm_sgp{i},IA,IC] = unique(rm_sgp{i});
+        [rm_sgp{i},IA,~] = unique(rm_sgp{i});
         sondeStruc(i).T = sondeStruc(i).T(IA);
         sondeStruc(i).P = sondeStruc(i).P(IA);
         sondeStruc(i).WV = sondeStruc(i).WV(IA);

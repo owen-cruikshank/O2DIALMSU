@@ -7,10 +7,34 @@ function [ res ] = TEST_SUB_mybinornd( N, p )
            if isnan(N(ii,jj))
                res(ii,jj)=NaN;
            else
-               res(ii, jj) = sum(rand(1,N(ii,jj))<p);
+               res(ii, jj) = sum(rand(1,N(ii,jj))<p,'omitnan');
            end
        end
-    end
+
+%        for ii=1:row_cnt
+%            %if isnan(N(ii,jj))
+%             %   res(ii,:)=NaN;
+%            %else
+%            %N(ii,isnan(N(ii,:)))=0; 
+%            Nmax = max(N(ii,:),[],'omitnan');
+%            if isnan(Nmax)
+%                res(ii,:) = nan;
+%            else
+%            prop=rand(col_cnt,Nmax)<p;
+% 
+%            for jj = 1:col_cnt
+%                if isnan(N(ii,jj))
+%                    res(ii,jj) = nan;
+%                else
+%            res(ii, jj) = sum(prop(jj,1:N(ii,jj)),2,'omitnan');
+%                end
+%            end
+%            end
+%            %end
+%        %end
+%     end
 end
+
+
 
 
