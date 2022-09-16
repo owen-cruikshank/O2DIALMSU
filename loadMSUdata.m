@@ -173,36 +173,49 @@ end
 
 %%%%Model.WV = zeros(size(Model.WV));
 %%
-%==== After pulse correction ====
+% %==== After pulse correction ====
 % load('AfterPulse2.mat','PulseOn','PulseOff','PulseOnMol','PulseOffMol')
 % Data.MCS.Channel2.Data = Data.MCS.Channel2.Data - PulseOn+1;
 % Data.MCS.Channel10.Data = Data.MCS.Channel10.Data - PulseOff+1;
 % Data.MCS.Channel0.Data = Data.MCS.Channel0.Data - PulseOnMol+1;
 % Data.MCS.Channel8.Data = Data.MCS.Channel8.Data - PulseOffMol+1;
 
-
-
-
-
+% 
+% load('C:\Users\Owen C\Downloads\Afterpulsing_correction_08082022.mat')
+% %load('C:\Users\Owen\Downloads\Afterpulsing_correction_08082022.mat')
+% % Correction_Nc_off =[Correction_Nc_off'; zeros(560-490,1)];
+% % Correction_Nc_on =[Correction_Nc_on'; zeros(560-490,1)];
+% % Correction_Nm_on = [Correction_Nm_on'; zeros(560-490,1)];
+% % Correction_Nm_off = [Correction_Nm_off'; zeros(560-490,1)];
+% 
+% Correction_Nc_off =Correction_Nc_off';
+% Correction_Nc_on =Correction_Nc_on'; 
+% Correction_Nm_on = Correction_Nm_on';
+% Correction_Nm_off = Correction_Nm_off'; 
+% 
+% Data.MCS.Channel10.Data = Data.MCS.Channel10.Data-Correction_Nc_off;
+% Data.MCS.Channel2.Data = Data.MCS.Channel2.Data-Correction_Nc_on;
+% Data.MCS.Channel0.Data = Data.MCS.Channel0.Data-Correction_Nm_on;
+% Data.MCS.Channel8.Data = Data.MCS.Channel8.Data-Correction_Nm_off;
 %%
 %=========================
 %=== Calculate background
 %=========================
-Counts.bg_o2off = mean(Data.MCS.Channel10.Data(end-20:end,:));% Take mean of last data points
-Counts.o2off_bgsub = Data.MCS.Channel10.Data - Counts.bg_o2off;       % Background subtracted
-Counts.o2off_bgsub(Counts.o2off_bgsub < 0) = 0;         % Minimum of zero
-
-Counts.bg_o2on = mean(Data.MCS.Channel2.Data(end-20:end,:));% Take mean of last data points
-Counts.o2on_bgsub = Data.MCS.Channel2.Data - Counts.bg_o2on;       % Background subtracted
-Counts.o2on_bgsub(Counts.o2on_bgsub < 0) = 0;         % Minimum of zero
-
-Counts.bg_o2on_mol = mean(Data.MCS.Channel0.Data(end-20:end,:));% Take mean of last data points
-Counts.o2on_bgsub_mol = Data.MCS.Channel0.Data - Counts.bg_o2on_mol;       % Background subtracted
-Counts.o2on_bgsub_mol(Counts.o2on_bgsub_mol < 0) = 0;         % Minimum of zero
-
-Counts.bg_o2off_mol = mean(Data.MCS.Channel8.Data(end-20:end,:));% Take mean of last data points
-Counts.o2off_bgsub_mol = Data.MCS.Channel8.Data - Counts.bg_o2off_mol;       % Background subtracted
-Counts.o2off_bgsub_mol(Counts.o2off_bgsub_mol < 0) = 0;         % Minimum of zero
+% % Counts.bg_o2off = mean(Data.MCS.Channel10.Data(end-20:end,:));% Take mean of last data points
+% % Counts.o2off_bgsub = Data.MCS.Channel10.Data - Counts.bg_o2off;       % Background subtracted
+% % Counts.o2off_bgsub(Counts.o2off_bgsub < 0) = 0;         % Minimum of zero
+% % 
+% % Counts.bg_o2on = mean(Data.MCS.Channel2.Data(end-20:end,:));% Take mean of last data points
+% % Counts.o2on_bgsub = Data.MCS.Channel2.Data - Counts.bg_o2on;       % Background subtracted
+% % Counts.o2on_bgsub(Counts.o2on_bgsub < 0) = 0;         % Minimum of zero
+% % 
+% % Counts.bg_o2on_mol = mean(Data.MCS.Channel0.Data(end-20:end,:));% Take mean of last data points
+% % Counts.o2on_bgsub_mol = Data.MCS.Channel0.Data - Counts.bg_o2on_mol;       % Background subtracted
+% % Counts.o2on_bgsub_mol(Counts.o2on_bgsub_mol < 0) = 0;         % Minimum of zero
+% % 
+% % Counts.bg_o2off_mol = mean(Data.MCS.Channel8.Data(end-20:end,:));% Take mean of last data points
+% % Counts.o2off_bgsub_mol = Data.MCS.Channel8.Data - Counts.bg_o2off_mol;       % Background subtracted
+% % Counts.o2off_bgsub_mol(Counts.o2off_bgsub_mol < 0) = 0;         % Minimum of zero
 
 
 % Counts.bg_o2off = mean(Data.MCS.Channel10.Data(400-40:400,:));% Take mean of last data points
@@ -220,6 +233,22 @@ Counts.o2off_bgsub_mol(Counts.o2off_bgsub_mol < 0) = 0;         % Minimum of zer
 % Counts.bg_o2off_mol = mean(Data.MCS.Channel8.Data(400-40:400,:));% Take mean of last data points
 % Counts.o2off_bgsub_mol = Data.MCS.Channel8.Data - Counts.bg_o2off_mol;       % Background subtracted
 % Counts.o2off_bgsub_mol(Counts.o2off_bgsub_mol < 0) = 0;         % Minimum of zero
+
+Counts.bg_o2off = mean(Data.MCS.Channel10.Data(490-40:490,:));% Take mean of last data points
+Counts.o2off_bgsub = Data.MCS.Channel10.Data - Counts.bg_o2off;       % Background subtracted
+Counts.o2off_bgsub(Counts.o2off_bgsub < 0) = 0;         % Minimum of zero
+
+Counts.bg_o2on = mean(Data.MCS.Channel2.Data(490-40:490,:));% Take mean of last data points
+Counts.o2on_bgsub = Data.MCS.Channel2.Data - Counts.bg_o2on;       % Background subtracted
+Counts.o2on_bgsub(Counts.o2on_bgsub < 0) = 0;         % Minimum of zero
+
+Counts.bg_o2on_mol = mean(Data.MCS.Channel0.Data(490-40:490,:));% Take mean of last data points
+Counts.o2on_bgsub_mol = Data.MCS.Channel0.Data - Counts.bg_o2on_mol;       % Background subtracted
+Counts.o2on_bgsub_mol(Counts.o2on_bgsub_mol < 0) = 0;         % Minimum of zero
+
+Counts.bg_o2off_mol = mean(Data.MCS.Channel8.Data(490-40:490,:));% Take mean of last data points
+Counts.o2off_bgsub_mol = Data.MCS.Channel8.Data - Counts.bg_o2off_mol;       % Background subtracted
+Counts.o2off_bgsub_mol(Counts.o2off_bgsub_mol < 0) = 0;         % Minimum of zero
 
 %%
 
