@@ -74,6 +74,7 @@ for i = 1:length(WV_parameters)                     %loop over all line paramete
         
         %temperature shifted line strength
         a_o2 = S0_O2.*(T0./T);
+        a_o2 = S0_O2.*(T0./T).^1.5;%for WV
         c_o2 = exp(h.*c./kB.*((1./T0)-(1./T)).*E_lower);
         ST_O2 = a_o2.*c_o2;                                 %[m/molecule](t x r) O2 line strength adjusted for temperature shift from T0
         gamma_L_T = gamma_L * (P/P0).*((T0./T).^n_air);     %[1/m](t x r) Lorentz linewidth adjusted for temperature and pressure shift

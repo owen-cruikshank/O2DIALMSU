@@ -107,7 +107,7 @@ sigmaP = std(P);
 %y = zeros(1,N*N,length(lambda));
 vw = zeros(N*N,1,1);
 q = 10;
-parfor i = 1:length(nu)
+for i = 1:length(nu)
     %for j = 1:N*N
         [~,y(i,:),~] = absorption_O2_770_model(TP(:,1),TP(:,2),nu(i),0);
         %[a,y,~] = absorption_O2_770_model_wavenumber(TP(:,1),TP(:,2),nu,0);
@@ -161,7 +161,8 @@ end
 %%
 %save
 %save('PCA_1_11_21singleOnline.mat','muY','M','muT','muP','sigmaT','sigmaP','nu')
-save('PCA_1_11_21single.mat','muY','M','muT','muP','sigmaT','sigmaP','nu')
+%save('PCA_1_11_21single.mat','muY','M','muT','muP','sigmaT','sigmaP','nu')
+save('PCA_8_2_22single.mat','muY','M','muT','muP','sigmaT','sigmaP','nu')
 %%
 
 %load('PCA_5_18_20.mat')

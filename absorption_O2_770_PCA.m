@@ -24,6 +24,7 @@ if length(nu_Range)==1
     load(fullfile('CalibrationData','PCA_1_11_21singleOnline.mat'),'M','muP','muT','muY','nu','sigmaP','sigmaT');
 else
     load(fullfile('CalibrationData','PCA_1_11_21single.mat'),'M','muP','muT','muY','nu','sigmaP','sigmaT');
+    load('PCA_8_2_22single.mat','M','muP','muT','muY','nu','sigmaP','sigmaT');
 end
 
 %order
@@ -35,7 +36,7 @@ inc=1;
 theta = ones(size(normT,1),size(normT,2),210);
 for n = 1:No
     for m = 1:n
-        theta(:,:,inc) = normT(:,:).^(n-m) .* normP(:,:).^(m-1);
+        theta(:,:,inc) = normT.^(n-m) .* normP.^(m-1);
         inc=inc+1;
     end
 end
@@ -45,9 +46,12 @@ thetapermute = permute(theta(:,:,:),[3 2 1]);
 cross_sectionI = ones(length(nu),length(T(1,:)),length(T(:,1)));
 for j = 1:length(T(:,1))
     for i = 1:length(T(1,:))
-        cross_sectionI(:,i,j) = muY + M*thetapermute(:,i,j);  
+        %cross_sectionI(:,i,j) = muY + M*thetapermute(:,i,j);  
+        cross_sectionI(:,i,j) = M*thetapermute(:,i,j);  
     end
 end
+cross_sectionI = muY + cross_sectionI;  
+
 
 cross_section = permute(cross_sectionI(:,:,:),[3 2 1]);
 

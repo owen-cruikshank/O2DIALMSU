@@ -32,7 +32,7 @@ N_o2 = ((P*101325)./(kB*T)-WV) * q_O2;     %[molecule/m^3](t x r)O2 number densi
 T0 = 296;                               %[K]
 P0 = 1.0;                               %[atm]
 
-parameters = fopen('O2_line_parameters.out','r');   %open file containing HITRAN information
+parameters = fopen(fullfile('CalibrationData','O2_line_parameters.out'),'r');   %open file containing HITRAN information
 fmt = ['%1d %1d %f %e %e %f %f %f %f %f'];          %format of HITRAN file
 O2_parameters =fscanf(parameters,fmt,[10 inf]);     %place HITRAN parameters in vector a
 fclose(parameters);                                 %close file
@@ -56,7 +56,7 @@ t_4D = permute(t,[4 3 1 2]);                        %shift t to put it in third 
 figure
 hold on
 
-for i = 1:length(O2_parameters)                     %loop over all line parameters
+for i = 1:size(O2_parameters,1)                     %loop over all line parameters
 
     nu_O2 = O2_parameters(i,3);                     %[1/cm]
     nu_O2 = nu_O2 * 100;                            %[1/m] absoption wavenumber
@@ -77,7 +77,7 @@ for i = 1:length(O2_parameters)                     %loop over all line paramete
     delta_air = delta_air * 100;                    %[1/m/atm]
     
     %if S0_O2 * 100 > strength_threshold             %Do not compute cross section for line if it id below the threshold
-    if nu_O2 >= nu_Range(:,:,1) && nu_O2 <= nu_Range(:,:,end) && S0_O2 * 100 > strength_threshold %Do not compute if line is out of specified wavnumber range
+    %if nu_O2 >= nu_Range(:,:,1) && nu_O2 <= nu_Range(:,:,end) && S0_O2 * 100 > strength_threshold %Do not compute if line is out of specified wavnumber range
 
         nuShifted = nu_O2 + delta_air .* P;         %[1/m] (r x t) Shift line center based on atmopheric pressure
         %nuShifted = nu_O2 ;%+ delta_air .* P;         %[1/m] (r x t) Shift line center based on atmopheric pressure
@@ -113,7 +113,7 @@ for i = 1:length(O2_parameters)                     %loop over all line paramete
         line = (y/pi).*integralV .* K .* N_o2;
         absorption = absorption + (y/pi).*integralV .* K .* N_o2; %[1/m](t x r x nu)absorption coefficeint of oxygen in the atmosphere
         semilogy(permute(nu_Range,[3 2 1]),permute(line(1,1,:),[3 2 1]))
-    end
+   % end
     
 end 
 hold off

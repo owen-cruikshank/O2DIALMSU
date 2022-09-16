@@ -13,7 +13,9 @@ function [cross_section] = cross_section_wv_828_PCA(T,P,~)
 %   -sigma: [m^2] The voight absorption cross section of O2 at the input
 %   wavenumber arround the 780nm line, dimensions (range x time x wavenumber)
 
-load(fullfile('CalibrationData','PCA_3_15_22WV828single.mat'),'M','muP','muT','muY','nu','sigmaP','sigmaT')
+%load(fullfile('CalibrationData','PCA_3_15_22WV828single.mat'),'M','muP','muT','muY','nu','sigmaP','sigmaT')
+
+load('PCA_8_10_22WV828single.mat','M','muP','muT','muY','nu','sigmaP','sigmaT')
 
 %order
 No = 20;

@@ -29,11 +29,15 @@ mo2 = 5.313525282632483E-26;            % Mass O2 molecule [kg]
 T0 = 296;                               %[K]
 P0 = 1.0;                               %[atm]
 
-parameters = fopen(fullfile('CalibrationData','O2_line_parameters.out'),'r');   %open file containing HITRAN information
-fmt = '%1d %1d %f %e %e %f %f %f %f %f';          %format of HITRAN file
-O2_parameters =fscanf(parameters,fmt,[10 inf]);     %place HITRAN parameters in vector a
-fclose(parameters);                                 %close file
-O2_parameters = O2_parameters';                     %transpose matrix to correct format
+% parameters = fopen(fullfile('CalibrationData','O2_line_parameters.out'),'r');   %open file containing HITRAN information
+% fmt = '%1d %1d %f %e %e %f %f %f %f %f';          %format of HITRAN file
+% O2_parameters =fscanf(parameters,fmt,[10 inf]);     %place HITRAN parameters in vector a
+% fclose(parameters);                                 %close file
+% O2_parameters = O2_parameters';                     %transpose matrix to correct format
+
+O2_parameters=[7	1	12990.4577700000	4.88900000000000e-26	0.0219200000000000	0.0312000000000000	0.0340000000000000	1420.76310000000	0.630000000000000	-0.00930000000000000;
+7	1	12990.5018320000	3.74900000000000e-27	0.0171900000000000	0.0491000000000000	0.0490000000000000	1635.06590000000	0.740000000000000	-0.00730000000000000];
+
 
 [rL, tL] = size(T);                                 %length of range vector x length of time vector
 
@@ -43,22 +47,26 @@ cross_section = zeros(rL,tL);
 nu_Range = nu_Range * 100;                          %change nu_Range from [1/cm] to [1/m]
 
 strength_threshold = 1*10^(-26);                    %[cm / molecule] line strength threshold
+strength_threshold = 1*10^(-25);
+strength_threshold = 3*10^(-26);
+strength_threshold = 0;
 
 t = -10:.2:10;                                      %Relative freqency to integrate over
 t = permute(t,[3 1 2]);                             %[none] shift t to put it in third dimestion
+t1 =permute(t,[3 2 1]);
 
 %Preallocate
-linesThreshold=0;
-for ii = 1:length(O2_parameters) 
-    if  O2_parameters(ii,4)> strength_threshold
-        linesThreshold=linesThreshold+1;
-    end
-end
-Line = cell(1,linesThreshold);
-
+% linesThreshold=0;
+% for ii = 1:length(O2_parameters) 
+%     if  O2_parameters(ii,4)> strength_threshold
+%         linesThreshold=linesThreshold+1;
+%     end
+% end
+% Line = cell(1,linesThreshold);
+Line = cell(1,2);
 
 increment = 1;
-for i = 1:length(O2_parameters)                     %loop over all line parameters
+for i = 1:size(O2_parameters,1)                     %loop over all line parameters
 
     nu_O2 = O2_parameters(i,3);                     %[1/cm]
     nu_O2 = nu_O2 * 100;                            %[1/m] absoption wavenumber
@@ -91,7 +99,7 @@ for i = 1:length(O2_parameters)                     %loop over all line paramete
 
         integration_function = exp(-t.^2)./(y.^2 + (x-t).^2);           %[none] create integration function to integrate over
 
-        integralV = trapz(permute(t,[3 2 1]),integration_function,3);   %[none] integrate over t
+        integralV = trapz(t1,integration_function,3);   %[none] integrate over t
 
         f = log(2).*pi^(-3/2).*gamma_L_T./gamma_D_T.^2.*integralV;      %[m] Absorption lineshape 
 
