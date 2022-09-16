@@ -16,6 +16,7 @@ function [weather_Temperature_interp, weather_absPressure_interp, weather_WV_int
 %Create datetime vector corresponding to time grid
 thr = ts/60/60;%time in hours
 time_hours = floor(thr);
+time_date = NaT(size(time_hours),'TimeZone','UTC');
 time_minutes = floor((thr-time_hours).*60);
 time_seconds = (((thr-time_hours).*60)-time_minutes)*60;
 for i = 1:length(span_days(1,:))

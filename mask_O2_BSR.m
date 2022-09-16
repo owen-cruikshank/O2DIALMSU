@@ -45,7 +45,7 @@ SNRm = o2off_SNRm .* o2on_SNRm;         %Final combination SNR matrix mask with 
 
 
 %standard deviation
-stdNeiborhood = true(7,5);   
+%stdNeiborhood = true(7,5);   
 stdNeiborhood = true(3,1); % NxN window arround each point
 
 % o2on_SD = stdfilt(o2on_range_corrected,stdNeiborhood);  % Use a square standard deviation filter on the range corrected return to find a standard deviation

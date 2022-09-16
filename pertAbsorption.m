@@ -2,30 +2,31 @@
 % author: Owen Cruikshank
 % date: 11/30/2020
 
-function [alpha_final,alpha_1_raw,alpha_2_raw,Spectrum] = pertAbsorption(alpha, T_etalon, Model, Range, Time, Spectrum, HSRL, ind_r_lo,ind_r_hi, Options, alpha_err)
+function [alpha_final,alpha_1_raw,alpha_2_raw,Spectrum] = pertAbsorption(alpha, T_etalon, Model, Range, Time, Spectrum, BSR, ind_r_lo,ind_r_hi, Options, UseRBspectrum)
     % --- Spectral distribution using the initial temperature profile guess ---
 
-% % %      cB = 1.2;%Brullouion correction to doppler gaussian half width
-% % % %     cB = -0.01*(rkm+altitude) + 1.2;%Brullouin correction for 1.2 at 0km and 1.1 at 10km
-% % % % 
-% % % %     c_doppler_O2 = m_air*c^2./(8*(nu_online*100).^2*kb);                   %[m^2 K] Doppler coefficient
-% % % %     doppler_O2_un_ret = ((c_doppler_O2./T/pi).^0.5).*exp(-c_doppler_O2.*(nu_online*100-nu_scan_3D_short*100).^2./T./cB.^2); %[m] Doppler broadended lineshape         
-% % % % 
-% % % %     norm_O2_ret = trapz(doppler_O2_un_ret,3).*nuBin*100;                   %[none] Lineshape integral
-% % % %     doppler_O2_ret = doppler_O2_un_ret./norm_O2_ret;                       %[m] Normalized doppler lineshape
-% % % % 
-% % % %     % Check if doppler_o2_ret is normalized to 1 when integrated across frequency
-% % % %     %doppler_o2_ret_check = trapz(doppler_O2_ret,3).*nuBin*100;              %[none]
-% % % % 
-% % % m_air = 28.97/1000./6.02214e23;
-% % % kb = 1.3806e-23;
-% % % c=3e8;
-% % % 
-% % %     c_doppler_O2 = m_air*c^2./(8*(Spectrum.nu_online(1)*100).^2*kb);                   %[m^2 K] Doppler coefficient
-% % %     doppler_O2_un_ret = ((c_doppler_O2./Model.T/pi).^0.5).*exp(-c_doppler_O2.*(Spectrum.nu_online(1)*100-Spectrum.nu_scan_3D_short*100).^2./Model.T./cB.^2); %[m] Doppler broadended lineshape         
-% % % 
-% % %     norm_O2_ret = trapz(doppler_O2_un_ret,3).*Spectrum.nuBin*100;                   %[none] Lineshape integral
-% % %     doppler_O2_ret = doppler_O2_un_ret./norm_O2_ret;                       %[m] Normalized doppler lineshape
+     cB = 1.2;%Brullouion correction to doppler gaussian half width
+     %cB = -0.01*(rkm+altitude) + 1.2;%Brullouin correction for 1.2 at 0km and 1.1 at 10km
+% 
+%     c_doppler_O2 = m_air*c^2./(8*(nu_online*100).^2*kb);                   %[m^2 K] Doppler coefficient
+%     doppler_O2_un_ret = ((c_doppler_O2./T/pi).^0.5).*exp(-c_doppler_O2.*(nu_online*100-nu_scan_3D_short*100).^2./T./cB.^2); %[m] Doppler broadended lineshape         
+% 
+%     norm_O2_ret = trapz(doppler_O2_un_ret,3).*nuBin*100;                   %[none] Lineshape integral
+%     doppler_O2_ret = doppler_O2_un_ret./norm_O2_ret;                       %[m] Normalized doppler lineshape
+% 
+%     % Check if doppler_o2_ret is normalized to 1 when integrated across frequency
+%     %doppler_o2_ret_check = trapz(doppler_O2_ret,3).*nuBin*100;              %[none]
+% 
+if ~UseRBspectrum
+m_air = 28.97/1000./6.02214e23;
+kb = 1.3806e-23;
+c=3e8;
+
+    c_doppler_O2 = m_air*c^2./(8*(Spectrum.nu_online(1)*100).^2*kb);                   %[m^2 K] Doppler coefficient
+    doppler_O2_un_ret = ((c_doppler_O2./Model.T/pi).^0.5).*exp(-c_doppler_O2.*(Spectrum.nu_online(1)*100-Spectrum.nu_scan_3D_short*100).^2./Model.T./cB.^2); %[m] Doppler broadended lineshape         
+
+    norm_O2_ret = trapz(doppler_O2_un_ret,3).*Spectrum.nuBin*100;                   %[none] Lineshape integral
+    doppler_O2_ret = doppler_O2_un_ret./norm_O2_ret;                       %[m] Normalized doppler lineshape
 
     % Check if doppler_o2_ret is normalized to 1 when integrated across frequency
     %doppler_o2_ret_check = trapz(doppler_O2_ret,3).*nuBin*100;              %[none]
@@ -53,7 +54,9 @@ function [alpha_final,alpha_1_raw,alpha_2_raw,Spectrum] = pertAbsorption(alpha, 
 
     %%
     %Calculate RB spectrum by PCA
+else
     [doppler_O2_ret] = RB_O2_770_PCA(Model.T,Model.P,Spectrum.nu_scan_3D_short);  
+end
     %%
   
 % % %     BSR_err = 0.10 * abs(HSRL.BSR);
@@ -65,11 +68,11 @@ function [alpha_final,alpha_1_raw,alpha_2_raw,Spectrum] = pertAbsorption(alpha, 
 % % % clear l_err deltafunc
 
     % --- Backscatter Lineshape g ---
-    g1_m = 1./HSRL.BSR .* doppler_O2_ret ;%.*nuBin*100;                         %[m] Molecular backscatter lineshape
+    g1_m = 1./BSR .* doppler_O2_ret ;%.*nuBin*100;                         %[m] Molecular backscatter lineshape
     %%clear doppler_O2_ret
     g1_a = zeros(Range.i_range,Time.i_time,Spectrum.i_scan_3D_short);                       % Initalize aerosol lineshape
     for i = 1:Time.i_time
-        g1_a(:,i,Spectrum.online_index(1)) = (1 - 1./HSRL.BSR(:,i))/ Spectrum.nuBin / 100 ; %[m] aerosol backscatter lineshape
+        g1_a(:,i,Spectrum.online_index(1)) = (1 - 1./BSR(:,i))/ Spectrum.nuBin / 100 ; %[m] aerosol backscatter lineshape
     end
     g1 = g1_a + g1_m;                                                   %[m] Combined backscatter lineshape
     %g1_check = trapz(g1,3).*nuBin*100;                                %[none] Check if integral of g1 is normalized to 1
@@ -78,7 +81,24 @@ function [alpha_final,alpha_1_raw,alpha_2_raw,Spectrum] = pertAbsorption(alpha, 
     %derivative of lineshape dg/dr
     dg1_dr = (g1(ind_r_hi,:,:) - g1(ind_r_lo,:,:)) ./(Range.rangeBin*Options.oversample); %[none] Derivative over oversamped range
     %dg1_dr = interp1(Range.rm(ind_r_lo),dg1_dr,Range.rm,'nearest',nan);         %[none] Make dg/dr the same size as g
-    dg1_dr(ind_r_hi(end),:,:) = dg1_dr(ind_r_hi(end-1),:,:);
+   dg1_dr(ind_r_hi(end),:,:) = dg1_dr(ind_r_hi(end-1),:,:);
+
+%     for iii = 1:length(Spectrum.lambda_scan_3D_short)
+%         dg1_dr1(:,:,iii) = interp2(Time.ts,Range.rm(ind_r_lo)+Range.rangeBin./2,dg1_dr(:,:,iii),Time.ts,Range.rm);
+%         dg1_dr1(:,:,iii) = fillmissing(dg1_dr1(:,:,iii),'nearest');
+%     end
+%     dg1_dr = dg1_dr1;
+% 
+%     %first order central derivative
+    dg1 = zeros(size(g1));
+    dg1(1,:,:) = (g1(2,:,:)-g1(1,:,:))./Range.rangeBin;
+    for iii = 2:length(Range.rm)-1
+        dg1(iii,:,:) = (g1(iii+1,:,:)-g1(iii-1,:,:))/2/Range.rangeBin;
+    end
+    dg1(end,:,:) = (g1(end,:,:)-g1(end-1,:,:))./Range.rangeBin;
+
+    dg1_dr = dg1;
+
 
 % % %     for iii = 1:size(dg1_dr,1)-1
 % % %         dg1_dr_err(iii,:,:) = sqrt(g1_err(iii,:,:).^2+g1_err(iii+1,:,:).^2)./(Range.rangeBin*Options.oversample);
@@ -144,7 +164,7 @@ function [alpha_final,alpha_1_raw,alpha_2_raw,Spectrum] = pertAbsorption(alpha, 
     clear g1 dg1_dr
     % Integrated terms
     % Online
-   % zeta_int = trapz(zeta.*Tm0,3)*Spectrum.nuBin*100;              %[none]
+    zeta_int = trapz(zeta.*Tm0,3);              %[none]
     %eta_int = trapz(eta.*Tm0,3)*Spectrum.nuBin*100;                %[1/m]
     %zeta_ls_int = trapz(zeta.*Tm0.*(1-absorption_f),3)*Spectrum.nuBin*100;    %[none]
     % Offline
@@ -153,7 +173,8 @@ function [alpha_final,alpha_1_raw,alpha_2_raw,Spectrum] = pertAbsorption(alpha, 
 
     % === First Order ===
    % W1 = zeta_ls_int./zeta_int;                 %[none]
-    W1 = trapz(zeta.*Tm0.*(1-absorption_f),3)./trapz(zeta.*Tm0,3);                 %[none]
+    %W1 = trapz(zeta.*Tm0.*(1-absorption_f),3)./trapz(zeta.*Tm0,3);                 %[none]
+    W1 = trapz(zeta.*Tm0.*(1-absorption_f),3)./zeta_int;                 %[none]
 
 % % %     W1insidenum_err = abs(zeta.*Tm0.*(1-absorption_f)) .* sqrt((zeta_err./zeta).^2+(Tm0_err./Tm0).^2+(absorption_f_err./(1-absorption_f)).^2);
 % % %     W1insideden_err = abs(zeta.*Tm0) .* sqrt((zeta_err./zeta).^2+(Tm0_err./Tm0).^2);
@@ -208,7 +229,8 @@ function [alpha_final,alpha_1_raw,alpha_2_raw,Spectrum] = pertAbsorption(alpha, 
 
     %alpha_1_raw = 0.5.*(alpha.*W1 + G1);      %[1/m]
 
-    alpha_1_raw = 0.5.*(alpha.*W1 +  trapz(eta.*Tm0,3)./trapz(zeta.*Tm0,3) - trapz(eta,3)./trapz(zeta,3));      %[1/m]
+   % alpha_1_raw = 0.5.*(alpha.*W1 +  trapz(eta.*Tm0,3)./trapz(zeta.*Tm0,3) - trapz(eta,3)./trapz(zeta,3));      %[1/m]
+    alpha_1_raw = 0.5.*(alpha.*W1 +  trapz(eta.*Tm0,3)./zeta_int - trapz(eta,3)./trapz(zeta,3));      %[1/m]
 
 % % %     alpha_1_raw_err = sqrt((W1_err.*0.5.*alpha).^2+(alpha_err.*0.5.*W1).^2 + (G1_err.*0.5).^2);
     % --- First Order Transmission Tm1 ---
@@ -225,8 +247,10 @@ function [alpha_final,alpha_1_raw,alpha_2_raw,Spectrum] = pertAbsorption(alpha, 
 %     W2 = (zeta_ls_int.*zeta_ls_Tm1_int./(zeta_int.^2)) - (zeta_ls_Tm1_int./zeta_int);   %[none]
 %     G2 = (eta_int.*zeta_Tm1_int./(zeta_int.^2)) - (eta_Tm1_int./zeta_int);              %[1/m]
 
-    W2 = ((trapz(zeta.*Tm0.*(1-absorption_f),3)*Spectrum.nuBin*100).*zeta_ls_Tm1_int./((trapz(zeta.*Tm0,3)*Spectrum.nuBin*100).^2)) - (zeta_ls_Tm1_int./(trapz(zeta.*Tm0,3)*Spectrum.nuBin*100));   %[none]
-    G2 = ((trapz(eta.*Tm0,3)*Spectrum.nuBin*100).*zeta_Tm1_int./((trapz(zeta.*Tm0,3)*Spectrum.nuBin*100).^2)) - (eta_Tm1_int./(trapz(zeta.*Tm0,3)*Spectrum.nuBin*100));              %[1/m]
+   % W2 = ((trapz(zeta.*Tm0.*(1-absorption_f),3)*Spectrum.nuBin*100).*zeta_ls_Tm1_int./((trapz(zeta.*Tm0,3)*Spectrum.nuBin*100).^2)) - (zeta_ls_Tm1_int./(trapz(zeta.*Tm0,3)*Spectrum.nuBin*100));   %[none]
+        W2 = ((trapz(zeta.*Tm0.*(1-absorption_f),3)*Spectrum.nuBin*100).*zeta_ls_Tm1_int./((zeta_int*Spectrum.nuBin*100).^2)) - (zeta_ls_Tm1_int./(zeta_int*Spectrum.nuBin*100));   %[none]
+    %G2 = ((trapz(eta.*Tm0,3)*Spectrum.nuBin*100).*zeta_Tm1_int./((trapz(zeta.*Tm0,3)*Spectrum.nuBin*100).^2)) - (eta_Tm1_int./(trapz(zeta.*Tm0,3)*Spectrum.nuBin*100));              %[1/m]
+    G2 = ((trapz(eta.*Tm0,3)*Spectrum.nuBin*100).*zeta_Tm1_int./((zeta_int*Spectrum.nuBin*100).^2)) - (eta_Tm1_int./(zeta_int*Spectrum.nuBin*100));              %[1/m]
 
     alpha_2_raw = 0.5.*(alpha_1_raw.*W1 + alpha.*W2 + G2);    %[1/m]
     

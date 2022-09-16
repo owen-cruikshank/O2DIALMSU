@@ -32,7 +32,11 @@ function plot_O2(p_point,sonde_index,~,Sonde,Model,Counts,Range,Time,~,Temperatu
 figure(9985)
 %semilogy(datenum(Time.date_ts),Counts.bg_o2off,'-',datenum(Time.date_ts),Counts.bg_o2on,datenum(Time.date_ts),Counts.bg_o2off_mol,datenum(Time.date_ts),Counts.bg_o2on_mol,datenum(Time.date_ts),Counts.bg_wvon,datenum(Time.date_ts),Counts.bg_wvoff,datenum(Time.date_ts([p_point(1) p_point(end)])),[1 100])
 semilogy(Time.date_ts,Counts.bg_o2off,'-',Time.date_ts,Counts.bg_o2on,Time.date_ts,Counts.bg_o2off_mol,Time.date_ts,Counts.bg_o2on_mol,Time.date_ts,Counts.bg_wvon,Time.date_ts,Counts.bg_wvoff,Time.date_ts([p_point(1) p_point(end)]),[1 100])
-
+hold on
+for i = 1:size(Sonde.sonde_ind,2)
+    semilogy([Time.date_ts(:,Sonde.sonde_ind(1,i)) Time.date_ts(:,Sonde.sonde_ind(end,i))],[1 10^3],'k')
+end
+hold off
 %timeAxis(Format,Time)
 title('Background')
 xlabel('Time UTC hr')
@@ -273,7 +277,8 @@ figure(4)
 %alpha = Alpha.alpha_0;
 %alpha(cloud_SDm_above)=nan;
 %plot(diag(alpha(:,p_point)),Range.rkm)
-plot(diag(Alpha.alpha_0s(:,p_point)),Range.rkm,'LineWidth',2)
+%plot(diag(Alpha.alpha_0s(:,p_point)),Range.rkm,'LineWidth',2)
+plot(diag(Alpha.alpha_0(:,p_point)),Range.rkm,'LineWidth',2)
 hold on
 plot(diag(Alpha.alpha_totalm(:,p_point)),Range.rkm,'LineWidth',2)
 plot(Sonde.absorption_sonde{sonde_index},Range.rkm,'.-')
@@ -1154,6 +1159,7 @@ subplot(1,3,1)
 hist11 = zeros(1,size(Sonde.sonde_ind,2)*(size(Sonde.sonde_ind,1)-sondeCut));
 int = 1;
 ModelTm = Model.T;
+ModelTm = -6.5/1000.*Range.rm+Model.Ts;
 ModelTm(cloud_SDm_above) = NaN;          % Replace mask with NaNs
 for ii = 1:size(Sonde.sonde_ind,2)
     for jj = sondeCut:size(Sonde.sonde_ind,1)
@@ -1172,8 +1178,8 @@ subplot(1,3,2)
 %hist11 = zeros(1,size(Sonde.sonde_ind,2)*(size(Sonde.sonde_ind,1)-sondeCut));
 hist11 = nan(1,size(Sonde.sonde_ind,2)*(size(Sonde.sonde_ind,1)-sondeCut));
 int = 1;
-ModelTm = Model.T;
-ModelTm(cloud_SDm_above) = NaN;          % Replace mask with NaNs
+% ModelTm = Model.T;
+% ModelTm(cloud_SDm_above) = NaN;          % Replace mask with NaNs
 for ii = 1:size(Sonde.sonde_ind,2)
     if Counts.bg_o2off_mol(1,Sonde.sonde_ind(1,ii))>10
     for jj = sondeCut:size(Sonde.sonde_ind,1)
@@ -1193,8 +1199,8 @@ subplot(1,3,3)
 %hist11 = zeros(1,size(Sonde.sonde_ind,2)*(size(Sonde.sonde_ind,1)-sondeCut));
 hist11 = nan(1,size(Sonde.sonde_ind,2)*(size(Sonde.sonde_ind,1)-sondeCut));
 int = 1;
-ModelTm = Model.T;
-ModelTm(cloud_SDm_above) = NaN;          % Replace mask with NaNs
+% ModelTm = Model.T;
+% ModelTm(cloud_SDm_above) = NaN;          % Replace mask with NaNs
 for ii = 1:size(Sonde.sonde_ind,2)
     if Counts.bg_o2off_mol(1,Sonde.sonde_ind(1,ii))<=10
     for jj = sondeCut:size(Sonde.sonde_ind,1)
@@ -1360,9 +1366,9 @@ hold on
 plot(Range.rm,diag(Counts.o2off(:,p_point)))
 plot(Range.rm,diag(Counts.o2on_mol(:,p_point)))
 plot(Range.rm,diag(Counts.o2off_mol(:,p_point)))
+plot(Range.rm,diag(Counts.o2off_mol(:,p_point)))
 plot(Range.rm,diag(Counts.wvon(:,p_point)),'--')
 plot(Range.rm,diag(Counts.wvoff(:,p_point)),'--')
-plot(Range.rm,diag(Counts.o2off_mol(:,p_point)))
 %plot(Range.rm,diag(Counts.delta(:,p_point)),'.-')
 %plot(Range.rm,diag(Counts.deltaModel(:,p_point)),'.-')
 %plot(Range.rm,diag(Counts.o2on(:,p_point)-Counts.delta(:,p_point)),'--')
@@ -1620,7 +1626,7 @@ ylabel('alpha 0')
 
 %==sonde and DIAL differnces
 figure(883469)
-subplot(1,3,1)
+%subplot(1,3,1)
 tempComparison = nan(Range.i_range,size(Sonde.sonde_ind,2));
 for jj = 1:size(Sonde.sonde_ind,2)
     if jj==12
@@ -1670,12 +1676,115 @@ xlabel('\DeltaT MPD-Sonde (^oC)')
 ylabel('Range (km)')
 grid on
 
-subplot(1,3,2)
+% subplot(1,3,2)
+% tempComparison = nan(Range.i_range,size(Sonde.sonde_ind,2));
+% for jj = 1:size(Sonde.sonde_ind,2)
+%     if jj==12
+%     elseif Counts.bg_o2off_mol(1,Sonde.sonde_ind(1,jj))>10
+%     tempComparison(:,jj) = diag(Temperature.T_finalm(:,Sonde.sonde_ind(:,jj)))-Sonde.T_sonde(:,jj);
+%     end
+% end
+% if ~isempty(Sonde.sonde_ind)
+%  meanTemp = mean(tempComparison,2,'omitnan');
+%  stdTemp = std(tempComparison,0,2,'omitnan');
+% else
+%     meanTemp = nan;
+%     stdTemp = nan;
+% end
+% tempProb = zeros(Range.i_range,121);
+% for ii = 1:size(Sonde.sonde_ind,2)
+%     if ii==12
+%     elseif Counts.bg_o2off_mol(1,Sonde.sonde_ind(1,ii))>10
+%     for i = 1:Range.i_range
+%         for j = -60:60
+%             tempDiff = Temperature.T_finalm(i,Sonde.sonde_ind(i,ii))-Sonde.T_sonde(i,ii);
+%             tempProb(i,j+61) = tempProb(i,j+61) + double((tempDiff<j+1)&&(tempDiff>=j));
+%         end
+%     end
+%     end
+% end
+% tempProb(tempProb==0)=nan;
+% imAlpha=ones(size(tempProb));
+% imAlpha(isnan(tempProb))=0;%Set AlphaData to not plot NaNs
+% imagesc(-60:60,Range.rkm,tempProb,'AlphaData',imAlpha)
+% hold on
+% plot(meanTemp,Range.rkm,'b','linewidth',2)
+% plot(meanTemp+stdTemp,Range.rkm,'--k')
+% plot(meanTemp-stdTemp,Range.rkm,'--k')
+% colormap(flipud(hot))%colormap hot
+% set(gca,'Color','#D3D3D3')
+% a = colorbar;
+% a.Label.String = 'Occurrences';
+% xline(0)
+% xline(-2)
+% xline(2)
+% hold off
+% ylim([0 4])
+% xlim([-20 20])
+% set(gca, 'YDir','normal')
+% xlabel('\DeltaT MPD-Sonde (^oC)')
+% ylabel('Range (km)')
+% grid on
+% 
+% subplot(1,3,3)
+% tempComparison = nan(Range.i_range,size(Sonde.sonde_ind,2));
+% for jj = 1:size(Sonde.sonde_ind,2)
+%     if jj==12
+%     elseif Counts.bg_o2off_mol(1,Sonde.sonde_ind(1,jj))<=10
+%     tempComparison(:,jj) = diag(Temperature.T_finalm(:,Sonde.sonde_ind(:,jj)))-Sonde.T_sonde(:,jj);
+%     end
+% end
+% if ~isempty(Sonde.sonde_ind)
+%  meanTemp = mean(tempComparison,2,'omitnan');
+%  stdTemp = std(tempComparison,0,2,'omitnan');
+% else
+%     meanTemp = nan;
+%     stdTemp = nan;
+% end
+% tempProb = zeros(Range.i_range,121);
+% for ii = 1:size(Sonde.sonde_ind,2)
+%     if ii==12
+%     elseif Counts.bg_o2off_mol(1,Sonde.sonde_ind(1,ii))<=10
+%     for i = 1:Range.i_range
+%         for j = -60:60
+%             tempDiff = Temperature.T_finalm(i,Sonde.sonde_ind(i,ii))-Sonde.T_sonde(i,ii);
+%             tempProb(i,j+61) = tempProb(i,j+61) + double((tempDiff<j+1)&&(tempDiff>=j));
+%         end
+%     end
+%     end
+% end
+% tempProb(tempProb==0)=nan;
+% imAlpha=ones(size(tempProb));
+% imAlpha(isnan(tempProb))=0;%Set AlphaData to not plot NaNs
+% imagesc(-60:60,Range.rkm,tempProb,'AlphaData',imAlpha)
+% hold on
+% plot(meanTemp,Range.rkm,'b','linewidth',2)
+% plot(meanTemp+stdTemp,Range.rkm,'--k')
+% plot(meanTemp-stdTemp,Range.rkm,'--k')
+% colormap(flipud(hot))%colormap hot
+% set(gca,'Color','#D3D3D3')
+% a = colorbar;
+% a.Label.String = 'Occurrences';
+% xline(0)
+% xline(-2)
+% xline(2)
+% hold off
+% ylim([0 4])
+% xlim([-20 20])
+% set(gca, 'YDir','normal')
+% xlabel('\DeltaT MPD-Sonde (^oC)')
+% ylabel('Range (km)')
+% grid on
+
+
+
+figure(88346999)
+%subplot(1,3,1)
 tempComparison = nan(Range.i_range,size(Sonde.sonde_ind,2));
 for jj = 1:size(Sonde.sonde_ind,2)
     if jj==12
-    elseif Counts.bg_o2off_mol(1,Sonde.sonde_ind(1,jj))>10
-    tempComparison(:,jj) = diag(Temperature.T_finalm(:,Sonde.sonde_ind(:,jj)))-Sonde.T_sonde(:,jj);
+    else
+    tempComparison(:,jj) = (diag(Temperature.T_finalm(:,Sonde.sonde_ind(:,jj)))-Sonde.T_sonde(:,jj))./Sonde.T_sonde(:,jj)*100;
     end
 end
 if ~isempty(Sonde.sonde_ind)
@@ -1688,10 +1797,10 @@ end
 tempProb = zeros(Range.i_range,121);
 for ii = 1:size(Sonde.sonde_ind,2)
     if ii==12
-    elseif Counts.bg_o2off_mol(1,Sonde.sonde_ind(1,ii))>10
+    else
     for i = 1:Range.i_range
         for j = -60:60
-            tempDiff = Temperature.T_finalm(i,Sonde.sonde_ind(i,ii))-Sonde.T_sonde(i,ii);
+            tempDiff = (Temperature.T_finalm(i,Sonde.sonde_ind(i,ii))-Sonde.T_sonde(i,ii))./Sonde.T_sonde(i,ii)*100;
             tempProb(i,j+61) = tempProb(i,j+61) + double((tempDiff<j+1)&&(tempDiff>=j));
         end
     end
@@ -1716,16 +1825,31 @@ hold off
 ylim([0 4])
 xlim([-20 20])
 set(gca, 'YDir','normal')
-xlabel('\DeltaT MPD-Sonde (^oC)')
+xlabel('\DeltaT MPD-Sonde (%)')
 ylabel('Range (km)')
 grid on
 
-subplot(1,3,3)
+figure(2345)
+plot(Temperature.TempStd(:,p_point(1)),Range.rkm)
+hold on
+plot(Temperature.TempStds(:,p_point(1)),Range.rkm)
+plot(stdTemp,Range.rkm)
+hold off
+xlabel('errest')
+    ylabel('Range (km)')
+    legend('Temperature std', 'Temp std smooth','MDP-Sonde std')
+    grid on
+    
+
+
+figure(8883469)
+factor = 1e6;
+factor = 1;
 tempComparison = nan(Range.i_range,size(Sonde.sonde_ind,2));
 for jj = 1:size(Sonde.sonde_ind,2)
     if jj==12
-    elseif Counts.bg_o2off_mol(1,Sonde.sonde_ind(1,jj))<=10
-    tempComparison(:,jj) = diag(Temperature.T_finalm(:,Sonde.sonde_ind(:,jj)))-Sonde.T_sonde(:,jj);
+    else
+    tempComparison(:,jj) = (diag(Alpha.alpha_totalm(:,Sonde.sonde_ind(:,jj)))-Sonde.absorption_sonde{jj})./Sonde.absorption_sonde{jj}*100;
     end
 end
 if ~isempty(Sonde.sonde_ind)
@@ -1738,11 +1862,11 @@ end
 tempProb = zeros(Range.i_range,121);
 for ii = 1:size(Sonde.sonde_ind,2)
     if ii==12
-    elseif Counts.bg_o2off_mol(1,Sonde.sonde_ind(1,ii))<=10
+    else
     for i = 1:Range.i_range
         for j = -60:60
-            tempDiff = Temperature.T_finalm(i,Sonde.sonde_ind(i,ii))-Sonde.T_sonde(i,ii);
-            tempProb(i,j+61) = tempProb(i,j+61) + double((tempDiff<j+1)&&(tempDiff>=j));
+            tempDiff = (Alpha.alpha_totalm(i,Sonde.sonde_ind(i,ii))-Sonde.absorption_sonde{ii}(i))./Sonde.absorption_sonde{ii}(i)*100;
+            tempProb(i,j+61) = tempProb(i,j+61) + double((tempDiff<j+1)&&(tempDiff>=j))/factor;
         end
     end
     end
@@ -1752,9 +1876,9 @@ imAlpha=ones(size(tempProb));
 imAlpha(isnan(tempProb))=0;%Set AlphaData to not plot NaNs
 imagesc(-60:60,Range.rkm,tempProb,'AlphaData',imAlpha)
 hold on
-plot(meanTemp,Range.rkm,'b','linewidth',2)
-plot(meanTemp+stdTemp,Range.rkm,'--k')
-plot(meanTemp-stdTemp,Range.rkm,'--k')
+plot((meanTemp)*factor,Range.rkm,'b','linewidth',2)
+plot((meanTemp+stdTemp)*factor,Range.rkm,'--k')
+plot((meanTemp-stdTemp)*factor,Range.rkm,'--k')
 colormap(flipud(hot))%colormap hot
 set(gca,'Color','#D3D3D3')
 a = colorbar;
@@ -1764,11 +1888,91 @@ xline(-2)
 xline(2)
 hold off
 ylim([0 4])
-xlim([-20 20])
+%xlim([-20 20])
 set(gca, 'YDir','normal')
-xlabel('\DeltaT MPD-Sonde (^oC)')
+xlabel('\Delta a MPD-Sonde (%)')
 ylabel('Range (km)')
 grid on
+
+% figure(888346999)
+% factor = 1e6;
+% factor = 1;
+% tempComparison = nan(Range.i_range,size(Sonde.sonde_ind,2));
+% for jj = 1:size(Sonde.sonde_ind,2)
+%     if jj==12
+%     else
+%     tempComparison(:,jj) = (diag(Alpha.alphatotals(:,Sonde.sonde_ind(:,jj)))-Sonde.absorption_sonde{jj})./Sonde.absorption_sonde{jj}*100;
+%     %tempComparison(:,jj) = (diag(Alpha.alphatotals(:,Sonde.sonde_ind(:,jj)))-Sonde.absorption_sonde{jj});
+%     end
+% end
+% if ~isempty(Sonde.sonde_ind)
+%  meanTemp = mean(tempComparison,2,'omitnan');
+%  stdTemp = std(tempComparison,0,2,'omitnan');
+% else
+%     meanTemp = nan;
+%     stdTemp = nan;
+% end
+% tempProb = zeros(Range.i_range,121);
+% for ii = 1:size(Sonde.sonde_ind,2)
+%     if ii==12
+%     else
+%     for i = 1:Range.i_range
+%         for j = -60:60
+%             tempDiff = (Alpha.alpha_totalm(i,Sonde.sonde_ind(i,ii))-Sonde.absorption_sonde{ii}(i))./Sonde.absorption_sonde{ii}(i)*100;
+%            % tempDiff = (Alpha.alpha_totalm(i,Sonde.sonde_ind(i,ii))-Sonde.absorption_sonde{ii}(i));
+%             tempProb(i,j+61) = tempProb(i,j+61) + double((tempDiff<j+1)&&(tempDiff>=j))/factor;
+%         end
+%     end
+%     end
+% end
+% tempProb(tempProb==0)=nan;
+% imAlpha=ones(size(tempProb));
+% imAlpha(isnan(tempProb))=0;%Set AlphaData to not plot NaNs
+% imagesc(-60:60,Range.rkm,tempProb,'AlphaData',imAlpha)
+% hold on
+% plot((meanTemp)*factor,Range.rkm,'b','linewidth',2)
+% plot((meanTemp+stdTemp)*factor,Range.rkm,'--k')
+% plot((meanTemp-stdTemp)*factor,Range.rkm,'--k')
+% colormap(flipud(hot))%colormap hot
+% set(gca,'Color','#D3D3D3')
+% a = colorbar;
+% a.Label.String = 'Occurrences';
+% xline(0)
+% xline(-2)
+% xline(2)
+% hold off
+% ylim([0 4])
+% %xlim([-20 20])
+% set(gca, 'YDir','normal')
+% xlabel('\Delta a MPD-Sonde (%)')
+% ylabel('Range (km)')
+% grid on
+
+figure(777)
+tempComparison = nan(Range.i_range,size(Sonde.sonde_ind,2));
+for jj = 1:size(Sonde.sonde_ind,2)
+    if jj==12
+    else
+    tempComparison(:,jj) = diag(Alpha.alpha_totalm(:,Sonde.sonde_ind(:,jj)))-Sonde.absorption_sonde{jj};
+    end
+end
+if ~isempty(Sonde.sonde_ind)
+ meanTemp = mean(tempComparison,2,'omitnan');
+ stdTemp = std(tempComparison,0,2,'omitnan');
+else
+    meanTemp = nan;
+    stdTemp = nan;
+end
+plot(stdTemp,Range.rkm)
+hold on
+plot(Alpha.alpha_0_err(:,p_point(1)),Range.rkm)
+plot(Alpha.alpha_total_err(:,p_point(1)),Range.rkm)
+plot(Alpha.alpha_total_errs(:,p_point(1)),Range.rkm)
+plot(std(Alpha.alpha_total_rawf(:,p_point(1),:),0,3),Range.rkm)
+hold off
+legend('Sonde-alpha std','alpha 0 err','total err','total alpha err smooth')
+xlabel('absorption diff (1/m)')
+ylabel('Range km')
 
 
 %==sonde dial and model differnces
@@ -2271,6 +2475,21 @@ legend('Mean')
 % hold off
 % grid on
 % xlim([-.05 .05])
+
+
+figure
+errorbar(diag(Temperature.T_finalm(:,p_point))-273,Range.rkm,diag(Temperature.TempStds(:,p_point)))
+errorbar(Range.rkm,diag(Temperature.T_finalm(:,p_point))-273,diag(Temperature.TempStds(:,p_point)))
+hold on
+plot(Range.rkm,Sonde.T_sonde(:,sonde_index)-273)
+xlabel('Range (km)')
+ylabel('Temperature (^oC)')
+legend('T_{MPD}','T_{radiosonde}')
+title(sprintf(['Temperature\n' datestr(Time.date_ts(p_point(1)))]))
+xlim([0 4])
+view([90 -90])
+grid on
+
 
 end
 

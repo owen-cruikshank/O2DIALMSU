@@ -41,7 +41,7 @@ h = 6.62607004E-34;                     %[Js] Planck's constant
 
 T0 = 296;                   %[K] reference temperature
 
-loop = 17;%number of times to do iterative temperature retrieval loop
+%loop = 17;%number of times to do iterative temperature retrieval loop
 
 loop = 25;
 
@@ -145,8 +145,10 @@ for i = 1:loop
     
     % === Pressure Profile ===
 
-    Pg = Ps.*(Ts_fit(1,1,i)./(Ts_fit(1,1,i)+Lapse(:,:,i).*rm)).^(gamma./Lapse(:,:,i));
+    %Pg = Ps.*(Ts_fit(1,1,i)./(Ts_fit(1,1,i)+Lapse(:,:,i).*rm)).^(gamma./Lapse(:,:,i));
+    Pg = Ps.*(Ts_fit(1,:,i)./(Ts_fit(1,:,i)+Lapse(:,:,i).*rm)).^(gamma./Lapse(:,:,i));
    % Pg = Ps.*(Ts_fit(1,1,i)./Tg).^(gamma./Lapse(:,:,i));
+   %Pg = Ps.*(Ts./(Ts+starting_lapse_rate.*rm)).^(gamma./starting_lapse_rate);
 
     %calculate air number density
     n_L = Pg .* 101325 / kB ./ Tg;          %[1/m^3] Loschmidt's number; with pressure converted to Pa
@@ -154,8 +156,8 @@ for i = 1:loop
     q = q_O2 .* (1 - q_WV);
 
     %update lineshape function
-    [~,~,~,Line] = absorption_O2_770_model(Tg,Pg,nu_scan,WV);%[m] lineshape function 
-    
+    [~,~,~,Line] = absorption_O2_770_model(Tg,Pg,nu_scan,WV);%[m] lineshape function
+
     %Calculate Coefficients
     epa = Line{1}.E_lower*h*c; %J
     C1a = Line{1}.S0 * T0 * (Pg*101325) * exp(epa/kB/T0) ./ kB;%[K^2/(m^2)]pressure converted to Pa
@@ -165,18 +167,21 @@ for i = 1:loop
     C1b = Line{2}.S0 * T0 * (Pg*101325) * exp(epb/kB/T0) ./ kB;%[K^2/(m^2)]pressure converted to Pa
     C2b = Tg .^ (-2) .* exp(-epb/kB./Tg);%[K^-2]
     C3b = (-2) ./ Tg + epb./(kB.*Tg.^2);%[K^-1]
-    epc = Line{3}.E_lower*h*c;
-    C1c = Line{3}.S0 * T0 * (Pg*101325) * exp(epc/kB/T0) ./ kB;%[K^2/(m^2)]pressure converted to Pa
-    C2c = Tg .^ ( -2) .* exp(-epc/kB./Tg);%[K^-2]
-    C3c = (-2) ./ Tg + epc./(kB.*Tg.^2);%[K^-1]
-    epd = Line{4}.E_lower*h*c;
-    C1d = Line{4}.S0 * T0 * (Pg*101325) * exp(epd/kB/T0) ./ kB;%[K^2/(m^2)]pressure converted to Pa
-    C2d = Tg .^ (-2) .* exp(-epd/kB./Tg);%[K^-2]
-    C3d = (-2) ./ Tg + epd./(kB.*Tg.^2);%[K^-1]
+%     epc = Line{3}.E_lower*h*c;
+%     C1c = Line{3}.S0 * T0 * (Pg*101325) * exp(epc/kB/T0) ./ kB;%[K^2/(m^2)]pressure converted to Pa
+%     C2c = Tg .^ ( -2) .* exp(-epc/kB./Tg);%[K^-2]
+%     C3c = (-2) ./ Tg + epc./(kB.*Tg.^2);%[K^-1]
+%     epd = Line{4}.E_lower*h*c;
+%     C1d = Line{4}.S0 * T0 * (Pg*101325) * exp(epd/kB/T0) ./ kB;%[K^2/(m^2)]pressure converted to Pa
+%     C2d = Tg .^ (-2) .* exp(-epd/kB./Tg);%[K^-2]
+%     C3d = (-2) ./ Tg + epd./(kB.*Tg.^2);%[K^-1]
 
     %Calculate change in temperature from last
-    deltaT(:,:,i) = (alpha_O2 - C1a.*C2a.*Line{1}.lineshape.*q - C1b.*C2b.*Line{2}.lineshape.*q- C1c.*C2c.*Line{3}.lineshape.*q- C1d.*C2d.*Line{4}.lineshape.*q) ... 
-       ./(C1a.*C2a.*C3a.*Line{1}.lineshape.*q+C1b.*C2b.*C3b.*Line{2}.lineshape.*q+C1c.*C2c.*C3c.*Line{3}.lineshape.*q+C1d.*C2d.*C3d.*Line{4}.lineshape.*q); %[K] calculate a change in temperatre
+%    deltaT(:,:,i) = (alpha_O2 - C1a.*C2a.*Line{1}.lineshape.*q - C1b.*C2b.*Line{2}.lineshape.*q- C1c.*C2c.*Line{3}.lineshape.*q- C1d.*C2d.*Line{4}.lineshape.*q) ... 
+%        ./(C1a.*C2a.*C3a.*Line{1}.lineshape.*q+C1b.*C2b.*C3b.*Line{2}.lineshape.*q+C1c.*C2c.*C3c.*Line{3}.lineshape.*q+C1d.*C2d.*C3d.*Line{4}.lineshape.*q); %[K] calculate a change in temperatre
+        deltaT(:,:,i) = (alpha_O2 - C1a.*C2a.*Line{1}.lineshape.*q - C1b.*C2b.*Line{2}.lineshape.*q) ... 
+       ./(C1a.*C2a.*C3a.*Line{1}.lineshape.*q+C1b.*C2b.*C3b.*Line{2}.lineshape.*q); %[K] calculate a change in temperatre
+    
     %%%deltaT(:,:,i) = (alpha_O2 - C1b.*C2b.*Line{2}.lineshape.*q)./(C1b.*C2b.*C3b.*Line{2}.lineshape.*q); %[K] calculate a change in temperatre
 
     % Limit deltaT to plus or minus 2 K
@@ -199,9 +204,10 @@ for i = 1:loop
 % %         
 % %     end
     % Update temperature profile guress
-    T_ret(:,:,i) = Tg + deltaT(:,:,i);            
+    T_ret(:,:,i) = Tg + deltaT(:,:,i);  
+    %Tg = T_ret(:,:,i);
     Tg = fillmissing(T_ret(:,:,i),'nearest',1);
-    Tg = fillmissing(Tg,'nearest',2);
+    %Tg = fillmissing(Tg,'nearest',2);
     
     %Fill data points above cloud and snr mask with lapse rate values
     tempT = Ts_fit(:,:,i) + rm.* Lapse(:,:,i);
@@ -213,7 +219,8 @@ end
 fprintf('\n')
 % Final temperature and pressure
 T_final = Tg;
-P_final = Ps.*(Ts_fit(1,1,end)./(Ts_fit(1,1,end)+Lapse(:,:,end).*rm)).^(gamma./Lapse(:,:,end));
+%P_final = Ps.*(Ts_fit(1,1,end)./(Ts_fit(1,1,end)+Lapse(:,:,end).*rm)).^(gamma./Lapse(:,:,end));
+P_final = Pg;
 %P_final = Ps.*(Ts_fit(1,1,end)./T_final).^(gamma./Lapse(:,:,end));
 
 exclusion = exclusion(:,:,end);

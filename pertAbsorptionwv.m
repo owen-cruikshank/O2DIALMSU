@@ -4,7 +4,7 @@
 
 % function [alpha_1, alpha_2,Spectrum] = pertAbsorptionwv(alpha_0, T_etalon, T, P, rm,ts,rkm,m_air, nu_online, nu_scanwv_3D_short,nuBin,BSR,ind_r_lo,ind_r_hi,WV,online_index,i_range,i_time,i_scan_3D_short,rangeBin,oversample,t_avg,c,kb,altitude,Spectrum)
 %     function [alpha_1, alpha_2,Spectrum] = pertAbsorptionwv(alpha_0, T_etalon,Model, Range, Time,Constant,Spectrum, nu_online, nu_scanwv_3D_short,nuBin,BSR,ind_r_lo,ind_r_hi,WV,online_index,i_range,i_time,i_scan_3D_short,rangeBin,oversample,t_avg,c,kb,altitude,Spectrum)
- function [alpha_1, alpha_2,Spectrum] = pertAbsorptionwv(alpha_0, T_etalon, Model, Range, Time, Spectrum, HSRL, ind_r_lo,ind_r_hi, Options, Constant, altitude)
+ function [alpha_1, alpha_2,Spectrum] = pertAbsorptionwv(alpha_0, T_etalon, Model, Range, Time, Spectrum, BSR828, ind_r_lo,ind_r_hi, Options, Constant, altitude)
     % --- Spectral distribution using the initial temperature profile guess ---
 
     cB = -0.01*(Range.rkm+altitude) + 1.2;%Brullouin correction for 1.2 at 0km and 1.1 at 10km
@@ -46,10 +46,10 @@
     %%
   
     % --- Backscatter Lineshape g ---
-    g1_m = 1./HSRL.BSR828 .* doppler_O2_ret ;%.*nuBin*100;                         %[m] Molecular backscatter lineshape
+    g1_m = 1./BSR828 .* doppler_O2_ret ;%.*nuBin*100;                         %[m] Molecular backscatter lineshape
     g1_a = zeros(Range.i_range,Time.i_time,size(Spectrum.nu_scanwv_3D_short,3));                       % Initalize aerosol lineshape
     for i = 1:Time.i_time
-        g1_a(:,i,Spectrum.online_indexwv(i)) = (1 - 1./HSRL.BSR828(:,i))/ Spectrum.nuBin / 100 ; %[m] aerosol backscatter lineshape
+        g1_a(:,i,Spectrum.online_indexwv(i)) = (1 - 1./BSR828(:,i))/ Spectrum.nuBin / 100 ; %[m] aerosol backscatter lineshape
     end
     g1 = g1_a + g1_m;                                                   %[m] Combined backscatter lineshape
     %g1_check = trapz(g1,3).*nuBin*100;                                %[none] Check if integral of g1 is normalized to 1
